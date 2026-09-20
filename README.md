@@ -2,7 +2,15 @@
 
 A live sales-call assistant. It listens to the conversation, sends it to TypeSafe Jev after every sentence, and shows the rep what to do next with a confidence score.
 
+## Demo Screen
+<img width="2552" height="1348" alt="Screenshot 2026-09-20 165639" src="https://github.com/user-attachments/assets/b1d3768f-ae61-45a7-a68b-644367ef24ab" />
+
+## Pop-Up Windows from Call Coach.bat
+<img width="300" height="450" alt="image" src="https://github.com/user-attachments/assets/c40f18ea-9617-4546-b1bb-f3d4d23fb62d" />
+
+
 ## What you need
+
 
 - Node.js 18 or newer (no packages to install)
 - A TypeSafe API key
