@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Call Coach</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #edf0f4; --surface: #ffffff; --ink: #172033; --muted: #5e6a80; --faint: #8a94a7; --line: #d5dbe5;
+  --cobalt: #2743c9; --on-cobalt: #ffffff; --stop: #b8322a; --warn: #a86c07;
+  --s0: #7d889c; --s1: #4b5fd1; --s2: #0f7f8c; --s3: #178049;
+  /* Overlay cards. The overlay floats over whatever is behind it, so
+     it carries its own surface tokens rather than the page's. */
+  --card-bg: rgba(255,255,255,0.93); --card-line: rgba(0,0,0,0.10);
+  --card-ink: #172033; --card-dim: rgba(23,32,51,0.68); --card-mute: rgba(23,32,51,0.45);
+  --card-well: rgba(0,0,0,0.08); --card-well-2: rgba(0,0,0,0.05);
+  --card-hover: rgba(0,0,0,0.12); --card-edge: rgba(0,0,0,0.16);
+  --card-shadow: 0 2px 16px rgba(0,0,0,0.16); --card-shadow-live: 0 2px 22px rgba(0,0,0,0.22);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
+    --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a;
+    --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
+    --card-bg: rgba(14,18,30,0.88); --card-line: rgba(255,255,255,0.08);
+    --card-ink: #e7ebf2; --card-dim: rgba(255,255,255,0.70); --card-mute: rgba(255,255,255,0.45);
+    --card-well: rgba(255,255,255,0.10); --card-well-2: rgba(255,255,255,0.06);
+    --card-hover: rgba(255,255,255,0.14); --card-edge: rgba(255,255,255,0.20);
+    --card-shadow: 0 2px 16px rgba(0,0,0,0.40); --card-shadow-live: 0 2px 20px rgba(0,0,0,0.50);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
+  --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a;
+  --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
+  --card-bg: rgba(14,18,30,0.88); --card-line: rgba(255,255,255,0.08);
+  --card-ink: #e7ebf2; --card-dim: rgba(255,255,255,0.70); --card-mute: rgba(255,255,255,0.45);
+  --card-well: rgba(255,255,255,0.10); --card-well-2: rgba(255,255,255,0.06);
+  --card-hover: rgba(255,255,255,0.14); --card-edge: rgba(255,255,255,0.20);
+  --card-shadow: 0 2px 16px rgba(0,0,0,0.40); --card-shadow-live: 0 2px 20px rgba(0,0,0,0.50);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--paper); color: var(--ink);
+  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+  font-size: 16px; line-height: 1.45; font-variant-numeric: tabular-nums;
+}
+button, input { font: inherit; color: inherit; }
+button, summary { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; border-radius: 6px; }
+[hidden] { display: none !important; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Top bar ---------- */
+.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px clamp(16px, 3vw, 32px); background: var(--surface); border-bottom: 1px solid var(--line); }
+.brand { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; margin-right: auto; }
+.speaker { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--paper); }
+.speaker button { border: none; background: transparent; border-radius: 999px; padding: 7px 14px; font-weight: 500; color: var(--muted); }
+.speaker button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.mic { display: inline-flex; align-items: center; gap: 10px; border: none; border-radius: 999px; padding: 10px 20px 10px 14px; background: var(--cobalt); color: var(--on-cobalt); font-weight: 600; }
+.mic .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; }
+.mic[aria-pressed="true"] { background: var(--stop); color: #fff; }
+.mic[aria-pressed="true"] .dot { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(0.55); opacity: 0.6; } }
+.ghost { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 14px; font-weight: 500; }
+.ghost:hover { background: var(--paper); }
+.ghost:disabled { opacity: 0.5; cursor: default; }
+.capture { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 0.88rem; }
+.capture:hover { background: var(--paper); }
+.capture .cap-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; }
+.capture[aria-pressed="true"] { border-color: var(--stop); }
+.capture[aria-pressed="true"] .cap-dot { background: var(--stop); animation: pulse 1.2s ease-in-out infinite; }
+.capture[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--stop) 8%, transparent); }
+
+/* ---------- Main ---------- */
+main {
+  --stage: var(--s0);
+  flex: 1; width: min(1000px, 100%); margin: 0 auto;
+  padding: clamp(20px, 4vh, 44px) clamp(16px, 3vw, 32px) 32px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.notice { border: 1px solid var(--warn); border-radius: 10px; padding: 12px 14px; background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.notice code { background: var(--paper); padding: 1px 5px; border-radius: 4px; }
+
+/* ========== HERO: buying stage + gauge (primary) ========== */
+.hero {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(20px, 3vw, 32px) clamp(22px, 4vw, 40px) clamp(22px, 4vw, 36px);
+  transition: box-shadow 0.5s;
+}
+.hero[data-state="live"] {
+  box-shadow: 0 6px 36px -8px color-mix(in srgb, var(--stage) 18%, transparent);
+}
+
+.hero-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.hero-kicker {
+  margin: 0 0 4px;
+  color: var(--faint);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Arc gauge */
+.gauge-wrap {
+  position: relative;
+  width: clamp(170px, 34vw, 280px);
+  margin: 0 auto 4px;
+}
+.gauge { display: block; width: 100%; height: auto; }
+.gauge-bg, .gauge-fill {
+  fill: none;
+  stroke-width: 14;
+  stroke-linecap: round;
+  transform: rotate(150deg);
+  transform-origin: 100px 100px;
+}
+.gauge-bg {
+  stroke: color-mix(in srgb, var(--stage) 15%, var(--paper));
+  transition: stroke 0.4s;
+}
+.gauge-fill {
+  stroke: var(--stage);
+  transition: stroke 0.4s, opacity 0.3s;
+}
+.hero[data-state="idle"] .gauge-bg { stroke: color-mix(in srgb, var(--faint) 12%, var(--paper)); }
+.hero[data-state="idle"] .gauge-fill { opacity: 0; }
+
+.gauge-value {
+  position: absolute;
+  top: 54%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+.score-num {
+  font-size: clamp(3rem, 7.5vw, 5rem);
+  line-height: 0.9;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--stage);
+  transition: color 0.4s;
+}
+.hero[data-state="idle"] .score-num { color: var(--faint); }
+.score-sub {
+  color: var(--muted);
+  font-size: clamp(0.72rem, 1.5vw, 0.88rem);
+  margin-top: 2px;
+}
+
+.stage-name {
+  margin: 0;
+  text-wrap: balance;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.hero[data-state="idle"] .stage-name { color: var(--faint); }
+
+.conf-pill {
+  display: inline-block;
+  margin-top: 8px;
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1.5px solid var(--stage);
+  color: var(--ink);
+}
+.conf-pill[data-level="high"] { background: color-mix(in srgb, var(--stage) 16%, transparent); }
+.conf-pill[data-level="low"] { border-style: dashed; color: var(--muted); }
+
+.trend { margin: 8px 0 0; font-weight: 600; min-height: 1.45em; }
+.trend.up { color: var(--s3); }
+.trend.down { color: var(--warn); }
+.trend .arrow { display: inline-block; margin-right: 6px; font-size: 0.8em; }
+
+/* Stage track bar */
+.track { position: relative; margin-top: clamp(20px, 3vw, 30px); display: grid; grid-template-columns: var(--cols); gap: 4px; height: 16px; }
+.seg { position: relative; overflow: hidden; border-radius: 5px; background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+.seg:first-child { border-radius: 8px 5px 5px 8px; }
+.seg:last-child { border-radius: 5px 8px 8px 5px; }
+.seg i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--c); transition: width 0.55s cubic-bezier(.2,.8,.2,1); }
+.seg:nth-child(1) { --c: var(--s0); } .seg:nth-child(2) { --c: var(--s1); } .seg:nth-child(3) { --c: var(--s2); } .seg:nth-child(4) { --c: var(--s3); }
+.spread {
+  position: absolute; top: -7px; bottom: -7px; left: 0; width: 0; pointer-events: none; opacity: 0; border-radius: 10px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--stage) 30%, transparent) 50%, transparent);
+  transition: left 0.55s cubic-bezier(.2,.8,.2,1), width 0.55s, opacity 0.3s;
+}
+.marker {
+  position: absolute; top: -8px; bottom: -8px; width: 6px; margin-left: -3px; left: 0; border-radius: 5px; opacity: 0;
+  background: var(--ink); box-shadow: 0 0 0 2.5px var(--surface);
+  transition: left 0.55s cubic-bezier(.2,.8,.2,1), opacity 0.3s;
+}
+.stage-labels { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: var(--cols); gap: 4px; }
+.stage-labels li { color: var(--faint); font-size: 0.88rem; padding-right: 6px; min-width: 0; }
+.stage-labels li.past { color: var(--muted); }
+.stage-labels li[aria-current="step"] { color: var(--ink); font-weight: 700; }
+.stage-count { display: none; }
+
+.hero.moved .stage-name { animation: arrive 0.45s ease-out; }
+@keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ========== NEXT STEP: secondary ========== */
+.next {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 20px 16px 26px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 20px;
+  align-items: start;
+}
+.next::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 5px;
+  background: var(--line);
+  transition: background 0.3s;
+}
+.next[data-status="act"]::before { background: var(--stage); }
+
+.next-kicker { margin: 0; color: var(--muted); font-weight: 500; font-size: 0.88rem; }
+.next-title { margin: 2px 0 0; font-size: clamp(1.15rem, 2.6vw, 1.5rem); font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
+.next[data-status="listen"] .next-title, .next[data-status="idle"] .next-title { color: var(--muted); }
+.next-note { margin: 4px 0 0; color: var(--muted); font-size: 0.88rem; }
+.next-conf { text-align: right; color: var(--muted); font-size: 0.85rem; padding-top: 4px; }
+.next-conf b { display: block; font-size: 1.2rem; color: var(--muted); line-height: 1.1; font-weight: 700; }
+.next-conf .bar-mini { width: 80px; height: 4px; border-radius: 99px; background: var(--line); margin: 5px 0 0 auto; overflow: hidden; }
+.next-conf .bar-mini i { display: block; height: 100%; width: 0; background: var(--muted); border-radius: 99px; transition: width 0.4s; }
+.next-body { grid-column: 1 / -1; margin-top: 6px; }
+.tip-main { margin: 0; font-size: 0.95rem; padding-left: 12px; border-left: 2.5px solid var(--line); color: var(--muted); }
+.next[data-status="act"] .tip-main { color: var(--ink); }
+.more { margin-top: 8px; }
+.more summary { color: var(--muted); font-size: 0.86rem; font-weight: 600; width: fit-content; }
+.more ul { margin: 6px 0 0; padding-left: 17px; color: var(--ink); font-size: 0.93rem; }
+.more li { margin: 3px 0; }
+.next-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.done { border: 1.5px solid var(--ink); background: transparent; border-radius: 999px; padding: 7px 16px; font-weight: 600; font-size: 0.9rem; }
+.done:hover { background: var(--ink); color: var(--surface); }
+.done kbd { font: inherit; font-size: 0.8em; color: var(--muted); margin-left: 6px; }
+.done:hover kbd { color: inherit; opacity: 0.7; }
+.done-msg { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.next.changed .next-title { animation: arrive 0.4s ease-out; }
+
+/* ---------- Bottom strip ---------- */
+.strip { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 12px clamp(16px, 3vw, 32px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 360px); gap: 10px 20px; align-items: center; }
+.heard { margin: 0; display: flex; gap: 10px; align-items: baseline; min-width: 0; color: var(--muted); }
+.heard .led { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); align-self: center; }
+.heard.live .led { background: var(--stop); animation: pulse 1.2s infinite; }
+.heard.busy .led { background: var(--cobalt); animation: pulse 0.8s infinite; }
+.heard .who { flex: none; font-weight: 700; color: var(--ink); font-size: 0.9rem; }
+.heard .text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.heard .text.interim { font-style: italic; }
+.type-row { display: flex; gap: 8px; }
+.type-row input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; background: var(--paper); }
+.type-row input:focus-visible { border-radius: 999px; outline-offset: 1px; }
+.type-row button { border: none; border-radius: 999px; padding: 8px 16px; background: var(--ink); color: var(--surface); font-weight: 600; }
+.error { grid-column: 1 / -1; margin: 0; color: var(--stop); font-size: 0.93rem; }
+
+@media (max-width: 640px) {
+  .gauge-wrap { width: clamp(150px, 44vw, 200px); }
+  .stage-name { font-size: clamp(1.3rem, 5vw, 1.8rem); }
+  .stage-labels { display: block; }
+  .stage-labels li:not([aria-current="step"]) { display: none; }
+  .stage-count { display: block; margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
+  .trend { margin-top: 6px; }
+  .next { grid-template-columns: 1fr; padding-left: 22px; }
+  .next-conf { text-align: left; }
+  .next-conf .bar-mini { margin-left: 0; }
+  .strip { grid-template-columns: 1fr; }
+}
+/* PiP / overlay compact mode — transparent between cards, opaque cards */
+main.pip {
+  padding: 6px 8px 8px; gap: 8px;
+  background: transparent;
+}
+main.pip .notice { display: none; }
+main.pip .hero {
+  padding: 10px 14px; border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: none;
+}
+main.pip .hero[data-state="live"] { box-shadow: var(--card-shadow-live); }
+main.pip .gauge-wrap { width: clamp(80px, 40vw, 180px); margin-bottom: 0; }
+main.pip .gauge-bg { stroke: var(--card-well); }
+main.pip .hero-kicker { margin-bottom: 0; color: var(--card-mute); }
+main.pip .stage-name { font-size: clamp(0.9rem, 4vw, 1.3rem); color: var(--card-ink); }
+main.pip .track { margin-top: 12px; }
+main.pip .stage-labels { display: none; }
+main.pip .stage-count { display: block; margin: 4px 0 0; color: var(--card-mute); font-size: 0.8rem; }
+main.pip .next {
+  padding: 8px 10px 8px 16px; border-radius: 12px; grid-template-columns: 1fr;
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: none;
+}
+main.pip .next::before { background: var(--card-well); }
+main.pip .next[data-status="act"]::before { background: var(--stage); }
+main.pip .next-title { font-size: 1rem; color: var(--card-ink); }
+main.pip .next-conf { text-align: left; }
+main.pip .next-conf .bar-mini { margin-left: 0; background: var(--card-well); }
+main.pip .tip-main { font-size: 0.85rem; border-left-color: var(--card-edge); color: var(--card-dim); }
+main.pip .done { font-size: 0.82rem; padding: 5px 12px; border-color: var(--card-edge); color: var(--card-ink); }
+main.pip .done:hover { background: var(--card-well); }
+main.pip .seg { background: var(--card-well); }
+main.pip .conf-pill { border-color: var(--card-edge); color: var(--card-ink); }
+main.pip .score-num { color: var(--stage); }
+main.pip .next-kicker { color: var(--card-mute); }
+
+/* Overlay mode (Electron transparent window) */
+body.overlay { background: transparent !important; overflow: hidden; }
+body.overlay header.bar, body.overlay footer.strip { display: none !important; }
+body.card-hero .next { display: none !important; }
+body.card-next .hero { display: none !important; }
+body.card-next main.pip { -webkit-app-region: drag; }
+body.card-next main.pip button,
+body.card-next main.pip details,
+body.card-next main.pip summary { -webkit-app-region: no-drag; }
+
+.overlay-bar {
+  -webkit-app-region: drag;
+  display: flex; align-items: center;
+  padding: 5px 10px; gap: 6px;
+  background: transparent;
+  color: var(--card-mute);
+  font-size: 0.72rem; font-weight: 600;
+  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+}
+.overlay-brand { flex: 1; letter-spacing: -0.01em; }
+.overlay-btn {
+  -webkit-app-region: no-drag;
+  border: none; background: var(--card-well-2);
+  color: var(--card-mute);
+  border-radius: 5px; width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; cursor: pointer; padding: 0; line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+.overlay-btn:hover { background: var(--card-hover); color: var(--card-ink); }
+.overlay-rec .rec-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--card-mute);
+  transition: background 0.2s;
+}
+.overlay-rec[aria-pressed="true"] .rec-dot { background: #f07167; animation: pulse 1.2s infinite; }
+.overlay-err {
+  padding: 0 10px 4px;
+  color: #f07167; font-size: 0.72rem; font-weight: 500;
+  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before { animation: none !important; transition: none !important; }
+}
+</style>
+<script>
+/* Theme resolves before first paint to avoid a flash. Light is the
+   product default; the OS preference only applies if the user has
+   actively chosen "system". */
+(function () {
+  var KEY = "cc-theme";
+  var t;
+  try { t = localStorage.getItem(KEY); } catch (e) {}
+  if (t === "system") {
+    t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
+})();
+</script>
+</head>
+<body>
+
+<div class="overlay-bar" id="overlayBar" hidden>
+  <span class="overlay-brand">Call Coach</span>
+  <button class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" hidden><span class="rec-dot"></span></button>
+  <button class="overlay-btn" id="overlayClear" title="Clear call">&#8635;</button>
+  <button class="overlay-btn" id="overlayTheme" title="Light / dark">&#9681;</button>
+  <button class="overlay-btn" id="overlayDash" title="Dashboard">&#9638;</button>
+  <button class="overlay-btn" id="overlayMin" title="Minimize">&#8211;</button>
+  <button class="overlay-btn" id="overlayClose" title="Close">&times;</button>
+</div>
+<p class="overlay-err" id="overlayErr" hidden></p>
+
+<header class="bar">
+  <div class="brand">Call Coach</div>
+  <div class="speaker" role="group" aria-label="Who is speaking">
+    <button type="button" data-speaker="customer" aria-pressed="true">Customer speaking</button>
+    <button type="button" data-speaker="rep" aria-pressed="false">I'm speaking</button>
+  </div>
+  <button type="button" class="mic" id="mic" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span id="micLabel">Start listening</span></button>
+  <button type="button" class="capture" id="capture" aria-pressed="false" hidden><span class="cap-dot" aria-hidden="true"></span><span id="captureLabel">Capture call</span></button>
+  <button type="button" class="ghost" id="sample">Play sample call</button>
+  <button type="button" class="ghost" id="reset">Clear call</button>
+  <button type="button" class="ghost" id="themeBtn" title="Light / dark">Dark mode</button>
+  <button type="button" class="ghost" id="pipBtn" hidden>Pop out</button>
+</header>
+
+<main>
+  <div class="notice" id="setup" hidden>The server has no API key yet. Stop it and restart with <code>TYPESAFE_API_KEY=your_key node server.mjs</code>.</div>
+
+  <section class="hero" id="hero" data-state="idle" aria-labelledby="stageName">
+    <div class="hero-center">
+      <p class="hero-kicker">Buying stage</p>
+      <div class="gauge-wrap">
+        <svg class="gauge" viewBox="0 0 200 150" aria-hidden="true">
+          <circle class="gauge-bg" cx="100" cy="100" r="76"
+            stroke-dasharray="318.35 159.17"
+            transform="rotate(150 100 100)" />
+          <circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="76"
+            stroke-dasharray="0 477.52"
+            transform="rotate(150 100 100)" />
+        </svg>
+        <div class="gauge-value">
+          <div class="score-num" id="scoreNum" aria-describedby="scoreHelp">&ndash;</div>
+          <div class="score-sub" id="scoreHelp">of 100</div>
+        </div>
+      </div>
+      <h1 class="stage-name" id="stageName">Waiting for the customer</h1>
+      <span class="conf-pill" id="confPill" hidden></span>
+      <p class="trend" id="trend"></p>
+    </div>
+    <div class="track" id="track" role="img" aria-label="No buying stage yet">
+      <span class="seg"><i></i></span><span class="seg"><i></i></span><span class="seg"><i></i></span><span class="seg"><i></i></span>
+      <span class="spread" id="spread"></span>
+      <span class="marker" id="marker"></span>
+    </div>
+    <ol class="stage-labels" id="stageLabels"></ol>
+    <p class="stage-count" id="stageCount"></p>
+  </section>
+
+  <section class="next" id="next" data-status="idle" aria-labelledby="nextTitle">
+    <div>
+      <p class="next-kicker" id="nextKicker">Suggested action</p>
+      <h2 class="next-title" id="nextTitle">Start the conversation</h2>
+      <p class="next-note" id="nextNote" hidden></p>
+    </div>
+    <div class="next-conf" id="nextConf" hidden><b id="nextPct">&ndash;</b>confidence<div class="bar-mini"><i id="nextBar"></i></div></div>
+    <div class="next-body">
+      <p class="tip-main" id="tipMain">Press Start listening, or type what the customer says below. Press S to switch who's speaking.</p>
+      <details class="more" id="more" hidden><summary id="moreLabel">More tips</summary><ul id="moreList"></ul></details>
+    </div>
+    <div class="next-actions" id="nextActions" hidden>
+      <button type="button" class="done" id="done">Mark done<kbd aria-hidden="true">D</kbd></button>
+      <p class="done-msg" id="doneMsg" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="visually-hidden" id="announce" aria-live="polite"></p>
+</main>
+
+<footer class="strip">
+  <p class="heard" id="heard"><span class="led" aria-hidden="true"></span><span class="who" id="heardWho">Heard</span><span class="text" id="heardText">Nothing yet</span></p>
+  <form class="type-row" id="typeForm">
+    <input id="typeIn" autocomplete="off" aria-label="Add a line to the conversation" placeholder="Type what the customer said">
+    <button type="submit">Add</button>
+  </form>
+  <p class="error" id="error" role="alert" hidden></p>
+</footer>
+
+<script type="module">
+import { decide, trackStage, createMemory, markDone, DEFAULT_CONFIG } from "/decide.js";
+import { PLAYBOOK } from "/playbook.js";
+
+let pipWin = null;
+const $ = (id) => document.getElementById(id) || pipWin?.document.getElementById(id) || null;
+const mainEl = document.querySelector("main");
+const STAGES = PLAYBOOK.stages;
+const N = STAGES.length;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const GAUGE_R = 76;
+const GAUGE_CIRC = 2 * Math.PI * GAUGE_R;
+const GAUGE_ARC = GAUGE_CIRC * (240 / 360);
+
+const app = {
+  turns: [], speaker: "customer", listening: false,
+  inFlight: false, pending: false, timer: null, sampleId: 0,
+  memory: createMemory(), result: null, shownScore: null, lastSignals: null
+};
+
+const _qp = new URLSearchParams(location.search);
+const isOverlay = _qp.has("overlay");
+const overlayCard = _qp.get("card");
+const overlayChannel = isOverlay ? new BroadcastChannel("call-coach-sync") : null;
+
+/* ---------- Theme ----------
+   Light is the default. The choice is shared across every window
+   (overlay cards, dashboard, pop-out) over its own channel, so the
+   two cards never end up disagreeing. */
+const THEME_KEY = "cc-theme";
+const themeChannel = new BroadcastChannel("call-coach-theme");
+
+function getTheme() {
+  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+}
+function setTheme(t, broadcast = true) {
+  t = t === "dark" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem(THEME_KEY, t); } catch {}
+  const btn = document.getElementById("themeBtn");
+  if (btn) btn.textContent = t === "dark" ? "Light mode" : "Dark mode";
+  if (pipWin) {
+    try {
+      pipWin.document.documentElement.setAttribute("data-theme", t);
+      pipWin.document.documentElement.style.colorScheme = t;
+    } catch {}
+  }
+  if (broadcast) themeChannel.postMessage({ theme: t });
+}
+themeChannel.onmessage = (e) => { if (e.data && e.data.theme) setTheme(e.data.theme, false); };
+
+/* ---------- Hero ---------- */
+$("stageLabels").replaceChildren(...STAGES.map((s) => Object.assign(document.createElement("li"), { textContent: s })));
+
+const MAX = N - 1;
+const RANGES = STAGES.map((_, i) => [Math.max(0, (i - 0.5) / MAX), Math.min(1, (i + 0.5) / MAX)]);
+mainEl.style.setProperty("--cols", RANGES.map(([a, b]) => `${(b - a) * 2 * MAX}fr`).join(" "));
+
+function setGauge(score) {
+  const fill = GAUGE_ARC * (score / 100);
+  const gf = $("gaugeFill");
+  gf.style.strokeDasharray = `${fill} ${GAUGE_CIRC}`;
+  gf.style.opacity = score > 0 ? "1" : "0";
+}
+
+function countTo(el, to) {
+  const from = app.shownScore ?? 0;
+  app.shownScore = to;
+  if (reduceMotion || from === to) { el.textContent = to; setGauge(to); return; }
+  const start = performance.now(), dur = 500;
+  const step = (t) => {
+    const k = Math.min(1, (t - start) / dur), eased = 1 - (1 - k) ** 3;
+    const v = from + (to - from) * eased;
+    el.textContent = Math.round(v);
+    setGauge(v);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function renderStageIdle() {
+  const hero = $("hero");
+  hero.dataset.state = "idle";
+  mainEl.style.setProperty("--stage", "var(--s0)");
+  $("stageName").textContent = "Waiting for the customer";
+  $("trend").textContent = ""; $("trend").className = "trend";
+  $("scoreNum").textContent = "–"; app.shownScore = null;
+  setGauge(0);
+  $("confPill").hidden = true;
+  document.querySelectorAll(".seg i").forEach((i) => (i.style.width = "0"));
+  $("marker").style.opacity = "0"; $("spread").style.opacity = "0";
+  [...$("stageLabels").children].forEach((li) => { li.removeAttribute("aria-current"); li.className = ""; });
+  $("stageCount").textContent = "";
+  $("track").setAttribute("aria-label", "No buying stage yet");
+}
+
+function renderStage(st) {
+  const hero = $("hero");
+  hero.dataset.state = "live";
+  mainEl.style.setProperty("--stage", `var(--s${st.level})`);
+
+  $("stageName").textContent = st.label;
+  countTo($("scoreNum"), st.buyingScore);
+
+  const pill = $("confPill");
+  pill.hidden = !st.confidenceLabel;
+  pill.textContent = st.confidenceLabel || "";
+  pill.dataset.level = (st.confidenceLabel || "").split(" ")[0].toLowerCase();
+
+  const x = st.position / MAX;
+  document.querySelectorAll(".seg i").forEach((el, i) => {
+    const [a, b] = RANGES[i];
+    el.style.width = `${Math.max(0, Math.min(1, (x - a) / (b - a))) * 100}%`;
+  });
+  $("marker").style.left = `${x * 100}%`;
+  $("marker").style.opacity = "1";
+
+  const w = Math.min(1, (2 * st.spread) / MAX);
+  const left = Math.max(0, Math.min(1 - w, x - w / 2));
+  $("spread").style.left = `${left * 100}%`;
+  $("spread").style.width = `${w * 100}%`;
+  $("spread").style.opacity = w > 0.02 ? "1" : "0";
+
+  [...$("stageLabels").children].forEach((li, i) => {
+    li.className = i < st.level ? "past" : "";
+    if (i === st.level) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+  });
+  $("stageCount").textContent = `Stage ${st.level + 1} of ${N}`;
+  $("track").setAttribute("aria-label", `Stage ${st.level + 1} of ${N}: ${st.label}`);
+
+  const trend = $("trend");
+  if (st.trend) {
+    trend.className = `trend ${st.trend}`;
+    trend.innerHTML = `<span class="arrow" aria-hidden="true">${st.trend === "up" ? "▲" : "▼"}</span>`;
+    trend.append(`Moved ${st.trend} from ${st.from}`);
+  } else { trend.className = "trend"; trend.textContent = ""; }
+
+  if (st.changed) {
+    hero.classList.remove("moved"); void hero.offsetWidth; hero.classList.add("moved");
+  }
+}
+
+/* ---------- Next step ---------- */
+function renderNextIdle() {
+  const next = $("next");
+  next.dataset.status = "idle";
+  $("nextKicker").textContent = "Suggested action";
+  $("nextTitle").textContent = "Start the conversation";
+  $("nextNote").hidden = true;
+  $("nextConf").hidden = true;
+  $("tipMain").textContent = "Press Start listening, or type what the customer says below. Press S to switch who's speaking.";
+  $("more").hidden = true;
+  $("nextActions").hidden = true;
+}
+
+function renderNext(r, animate) {
+  const next = $("next");
+  const acting = r.status === "act";
+  next.dataset.status = r.status;
+  $("nextTitle").textContent = acting ? r.title : "Keep listening";
+
+  const note = r.note || (!acting && r.leaningTitle ? `Best guess so far: ${r.leaningTitle} (${Math.round(r.score * 100)}%)` : "");
+  $("nextNote").textContent = note;
+  $("nextNote").hidden = !note;
+
+  $("nextConf").hidden = !acting;
+  if (acting) {
+    const pct = Math.round(r.score * 100);
+    $("nextPct").textContent = `${pct}%`;
+    $("nextBar").style.width = `${pct}%`;
+  }
+
+  const [first, ...rest] = r.tips;
+  $("tipMain").textContent = first || "";
+  $("more").hidden = rest.length === 0;
+  $("moreLabel").textContent = rest.length === 1 ? "1 more tip" : `${rest.length} more tips`;
+  $("moreList").replaceChildren(...rest.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
+  $("nextActions").hidden = !acting;
+
+  if (acting && r.changed && animate) {
+    next.classList.remove("changed"); void next.offsetWidth; next.classList.add("changed");
+  }
+}
+
+/* ---------- Status ---------- */
+function showHeard(text, speaker, interim = false) {
+  $("heardWho").textContent = speaker === "rep" ? "You" : "Customer";
+  $("heardText").textContent = text ? `"${text}"` : "Nothing yet";
+  $("heardText").classList.toggle("interim", interim);
+}
+function setActivity() { $("heard").className = "heard" + (app.inFlight ? " busy" : app.listening ? " live" : ""); }
+function showError(msg) {
+  $("error").textContent = msg || ""; $("error").hidden = !msg;
+  const oe = document.getElementById("overlayErr");
+  if (oe) { oe.textContent = msg || ""; oe.hidden = !msg; }
+}
+
+/* ---------- Jev + local logic ---------- */
+function activeDone() {
+  const now = Date.now();
+  return Object.entries(app.memory.done).filter(([, until]) => until > now).map(([k]) => k);
+}
+function scheduleEvaluate() { clearTimeout(app.timer); app.timer = setTimeout(evaluate, 350); }
+
+async function evaluate() {
+  if (!app.turns.some((t) => t.speaker === "customer")) return;
+  if (app.inFlight) { app.pending = true; return; }
+  app.inFlight = true; setActivity();
+  const sampleId = app.sampleId;
+  try {
+    const res = await fetch("/api/evaluate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ turns: app.turns, completed: activeDone() })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `The server returned status ${res.status}.`);
+    if (sampleId !== app.sampleId) return;
+    showError("");
+
+    const stage = trackStage(data.answers.buying_stage, app.memory.stage, STAGES);
+    app.result = decide(data.answers, PLAYBOOK, app.memory);
+    if (stage) renderStage(stage);
+    renderNext(app.result, !stage?.changed);
+
+    if (overlayChannel) {
+      overlayChannel.postMessage({
+        type: "update",
+        result: app.result,
+        stageLevel: stage?.level ?? app.memory.stage.level ?? 0,
+      });
+      if (data.answers) {
+        const sig = {};
+        for (const k of ["asked_about_pricing","mentions_timeline","discusses_budget","decision_maker_involved","uses_ownership_language","has_blocking_objection","is_returning_prospect"]) {
+          if (data.answers[k] != null) sig[k] = data.answers[k];
+        }
+        app.lastSignals = sig;
+        overlayChannel.postMessage({ type: "signals", signals: sig });
+      }
+      if (stage?.changed) {
+        overlayChannel.postMessage({
+          type: "stage",
+          label: stage.label,
+          from: stage.from || null,
+          trend: stage.trend || null,
+        });
+      }
+    }
+
+    const parts = [];
+    if (stage?.changed) parts.push(`Buying stage: ${stage.label}${stage.from ? `, moved ${stage.trend} from ${stage.from}` : ""}. Score ${stage.buyingScore}.`);
+    if (app.result.status === "act" && app.result.changed) parts.push(`Next step: ${app.result.title}.`);
+    if (parts.length) $("announce").textContent = parts.join(" ");
+  } catch (err) {
+    showError(err instanceof TypeError ? "Can't reach the local server. Check that node server.mjs is still running." : err.message);
+  } finally {
+    app.inFlight = false; setActivity();
+    if (app.pending) { app.pending = false; evaluate(); }
+  }
+}
+
+function addTurn(text, { speaker = app.speaker, merge = false } = {}) {
+  text = text.trim();
+  if (!text) return;
+  const prev = app.turns[app.turns.length - 1];
+  if (merge && prev && prev.merge && prev.speaker === speaker && Date.now() - prev.at < 15000) { prev.text += " " + text; prev.at = Date.now(); }
+  else app.turns.push({ speaker, text, at: Date.now(), merge });
+  showHeard(text, speaker);
+  if (overlayChannel) overlayChannel.postMessage({ type: "turn", speaker, text });
+  scheduleEvaluate();
+}
+
+function markCurrentDone() {
+  const r = app.result;
+  if (!r || r.status !== "act") return;
+
+  if (overlayCard === "next" && overlayChannel) {
+    overlayChannel.postMessage({ type: "markDone", action: r.action });
+    $("doneMsg").textContent = `Marked "${r.title}" done.`;
+    clearTimeout(markCurrentDone.t);
+    markCurrentDone.t = setTimeout(() => ($("doneMsg").textContent = ""), 5000);
+    return;
+  }
+
+  markDone(app.memory, r.action);
+  const mins = Math.round(DEFAULT_CONFIG.doneCooldownMs / 60000);
+  $("doneMsg").textContent = `Marked "${r.title}" done. It's hidden for ${mins} minutes.`;
+  clearTimeout(markCurrentDone.t);
+  markCurrentDone.t = setTimeout(() => ($("doneMsg").textContent = ""), 5000);
+  evaluate();
+}
+
+/* ---------- Voice ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+if (SR) {
+  rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = navigator.language || "en-US";
+  rec.onresult = (e) => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) addTurn(r[0].transcript, { merge: true });
+      else interim += r[0].transcript;
+    }
+    if (interim) showHeard(interim, app.speaker, true);
+  };
+  rec.onerror = (e) => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      stopListening();
+      showError("Microphone access is blocked. Allow it from the icon in the address bar, then press Start listening again.");
+    } else if (e.error === "network") {
+      showError("Speech recognition lost its connection. It will retry while listening is on.");
+    }
+  };
+  rec.onend = () => { if (app.listening) { try { rec.start(); } catch {} } };
+}
+function startListening() {
+  if (!rec) { showError("This browser can't transcribe speech. Use Chrome or Edge for voice, or type what the customer says."); return; }
+  showError("");
+  app.listening = true;
+  try { rec.start(); } catch {}
+  $("mic").setAttribute("aria-pressed", "true"); $("micLabel").textContent = "Stop listening";
+  setActivity();
+}
+function stopListening() {
+  app.listening = false;
+  try { rec && rec.stop(); } catch {}
+  $("mic").setAttribute("aria-pressed", "false"); $("micLabel").textContent = "Start listening";
+  setActivity();
+}
+
+/* ---------- Picture-in-Picture overlay ---------- */
+async function openPiP() {
+  if (pipWin) return;
+  try {
+    pipWin = await documentPictureInPicture.requestWindow({ width: 340, height: 520 });
+  } catch (err) { showError("Pop-out isn't available: " + err.message); return; }
+  const pd = pipWin.document;
+  document.querySelectorAll('link[rel="preconnect"], link[href*="fonts"]').forEach((l) => pd.head.appendChild(l.cloneNode(true)));
+  document.querySelectorAll("style").forEach((s) => pd.head.appendChild(s.cloneNode(true)));
+  var hostTheme = document.documentElement.getAttribute("data-theme") || "light";
+  pd.documentElement.setAttribute("data-theme", hostTheme);
+  Object.assign(pd.documentElement.style, { background: "transparent", margin: "0", padding: "0", height: "100%", colorScheme: hostTheme });
+  Object.assign(pd.body.style, { margin: "0", padding: "0", background: "transparent", height: "100%", overflow: "hidden", fontFamily: '"Schibsted Grotesk","Helvetica Neue",Arial,system-ui,sans-serif' });
+  mainEl.classList.add("pip");
+  pd.body.appendChild(mainEl);
+  document.getElementById("pipBtn").textContent = "Pop in";
+  pipWin.addEventListener("pagehide", () => { if (pipWin) closePiP(); });
+}
+function closePiP() {
+  if (!pipWin) return;
+  const win = pipWin;
+  pipWin = null;
+  try { const m = win.document.querySelector("main"); if (m) { m.classList.remove("pip"); document.querySelector("header").after(m); } } catch {}
+  document.getElementById("pipBtn").textContent = "Pop out";
+  try { win.close(); } catch {}
+}
+
+/* ---------- Zoom capture ---------- */
+let capturing = false;
+let captureStream = null;
+let captureCtx = null;
+
+const CHUNK_SEC = 3;
+const SAMPLE_RATE = 16000;
+const CHUNK_SAMPLES = SAMPLE_RATE * CHUNK_SEC;
+
+const HALLUCINATIONS = new Set([
+  "you", "thank you", "thanks for watching", "subscribe",
+  "bye", "the end", "thanks for listening",
+]);
+
+function isHallucination(text) {
+  const lower = text.toLowerCase().replace(/[.!?,\s]+/g, " ").trim();
+  if (HALLUCINATIONS.has(lower)) return true;
+  const words = lower.split(" ");
+  if (words.length <= 3 && words.every((w) => w === words[0])) return true;
+  return false;
+}
+
+function rms(samples) {
+  let sum = 0;
+  for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+  return Math.sqrt(sum / samples.length);
+}
+
+async function sendPCM(pcm) {
+  try {
+    const res = await fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: pcm.buffer });
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+    const text = data.text?.trim();
+    if (text && !isHallucination(text)) addTurn(text, { speaker: "customer", merge: true });
+  } catch (err) { console.error("Transcription error:", err); }
+}
+
+const WORKLET_CODE = `
+class ChunkProcessor extends AudioWorkletProcessor {
+  constructor() { super(); this.buf = []; this.len = 0; this.target = ${CHUNK_SAMPLES}; }
+  process(inputs) {
+    const ch = inputs[0]?.[0];
+    if (!ch) return true;
+    this.buf.push(new Float32Array(ch));
+    this.len += ch.length;
+    if (this.len >= this.target) {
+      const out = new Float32Array(this.len);
+      let off = 0;
+      for (const b of this.buf) { out.set(b, off); off += b.length; }
+      this.port.postMessage(out, [out.buffer]);
+      this.buf = []; this.len = 0;
+    }
+    return true;
+  }
+}
+registerProcessor("chunk-proc", ChunkProcessor);
+`;
+
+async function getElectronStream() {
+  const sources = await window.overlay.getSources();
+  const source = sources.find((s) => s.id.startsWith("screen:")) || sources[0];
+  if (!source) throw new Error("No capture sources found.");
+  return navigator.mediaDevices.getUserMedia({
+    audio: {
+      mandatory: {
+        chromeMediaSource: "desktop",
+        chromeMediaSourceId: source.id,
+      },
+      optional: [
+        { echoCancellation: false },
+        { noiseSuppression: false },
+        { autoGainControl: false },
+      ],
+    },
+    video: {
+      mandatory: {
+        chromeMediaSource: "desktop",
+        chromeMediaSourceId: source.id,
+        minWidth: 1,
+        maxWidth: 1,
+        minHeight: 1,
+        maxHeight: 1,
+      },
+    },
+  });
+}
+
+async function startCapture() {
+  try {
+    let stream;
+    if (window.overlay?.getSources) {
+      stream = await getElectronStream();
+    } else {
+      stream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
+    }
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      showError("No audio captured. Make sure to check \"Share audio\" when selecting the tab or screen.");
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    captureStream = stream;
+    capturing = true;
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) videoTrack.onended = () => stopCapture();
+
+    const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
+    captureCtx = ctx;
+    const src = ctx.createMediaStreamSource(new MediaStream(audioTracks));
+    const blob = new Blob([WORKLET_CODE], { type: "application/javascript" });
+    const url = URL.createObjectURL(blob);
+    await ctx.audioWorklet.addModule(url);
+    URL.revokeObjectURL(url);
+    const node = new AudioWorkletNode(ctx, "chunk-proc");
+    node.port.onmessage = (e) => {
+      if (!capturing) return;
+      const pcm = e.data;
+      if (rms(pcm) >= 0.005) sendPCM(pcm);
+    };
+    src.connect(node).connect(ctx.destination);
+
+    $("capture").setAttribute("aria-pressed", "true");
+    $("captureLabel").textContent = "Stop capture";
+    if (app.listening) stopListening();
+    $("mic").disabled = true;
+    const orec = document.getElementById("overlayRec");
+    if (orec) orec.setAttribute("aria-pressed", "true");
+    showError("");
+  } catch (err) {
+    if (err.name !== "NotAllowedError") showError("Capture failed: " + err.message);
+    stopCapture();
+  }
+}
+
+function stopCapture() {
+  capturing = false;
+  if (captureCtx) { captureCtx.close().catch(() => {}); captureCtx = null; }
+  if (captureStream) { captureStream.getTracks().forEach((t) => t.stop()); captureStream = null; }
+  $("capture").setAttribute("aria-pressed", "false");
+  $("captureLabel").textContent = "Capture call";
+  $("mic").disabled = false;
+  const orec = document.getElementById("overlayRec");
+  if (orec) orec.setAttribute("aria-pressed", "false");
+}
+
+/* ---------- Controls ---------- */
+function setSpeaker(s) {
+  app.speaker = s;
+  document.querySelectorAll(".speaker button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.speaker === s)));
+  $("typeIn").placeholder = s === "rep" ? "Type what you said" : "Type what the customer said";
+}
+document.querySelectorAll(".speaker button").forEach((b) => b.addEventListener("click", () => setSpeaker(b.dataset.speaker)));
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey || document.activeElement?.tagName === "INPUT") return;
+  const k = e.key.toLowerCase();
+  if (k === "s") setSpeaker(app.speaker === "customer" ? "rep" : "customer");
+  if (k === "d") markCurrentDone();
+});
+$("mic").addEventListener("click", () => (app.listening ? stopListening() : startListening()));
+$("capture").addEventListener("click", () => (capturing ? stopCapture() : startCapture()));
+$("pipBtn").addEventListener("click", () => (pipWin ? closePiP() : openPiP()));
+$("done").addEventListener("click", markCurrentDone);
+$("typeForm").addEventListener("submit", (e) => { e.preventDefault(); addTurn($("typeIn").value); $("typeIn").value = ""; });
+
+function resetCall() {
+  app.sampleId++;
+  clearTimeout(app.timer);
+  app.turns = []; app.memory = createMemory(); app.result = null; app.pending = false; app.lastSignals = null;
+  showHeard("", "customer"); showError(""); $("doneMsg").textContent = "";
+  $("sample").disabled = false;
+  renderStageIdle(); renderNextIdle();
+  if (overlayChannel) overlayChannel.postMessage({ type: "idle" });
+}
+$("reset").addEventListener("click", resetCall);
+
+const SAMPLE = [
+  ["customer", "Hi, a colleague sent me your site. We're looking at a few tools to clean up how our support team tracks tickets."],
+  ["rep", "Thanks for reaching out. What's not working with how you track them today?"],
+  ["customer", "Honestly it's spreadsheets. We'd want to plug this straight into our help desk so the team stops copying things over."],
+  ["customer", "What does this cost for a team of about twenty? Is there an annual discount?"],
+  ["rep", "There is. I can walk you through the plans."],
+  ["customer", "Great. My director approved budget for this quarter and we want it running before the holidays."],
+  ["customer", "My only worry is the migration. Last time we switched tools we lost a month of history."]
+];
+$("sample").addEventListener("click", async () => {
+  if (app.listening) stopListening();
+  resetCall();
+  const id = app.sampleId;
+  $("sample").disabled = true;
+  for (const [speaker, text] of SAMPLE) {
+    if (id !== app.sampleId) return;
+    app.turns.push({ speaker, text, at: 0 });
+    showHeard(text, speaker);
+    if (speaker === "customer") scheduleEvaluate();
+    await new Promise((r) => setTimeout(r, 3500));
+  }
+  if (id === app.sampleId) $("sample").disabled = false;
+});
+
+/* ---------- Start ---------- */
+setTheme(getTheme(), false);
+{
+  const tb = document.getElementById("themeBtn");
+  if (tb) tb.addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+}
+renderStageIdle();
+renderNextIdle();
+
+if (isOverlay) {
+  document.body.classList.add("overlay");
+  if (overlayCard) document.body.classList.add(`card-${overlayCard}`);
+  mainEl.classList.add("pip");
+
+  if (overlayCard !== "next") {
+    $("overlayBar").hidden = false;
+    if (window.overlay) {
+      $("overlayClose").addEventListener("click", () => window.overlay.close());
+      $("overlayMin").addEventListener("click", () => window.overlay.minimize());
+    }
+    const oRec = $("overlayRec");
+    if (oRec) oRec.addEventListener("click", () => (capturing ? stopCapture() : startCapture()));
+    $("overlayClear").addEventListener("click", resetCall);
+    $("overlayTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+    if (window.overlay) {
+      $("overlayDash").addEventListener("click", () => window.overlay.openDashboard());
+    }
+  }
+
+  if (overlayCard === "next" && overlayChannel) {
+    overlayChannel.onmessage = (e) => {
+      if (e.data.type === "update" && e.data.result) {
+        app.result = e.data.result;
+        mainEl.style.setProperty("--stage", `var(--s${e.data.stageLevel})`);
+        renderNext(e.data.result, true);
+      }
+      if (e.data.type === "idle") { app.result = null; renderNextIdle(); }
+    };
+  }
+  if (overlayCard === "hero" && overlayChannel) {
+    overlayChannel.onmessage = (e) => {
+      if (e.data.type === "markDone") {
+        markDone(app.memory, e.data.action);
+        evaluate();
+      }
+      if (e.data.type === "sync-request") {
+        overlayChannel.postMessage({
+          type: "sync",
+          turns: app.turns.map(t => ({ speaker: t.speaker, text: t.text })),
+          signals: app.lastSignals || null,
+        });
+      }
+      if (e.data.type === "add-turn") {
+        addTurn(e.data.text, { speaker: e.data.speaker });
+      }
+      if (e.data.type === "clear") {
+        resetCall();
+      }
+    };
+  }
+}
+
+if (!isOverlay && "documentPictureInPicture" in window) $("pipBtn").hidden = false;
+
+fetch("/api/health").then((r) => r.json()).then((h) => {
+  $("setup").hidden = h.ready;
+  const canCapture = navigator.mediaDevices?.getDisplayMedia || window.overlay?.getSources;
+  if (h.canTranscribe && canCapture) {
+    $("capture").hidden = false;
+    if (isOverlay && overlayCard !== "next") $("overlayRec").hidden = false;
+  }
+}).catch(() => showError("Open this page through the local server (node server.mjs)."));
+</script>
+</body>
+</html>

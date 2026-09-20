@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Call Coach Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Light is the default; dark is opt-in and shared with the overlay. */
+:root {
+  --bg: #edf0f4; --surface: #ffffff; --card: #f6f8fb; --ink: #172033;
+  --muted: #5e6a80; --faint: #8a94a7; --line: #d5dbe5;
+  --accent: #2743c9; --green: #178049; --warn: #a86c07; --stop: #b8322a;
+  --s0: #7d889c; --s1: #4b5fd1; --s2: #0f7f8c; --s3: #178049;
+  --btn-well: rgba(0,0,0,0.05); --btn-hover: rgba(0,0,0,0.11);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0e1220; --surface: #161d2e; --card: #1a2235; --ink: #e7ebf2;
+  --muted: #8a94a7; --faint: #5e6a80; --line: #252e42;
+  --accent: #8098ff; --green: #52c98e; --warn: #e0a53a; --stop: #f07167;
+  --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
+  --btn-well: rgba(255,255,255,0.06); --btn-hover: rgba(255,255,255,0.12);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+  font-size: 14px; line-height: 1.45;
+}
+
+/* Title bar */
+.titlebar {
+  -webkit-app-region: drag;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  font-weight: 700; font-size: 0.95rem;
+}
+.titlebar span { flex: 1; }
+.titlebar button {
+  -webkit-app-region: no-drag;
+  border: none; background: var(--btn-well); color: var(--muted);
+  border-radius: 5px; width: 26px; height: 26px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; transition: background 0.15s, color 0.15s;
+}
+.titlebar button:hover { background: var(--btn-hover); color: var(--ink); }
+
+/* Layout */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: 1fr auto;
+  height: calc(100vh - 42px);
+}
+
+/* Transcript */
+.transcript-panel {
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--line);
+}
+.panel-head {
+  padding: 12px 16px 8px;
+  font-weight: 700; font-size: 0.78rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint);
+}
+.transcript {
+  flex: 1; overflow-y: auto; padding: 0 16px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.turn {
+  padding: 8px 12px; border-radius: 10px;
+  background: var(--card); font-size: 0.9rem;
+  max-width: 85%; word-wrap: break-word;
+}
+.turn .who {
+  font-weight: 700; font-size: 0.72rem; letter-spacing: 0.06em;
+  text-transform: uppercase; margin-bottom: 2px;
+}
+.turn.customer .who { color: var(--accent); }
+.turn.rep { align-self: flex-end; background: var(--surface); border: 1px solid var(--line); }
+.turn.rep .who { color: var(--green); }
+.empty-msg { color: var(--faint); font-style: italic; padding: 20px 0; text-align: center; }
+
+/* Sidebar */
+.sidebar {
+  display: flex; flex-direction: column; gap: 0;
+  overflow-y: auto;
+}
+.signal-section { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.signal-section:last-child { border-bottom: none; }
+.signal-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.signal-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--muted);
+}
+.signal-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--line); transition: background 0.3s;
+}
+.signal-item.on { color: var(--ink); }
+.signal-item.on .signal-dot { background: var(--green); }
+.signal-item.warn .signal-dot { background: var(--warn); }
+.signal-item.block .signal-dot { background: var(--stop); }
+.signal-val { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--faint); }
+
+/* History */
+.history-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.history-item {
+  font-size: 0.82rem; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.history-item .arrow { font-size: 0.7rem; }
+.history-item .arrow.up { color: var(--green); }
+.history-item .arrow.down { color: var(--warn); }
+.history-time { color: var(--faint); font-size: 0.72rem; margin-left: auto; }
+
+/* Model picker */
+.model-picker { display: flex; flex-direction: column; gap: 5px; }
+.model-opt {
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  font-size: 0.82rem;
+}
+.model-opt:hover { border-color: var(--accent); }
+.model-opt.active { border-color: var(--accent); background: rgba(128, 152, 255, 0.08); }
+.model-opt.loading { border-color: var(--warn); }
+.model-name { font-weight: 700; }
+.model-size { color: var(--faint); margin-left: auto; font-size: 0.72rem; }
+.model-status {
+  margin-top: 6px; font-size: 0.72rem; color: var(--faint); min-height: 1em;
+}
+.model-bar {
+  height: 3px; border-radius: 2px; background: var(--line); margin-top: 4px; overflow: hidden;
+}
+.model-bar-fill {
+  height: 100%; background: var(--accent); border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* Input strip */
+.input-strip {
+  grid-column: 1 / -1;
+  display: flex; gap: 8px; padding: 10px 16px;
+  background: var(--surface); border-top: 1px solid var(--line);
+}
+.input-strip select {
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 0.85rem;
+}
+.input-strip input {
+  flex: 1; min-width: 0;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: 8px; padding: 8px 14px; font: inherit; font-size: 0.9rem;
+}
+.input-strip input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.input-strip button {
+  border: none; background: var(--accent); color: #0e1422;
+  border-radius: 8px; padding: 8px 18px; font: inherit; font-weight: 700; cursor: pointer;
+}
+.input-strip button:hover { filter: brightness(1.1); }
+
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; }
+  .transcript-panel { border-right: none; border-bottom: 1px solid var(--line); max-height: 50vh; }
+}
+</style>
+<script>
+(function () {
+  var t;
+  try { t = localStorage.getItem("cc-theme"); } catch (e) {}
+  if (t === "system") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
+  try {
+    new BroadcastChannel("call-coach-theme").onmessage = function (e) {
+      if (e.data && e.data.theme) {
+        document.documentElement.setAttribute("data-theme", e.data.theme);
+        try { localStorage.setItem("cc-theme", e.data.theme); } catch (err) {}
+      }
+    };
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+
+<div class="titlebar">
+  <span>Call Coach Dashboard</span>
+  <button id="clearBtn" title="Clear call">&#8635;</button>
+  <button id="minBtn" title="Minimize">&#8211;</button>
+  <button id="closeBtn" title="Close">&times;</button>
+</div>
+
+<div class="grid">
+  <div class="transcript-panel">
+    <div class="panel-head">Transcript</div>
+    <div class="transcript" id="transcript">
+      <div class="empty-msg" id="emptyMsg">No conversation yet. Start a capture or type below.</div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="signal-section">
+      <div class="panel-head">Signals</div>
+      <ul class="signal-list" id="signalList">
+        <li class="signal-item" data-key="asked_about_pricing"><span class="signal-dot"></span>Asked about pricing<span class="signal-val"></span></li>
+        <li class="signal-item" data-key="mentions_timeline"><span class="signal-dot"></span>Mentions timeline<span class="signal-val"></span></li>
+        <li class="signal-item" data-key="discusses_budget"><span class="signal-dot"></span>Discusses budget<span class="signal-val"></span></li>
+        <li class="signal-item" data-key="decision_maker_involved"><span class="signal-dot"></span>Decision maker involved<span class="signal-val"></span></li>
+        <li class="signal-item" data-key="uses_ownership_language"><span class="signal-dot"></span>Ownership language<span class="signal-val"></span></li>
+        <li class="signal-item" data-key="has_blocking_objection"><span class="signal-dot"></span>Blocking objection<span class="signal-val"></span></li>
+        <li class="signal-item" data-key="is_returning_prospect"><span class="signal-dot"></span>Returning prospect<span class="signal-val"></span></li>
+      </ul>
+    </div>
+
+    <div class="signal-section">
+      <div class="panel-head">Stage History</div>
+      <ul class="history-list" id="historyList">
+        <li class="history-item" style="color:var(--faint);font-style:italic">No changes yet</li>
+      </ul>
+    </div>
+
+    <div class="signal-section">
+      <div class="panel-head">Speech Model</div>
+      <div class="model-picker" id="modelPicker"></div>
+      <div class="model-status" id="modelStatus"></div>
+    </div>
+  </div>
+
+  <form class="input-strip" id="inputForm">
+    <select id="speaker">
+      <option value="customer">Customer</option>
+      <option value="rep">Rep</option>
+    </select>
+    <input id="textIn" autocomplete="off" placeholder="Type what was said...">
+    <button type="submit">Add</button>
+  </form>
+</div>
+
+<script>
+const channel = new BroadcastChannel("call-coach-sync");
+const transcript = document.getElementById("transcript");
+const emptyMsg = document.getElementById("emptyMsg");
+const signalList = document.getElementById("signalList");
+const historyList = document.getElementById("historyList");
+const history = [];
+
+function addBubble(speaker, text) {
+  emptyMsg.hidden = true;
+  const div = document.createElement("div");
+  div.className = "turn " + speaker;
+  const who = document.createElement("div");
+  who.className = "who";
+  who.textContent = speaker === "rep" ? "You" : "Customer";
+  const body = document.createElement("div");
+  body.textContent = text;
+  div.appendChild(who);
+  div.appendChild(body);
+  transcript.appendChild(div);
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
+function renderSignals(signals) {
+  for (const li of signalList.children) {
+    const key = li.dataset.key;
+    if (!key || signals[key] == null) continue;
+    const val = signals[key];
+    const pct = Math.round(val * 100);
+    li.querySelector(".signal-val").textContent = pct + "%";
+    li.classList.toggle("on", val >= 0.6);
+    li.classList.toggle("warn", key === "has_blocking_objection" && val >= 0.6);
+    li.classList.toggle("block", key === "has_blocking_objection" && val >= 0.7);
+  }
+}
+
+function addHistory(label, from, trend) {
+  const existing = historyList.querySelector("[style]");
+  if (existing) existing.remove();
+
+  const li = document.createElement("li");
+  li.className = "history-item";
+  const arrow = document.createElement("span");
+  arrow.className = "arrow " + (trend || "");
+  arrow.textContent = trend === "up" ? "▲" : trend === "down" ? "▼" : "●";
+  li.appendChild(arrow);
+  const txt = document.createTextNode(from ? from + " → " + label : label);
+  li.appendChild(txt);
+  const time = document.createElement("span");
+  time.className = "history-time";
+  time.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  li.appendChild(time);
+  historyList.prepend(li);
+}
+
+channel.onmessage = (e) => {
+  const d = e.data;
+  if (d.type === "turn") {
+    addBubble(d.speaker, d.text);
+  }
+  if (d.type === "signals") {
+    renderSignals(d.signals);
+  }
+  if (d.type === "stage") {
+    addHistory(d.label, d.from, d.trend);
+  }
+  if (d.type === "sync") {
+    emptyMsg.hidden = d.turns.length > 0;
+    for (const t of d.turns) addBubble(t.speaker, t.text);
+    if (d.signals) renderSignals(d.signals);
+  }
+  if (d.type === "idle") {
+    transcript.innerHTML = "";
+    emptyMsg.hidden = false;
+    transcript.appendChild(emptyMsg);
+    for (const li of signalList.children) {
+      li.classList.remove("on", "warn", "block");
+      li.querySelector(".signal-val").textContent = "";
+    }
+    historyList.innerHTML = '<li class="history-item" style="color:var(--faint);font-style:italic">No changes yet</li>';
+  }
+};
+
+channel.postMessage({ type: "sync-request" });
+
+document.getElementById("inputForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = document.getElementById("textIn").value.trim();
+  if (!text) return;
+  const speaker = document.getElementById("speaker").value;
+  channel.postMessage({ type: "add-turn", speaker, text });
+  addBubble(speaker, text);
+  document.getElementById("textIn").value = "";
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  channel.postMessage({ type: "clear" });
+});
+
+if (window.overlay) {
+  document.getElementById("closeBtn").addEventListener("click", () => window.overlay.close());
+  document.getElementById("minBtn").addEventListener("click", () => window.overlay.minimize());
+} else {
+  document.getElementById("closeBtn").hidden = true;
+  document.getElementById("minBtn").hidden = true;
+}
+
+const modelPicker = document.getElementById("modelPicker");
+const modelStatusEl = document.getElementById("modelStatus");
+let pollTimer = null;
+
+async function loadModels() {
+  try {
+    const res = await fetch("/api/models");
+    const data = await res.json();
+    modelPicker.innerHTML = "";
+    for (const m of data.models) {
+      const div = document.createElement("div");
+      div.className = "model-opt" + (m.id === data.current ? " active" : "");
+      div.dataset.id = m.id;
+      div.innerHTML = '<span class="model-name">' + m.label + '</span> ' + m.desc + '<span class="model-size">' + m.size + '</span>';
+      div.addEventListener("click", () => switchModel(m.id));
+      modelPicker.appendChild(div);
+    }
+    if (data.progress && data.progress.status === "downloading") {
+      showProgress(data.progress);
+      startPoll();
+    } else if (data.loaded) {
+      modelStatusEl.textContent = data.loaded === data.current ? "Loaded and ready" : "Will load on next transcription";
+    } else {
+      modelStatusEl.textContent = "Downloads on first use";
+    }
+  } catch {}
+}
+
+async function switchModel(id) {
+  const opts = modelPicker.querySelectorAll(".model-opt");
+  opts.forEach((o) => {
+    o.classList.toggle("active", o.dataset.id === id);
+    o.classList.remove("loading");
+  });
+  modelStatusEl.textContent = "Switching...";
+  try {
+    const res = await fetch("/api/models/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: id }),
+    });
+    const data = await res.json();
+    if (data.status === "already_loaded") {
+      modelStatusEl.textContent = "Already loaded";
+      return;
+    }
+    const opt = modelPicker.querySelector('[data-id="' + id + '"]');
+    if (opt) opt.classList.add("loading");
+    startPoll();
+  } catch (err) {
+    modelStatusEl.textContent = "Error: " + err.message;
+  }
+}
+
+function showProgress(p) {
+  if (p.status === "downloading") {
+    modelStatusEl.innerHTML = "Downloading " + p.model.split("/").pop() + "... " + p.pct + "%" +
+      '<div class="model-bar"><div class="model-bar-fill" style="width:' + p.pct + '%"></div></div>';
+  } else if (p.status === "ready") {
+    modelStatusEl.textContent = "Loaded and ready";
+    modelPicker.querySelectorAll(".model-opt").forEach((o) => o.classList.remove("loading"));
+    stopPoll();
+    loadModels();
+  } else if (p.status === "error") {
+    modelStatusEl.textContent = "Error: " + (p.error || "failed to load");
+    modelPicker.querySelectorAll(".model-opt").forEach((o) => o.classList.remove("loading"));
+    stopPoll();
+  }
+}
+
+function startPoll() {
+  stopPoll();
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await fetch("/api/models/progress");
+      const p = await res.json();
+      showProgress(p);
+    } catch {}
+  }, 800);
+}
+
+function stopPoll() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+loadModels();
+</script>
+</body>
+</html>

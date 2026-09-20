@@ -1,0 +1,21 @@
+{
+  "name": "call-coach",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron.js",
+  "description": "Live sales-call coach using TypeSafe Jev",
+  "scripts": {
+    "start": "node server.mjs",
+    "overlay": "electron ."
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
+    "onnxruntime-node": "^1.30.0"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "next_best_action": {
+    "type": "choice",
+    "instructions": "Given the customer's most recent statements in `sales_call_transcript`, what should the sales rep do next to move this customer toward a purchase?",
+    "criteria": {
+      "send_pricing": "Customer wants cost or plan details that have not been given yet",
+      "book_demo": "Customer wants to see the product working or asks how it would fit their setup",
+      "loop_in_decision_maker": "Customer is interested but needs approval from someone not yet involved",
+      "handle_objection": "Customer has raised a concern about price, fit, timing, or trust that is holding them back",
+      "send_proposal": "Customer is ready and asks for a quote, contract, or how to sign up",
+      "ask_discovery_question": "Customer's needs, problem, or situation are still unclear",
+      "nurture_follow_up": "Customer is interested but not ready, so agree on a time to check back",
+      "no_action": "No buying intent, or the conversation is not about a purchase"
+    }
+  },
+  "buying_stage": {
+    "type": "score",
+    "instructions": "Based on the customer's most recent statements in `sales_call_transcript`, how close are they to making a purchase right now?",
+    "criteria": [
+      {
+        "what": "No buying intent: browsing or asking general questions",
+        "examples": ["Just curious what you offer", "Tell me about your product", "What do you do exactly?"]
+      },
+      {
+        "what": "Early interest: researching, comparing options, or asking about features and fit",
+        "examples": ["How does this compare to [competitor]?", "What integrations do you support?", "We're looking at a few tools"]
+      },
+      {
+        "what": "Active evaluation: discussing specifics like pricing, timeline, budget, or team fit",
+        "examples": ["What does this cost for twenty people?", "We need it before end of quarter", "My director approved budget for this"]
+      },
+      {
+        "what": "Ready to buy: says they want to proceed, asks for next steps, or requests a proposal or contract",
+        "examples": ["I think we're ready to move forward", "Let's do it", "Where do I sign?", "Can you send the contract?", "What are the next steps to get started?"]
+      }
+    ]
+  },
+  "asked_about_pricing": {
+    "type": "noul",
+    "instructions": "Did the customer ask about price, plans, discounts, or payment terms?",
+    "criteria": {
+      "true": "Asks what it costs, which plan fits, about discounts, or how billing works",
+      "false": "Price is not raised by the customer"
+    }
+  },
+  "mentions_timeline": {
+    "type": "noul",
+    "instructions": "Did the customer mention when they want to buy or start using the product?",
+    "criteria": {
+      "true": "Gives a date, deadline, quarter, or event they are buying for",
+      "false": "No timeframe mentioned, or says there is no rush"
+    }
+  },
+  "discusses_budget": {
+    "type": "noul",
+    "instructions": "Did the customer discuss their budget or how the purchase will be funded?",
+    "criteria": {
+      "true": "Mentions a budget amount, approval for spend, or where the money will come from",
+      "false": "Budget is not discussed"
+    }
+  },
+  "decision_maker_involved": {
+    "type": "noul",
+    "instructions": "Is the person who can approve the purchase involved in or aware of this conversation?",
+    "criteria": {
+      "true": "The customer is the decision maker, or says the approver is on board or joining",
+      "false": "The customer needs to check with someone not yet involved, or the approver is unknown"
+    }
+  },
+  "uses_ownership_language": {
+    "type": "noul",
+    "instructions": "Does the customer talk about the product as something they will use?",
+    "criteria": {
+      "true": "Describes how their team would set it up or use it, such as 'we would plug this into our workflow'",
+      "false": "Talks about the product only in general or hypothetical terms"
+    }
+  },
+  "has_blocking_objection": {
+    "type": "noul",
+    "instructions": "Has the customer raised a concern that would stop the purchase if not resolved?",
+    "criteria": {
+      "true": "States a dealbreaker on price, fit, timing, trust, or a competitor they prefer",
+      "false": "No objections, or concerns were answered to their satisfaction"
+    }
+  },
+  "is_returning_prospect": {
+    "type": "noul",
+    "instructions": "Has the customer been in touch about buying before?",
+    "criteria": {
+      "true": "Mentions a previous call, quote, demo, or conversation with sales",
+      "false": "No sign of previous sales contact"
+    }
+  }
+}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Call Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Light by default, matching the rest of the app. */
+:root {
+  --bg: #edf0f4; --field: #ffffff; --ink: #172033; --muted: #5e6a80;
+  --faint: #8a94a7; --line: #d5dbe5; --accent: #2743c9; --on-accent: #ffffff;
+  --ring: rgba(39,67,201,0.18); --stop: #b8322a;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0e1220; --field: #161d2e; --ink: #e7ebf2; --muted: #6c7890;
+  --faint: #3d4a63; --line: #252e42; --accent: #8098ff; --on-accent: #0e1422;
+  --ring: rgba(128,152,255,0.15); --stop: #f07167;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100vh; padding: 32px;
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.logo { font-size: 2rem; margin-bottom: 4px; }
+h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; }
+.sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 24px; }
+form {
+  -webkit-app-region: no-drag;
+  width: 100%; max-width: 340px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.field { position: relative; }
+label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 5px; }
+input, select {
+  width: 100%; padding: 11px 16px;
+  background: var(--field); border: 1px solid var(--line); border-radius: 10px;
+  color: var(--ink); font: inherit; font-size: 0.92rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="password"] { padding-right: 44px; letter-spacing: 0.08em; }
+input:focus, select:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+input::placeholder { color: var(--faint); letter-spacing: 0; }
+select { cursor: pointer; -webkit-appearance: none; appearance: none; padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236c7890' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+select option { background: var(--field); color: var(--ink); }
+.model-detail { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+.toggle-vis {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  padding: 6px; font-size: 1.1rem; line-height: 1;
+  border-radius: 6px; transition: color 0.15s;
+  margin-top: 10px;
+}
+.toggle-vis:hover { color: var(--ink); }
+button[type="submit"] {
+  padding: 12px; border: none; border-radius: 10px;
+  background: var(--accent); color: var(--on-accent);
+  font: inherit; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; transition: filter 0.15s, transform 0.1s;
+}
+button[type="submit"]:hover { filter: brightness(1.12); }
+button[type="submit"]:active { transform: scale(0.98); }
+button[type="submit"]:disabled { opacity: 0.5; cursor: default; filter: none; transform: none; }
+.err { font-size: 0.78rem; color: var(--stop); text-align: center; min-height: 1.2em; }
+</style>
+<script>
+(function () {
+  var v; try { v = localStorage.getItem("cc-theme"); } catch (e) {}
+  if (v === "system") v = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", v === "dark" ? "dark" : "light");
+})();
+</script>
+</head>
+<body>
+<div class="logo">&#127911;</div>
+<h1>Call Coach</h1>
+<p class="sub">Configure your setup to get started</p>
+<form id="form">
+  <div class="field">
+    <label for="key">TypeSafe API Key</label>
+    <input id="key" type="password" placeholder="ts_live_..." autocomplete="off" autofocus spellcheck="false">
+    <button type="button" class="toggle-vis" id="toggleVis" tabindex="-1" title="Show key">&#128065;</button>
+  </div>
+  <div>
+    <label for="model">Speech Model</label>
+    <select id="model">
+      <option value="onnx-community/whisper-tiny.en">Tiny  &mdash;  ~40 MB, fastest</option>
+      <option value="onnx-community/whisper-base.en">Base  &mdash;  ~150 MB, balanced</option>
+      <option value="onnx-community/whisper-small.en" selected>Small  &mdash;  ~500 MB, accurate</option>
+      <option value="onnx-community/whisper-medium.en">Medium  &mdash;  ~1.5 GB, best accuracy</option>
+    </select>
+    <div class="model-detail" id="modelDetail">High accuracy, moderate speed. Downloads on first use.</div>
+  </div>
+  <button type="submit" id="go">Launch</button>
+  <p class="err" id="err"></p>
+</form>
+<script>
+const inp = document.getElementById("key");
+const toggle = document.getElementById("toggleVis");
+const err = document.getElementById("err");
+const go = document.getElementById("go");
+const modelSelect = document.getElementById("model");
+const modelDetail = document.getElementById("modelDetail");
+
+const details = {
+  "onnx-community/whisper-tiny.en":   "Fastest, lowest accuracy. Good for testing.",
+  "onnx-community/whisper-base.en":   "Good balance of speed and accuracy.",
+  "onnx-community/whisper-small.en":  "High accuracy, moderate speed. Downloads on first use.",
+  "onnx-community/whisper-medium.en": "Best accuracy, slower inference. Large download.",
+};
+
+modelSelect.addEventListener("change", () => {
+  modelDetail.textContent = details[modelSelect.value] || "";
+});
+
+toggle.addEventListener("click", () => {
+  const show = inp.type === "password";
+  inp.type = show ? "text" : "password";
+  toggle.innerHTML = show ? "&#128064;" : "&#128065;";
+  inp.focus();
+});
+
+document.getElementById("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const val = inp.value.trim();
+  if (!val) { err.textContent = "Please enter an API key."; inp.focus(); return; }
+  go.disabled = true;
+  go.textContent = "Starting...";
+  err.textContent = "";
+  if (window.overlay?.submitKey) {
+    window.overlay.submitKey(val, modelSelect.value);
+  }
+});
+</script>
+</body>
+</html>
