@@ -1,6 +1,8 @@
-# Call Coach
+# Call Coach 
 
-A live sales-call assistant. It listens to the conversation, sends it to TypeSafe Jev after every sentence, and shows the rep what to do next with a confidence score.
+A live sales-call assistant. It listens to the conversation, sends it to TypeSafe Jev after every sentence, and shows the rep what to do next with a confidence score. 
+
+This is a work in progress and a demo of Jev capabilities. Feel free to fork it and modify it. Or just message me if you want to make any changes. I am also open to pull requests as well for making improvements. Shoot me a DM if you need anything
 
 ## Demo Screen
 <img width="2552" height="1348" alt="Screenshot 2026-09-20 165639" src="https://github.com/user-attachments/assets/b1d3768f-ae61-45a7-a68b-644367ef24ab" />
