@@ -384,6 +384,67 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
   font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
 }
 
+/* ---------- Mode picker ---------- */
+.brand .mode-tag { font-weight: 500; color: var(--muted); }
+.picker { display: flex; flex-direction: column; gap: 14px; width: min(640px, 100%); margin: clamp(8px, 4vh, 40px) auto 0; }
+.picker-title { margin: 0; font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.picker-list { display: grid; gap: 10px; }
+.mode-opt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 18px; transition: border-color 0.15s; }
+.mode-opt:hover { border-color: var(--cobalt); }
+.mode-opt.last { box-shadow: inset 0 0 0 1px var(--cobalt); border-color: var(--cobalt); }
+.mode-name { font-weight: 700; font-size: 1.05rem; }
+.mode-kind { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+.mode-desc { grid-column: 1 / -1; color: var(--muted); font-size: 0.92rem; }
+.picker-note { margin: 0; color: var(--muted); font-size: 0.9rem; }
+body.picking main > :not(.picker),
+body.picking footer.strip,
+body.picking header.bar > :not(.brand, #themeBtn),
+body.picking .overlay-bar > :not(.overlay-brand, #overlayTheme, #overlayMin, #overlayClose),
+body.waiting main, body.waiting .overlay-bar { display: none !important; }
+main.pip .picker { margin: 0; gap: 8px; }
+main.pip .picker-title { font-size: 0.95rem; color: var(--card-ink); }
+main.pip .picker-note { color: var(--card-mute); font-size: 0.78rem; }
+main.pip .mode-opt { padding: 8px 12px; border-radius: 12px; background: var(--card-bg); border-color: var(--card-line); box-shadow: var(--card-shadow); }
+main.pip .mode-opt.last { border-color: var(--cobalt); }
+main.pip .mode-name { font-size: 0.9rem; color: var(--card-ink); }
+main.pip .mode-kind { color: var(--card-mute); border-color: var(--card-edge); font-size: 0.62rem; }
+main.pip .mode-desc { display: none; }
+button.overlay-brand { -webkit-app-region: no-drag; border: none; background: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+button.overlay-brand:hover { color: var(--card-ink); }
+
+/* ---------- Rehearsal ---------- */
+.scenario { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: clamp(18px, 3vw, 28px); display: flex; flex-direction: column; gap: 14px; }
+.scenario-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.scenario-head select { font: inherit; font-weight: 600; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--ink); max-width: 100%; }
+.scenario-step { margin-left: auto; color: var(--muted); font-size: 0.88rem; }
+.scenario-setup { margin: 0; color: var(--muted); }
+.scenario-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.scenario-log li { font-size: 0.92rem; color: var(--muted); padding-left: 12px; border-left: 2.5px solid var(--line); }
+.scenario-log li b { color: var(--ink); font-weight: 600; margin-right: 6px; }
+.scenario-line { margin: 0; padding: 14px 18px; border-radius: 14px; background: var(--paper); }
+.scenario-line .who { display: block; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.scenario-line p { margin: 4px 0 0; font-size: clamp(1.1rem, 2.4vw, 1.35rem); font-weight: 600; line-height: 1.3; }
+.answer { display: flex; flex-direction: column; gap: 10px; }
+.answer textarea { width: 100%; min-height: 88px; resize: vertical; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--paper); font: inherit; color: var(--ink); }
+.answer textarea:focus-visible { border-radius: 14px; outline-offset: 1px; }
+.answer textarea:read-only { background: transparent; resize: none; }
+.answer-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.answer-actions .mic { padding: 10px 20px; }
+.answer-hint { margin: 0 0 0 auto; color: var(--faint); font-size: 0.82rem; }
+main[data-kind="rehearsal"] .next-actions { display: none !important; }
+@media (min-width: 860px) {
+  main[data-kind="rehearsal"] { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+  main[data-kind="rehearsal"] > .notice, main[data-kind="rehearsal"] > .picker { grid-column: 1 / -1; }
+  main[data-kind="rehearsal"] > .scenario { grid-column: 1; grid-row: span 2; }
+  main[data-kind="rehearsal"] > .hero, main[data-kind="rehearsal"] > .next { grid-column: 2; }
+  main[data-kind="rehearsal"] .gauge-wrap { width: clamp(150px, 20vw, 210px); }
+  main[data-kind="rehearsal"] .stage-name { font-size: clamp(1.3rem, 2.6vw, 1.9rem); }
+  main[data-kind="rehearsal"] .stage-labels { display: none; }
+  main[data-kind="rehearsal"] .stage-count { display: block; margin: 8px 0 0; color: var(--muted); font-size: 0.88rem; }
+}
+body[data-kind="rehearsal"] .type-row, body[data-kind="rehearsal"] .heard { display: none; }
+body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before { animation: none !important; transition: none !important; }
 }
@@ -406,7 +467,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 <body>
 
 <div class="overlay-bar" id="overlayBar" hidden>
-  <span class="overlay-brand">Call Coach</span>
+  <button type="button" class="overlay-brand" id="overlayMode" title="Change mode">Call Coach</button>
   <button class="overlay-btn overlay-rec overlay-auto" id="overlayAuto" aria-pressed="false" title="Auto capture (experimental): hears both sides and labels who's speaking. Everyone on the call must agree to be recorded." hidden><span class="rec-dot"></span>Auto</button>
   <button class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" hidden><span class="rec-dot"></span></button>
   <button class="overlay-btn" id="overlayClear" title="Clear call">&#8635;</button>
@@ -418,9 +479,9 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 <p class="overlay-err" id="overlayErr" hidden></p>
 
 <header class="bar">
-  <div class="brand">Call Coach</div>
+  <div class="brand">Call Coach<span class="mode-tag" id="modeTag"></span></div>
   <div class="speaker" role="group" aria-label="Who is speaking">
-    <button type="button" data-speaker="customer" aria-pressed="true">Customer speaking</button>
+    <button type="button" data-speaker="customer" aria-pressed="true" id="otherBtn">They're speaking</button>
     <button type="button" data-speaker="rep" aria-pressed="false">I'm speaking</button>
   </div>
   <button type="button" class="mic" id="mic" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span id="micLabel">Start listening</span></button>
@@ -428,17 +489,44 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
   <button type="button" class="capture" id="auto" aria-pressed="false" title="Hears both sides of the call and labels who's speaking" hidden><span class="cap-dot" aria-hidden="true"></span><span id="autoLabel">Auto capture</span><span class="exp">Experimental</span></button>
   <button type="button" class="ghost" id="sample">Play sample call</button>
   <button type="button" class="ghost" id="reset">Clear call</button>
+  <button type="button" class="ghost" id="modeBtn">Change mode</button>
   <button type="button" class="ghost" id="themeBtn" title="Light / dark">Dark mode</button>
   <button type="button" class="ghost" id="pipBtn" hidden>Pop out</button>
 </header>
 
 <main>
   <div class="notice" id="setup" hidden>The server has no API key yet. Stop it and restart with <code>TYPESAFE_API_KEY=your_key node server.mjs</code>.</div>
-  <div class="notice" id="autoNotice" hidden><strong>Auto capture is recording both sides of this call.</strong> Everyone on the call should know and agree. Audio is transcribed on this computer; the text goes to TypeSafe. Headphones work best: without them, the mic hears the customer too, and those lines are filtered out as echo.</div>
+  <div class="notice" id="autoNotice" hidden><strong>Auto capture is recording both sides of this call.</strong> Everyone on the call should know and agree. Audio is transcribed on this computer; the text goes to TypeSafe. Headphones work best: without them, the mic hears the other person too, and those lines are filtered out as echo.</div>
+
+  <section class="picker" id="picker" hidden aria-labelledby="pickerTitle">
+    <h1 class="picker-title" id="pickerTitle">What are you doing today?</h1>
+    <div class="picker-list" id="pickerList"></div>
+    <p class="picker-note" id="pickerNote"></p>
+  </section>
+
+  <section class="scenario" id="scenario" hidden aria-labelledby="scenarioLine">
+    <div class="scenario-head">
+      <select id="scenarioPick" aria-label="Scenario"></select>
+      <span class="scenario-step" id="scenarioStep"></span>
+    </div>
+    <p class="scenario-setup" id="scenarioSetup"></p>
+    <ol class="scenario-log" id="scenarioLog" aria-label="Earlier in the conversation"></ol>
+    <blockquote class="scenario-line"><span class="who" id="scenarioWho"></span><p id="scenarioLine"></p></blockquote>
+    <form class="answer" id="answerForm">
+      <textarea id="answerIn" aria-label="Your reply" placeholder="Type your reply, or press Speak and say it"></textarea>
+      <div class="answer-actions">
+        <button type="submit" class="mic" id="answerSubmit">Get feedback</button>
+        <button type="button" class="capture" id="speakBtn" aria-pressed="false"><span class="cap-dot" aria-hidden="true"></span><span id="speakLabel">Speak</span></button>
+        <button type="button" class="ghost" id="retryBtn" hidden>Try again</button>
+        <button type="button" class="mic" id="nextLineBtn" hidden>Next line</button>
+        <p class="answer-hint" id="answerHint">Ctrl+Enter to send</p>
+      </div>
+    </form>
+  </section>
 
   <section class="hero" id="hero" data-state="idle" aria-labelledby="stageName">
     <div class="hero-center">
-      <p class="hero-kicker">Buying stage</p>
+      <p class="hero-kicker" id="stageKicker">Stage</p>
       <div class="gauge-wrap">
         <svg class="gauge" viewBox="0 0 200 150" aria-hidden="true">
           <circle class="gauge-bg" cx="100" cy="100" r="76"
@@ -453,11 +541,11 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
           <div class="score-sub" id="scoreHelp">of 100</div>
         </div>
       </div>
-      <h1 class="stage-name" id="stageName">Waiting for the customer</h1>
+      <h1 class="stage-name" id="stageName">Waiting</h1>
       <span class="conf-pill" id="confPill" hidden></span>
       <p class="trend" id="trend"></p>
     </div>
-    <div class="track" id="track" role="img" aria-label="No buying stage yet">
+    <div class="track" id="track" role="img" aria-label="No reading yet">
       <span class="seg"><i></i></span><span class="seg"><i></i></span><span class="seg"><i></i></span><span class="seg"><i></i></span>
       <span class="spread" id="spread"></span>
       <span class="marker" id="marker"></span>
@@ -474,7 +562,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
     </div>
     <div class="next-conf" id="nextConf" hidden><b id="nextPct">&ndash;</b>confidence<div class="bar-mini"><i id="nextBar"></i></div></div>
     <div class="next-body">
-      <p class="tip-main" id="tipMain">Press Start listening, or type what the customer says below. Press S to switch who's speaking.</p>
+      <p class="tip-main" id="tipMain"></p>
       <details class="more" id="more" hidden><summary id="moreLabel">More tips</summary><ul id="moreList"></ul></details>
     </div>
     <div class="next-actions" id="nextActions" hidden>
@@ -488,7 +576,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 <footer class="strip">
   <p class="heard" id="heard"><span class="led" aria-hidden="true"></span><span class="who" id="heardWho">Heard</span><span class="text" id="heardText">Nothing yet</span></p>
   <form class="type-row" id="typeForm">
-    <input id="typeIn" autocomplete="off" aria-label="Add a line to the conversation" placeholder="Type what the customer said">
+    <input id="typeIn" autocomplete="off" aria-label="Add a line to the conversation" placeholder="Type what they said">
     <button type="submit">Add</button>
   </form>
   <p class="error" id="error" role="alert" hidden></p>
@@ -496,14 +584,11 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 
 <script type="module">
 import { decide, trackStage, createMemory, markDone, DEFAULT_CONFIG } from "/decide.js";
-import { PLAYBOOK } from "/playbook.js";
 import { startSession, getCallAudio, getMicAudio } from "/capture.js";
 
 let pipWin = null;
 const $ = (id) => document.getElementById(id) || pipWin?.document.getElementById(id) || null;
 const mainEl = document.querySelector("main");
-const STAGES = PLAYBOOK.stages;
-const N = STAGES.length;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const GAUGE_R = 76;
@@ -546,6 +631,122 @@ function setTheme(t, broadcast = true) {
   if (broadcast) themeChannel.postMessage({ theme: t });
 }
 themeChannel.onmessage = (e) => { if (e.data && e.data.theme) setTheme(e.data.theme, false); };
+setTheme(getTheme(), false);
+$("themeBtn").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+
+/* ---------- Overlay window controls ----------
+   Wired before a mode is picked, so the window can be moved and closed from the picker. */
+if (isOverlay) {
+  document.body.classList.add("overlay");
+  if (overlayCard) document.body.classList.add(`card-${overlayCard}`);
+  mainEl.classList.add("pip");
+  if (overlayCard !== "next") {
+    $("overlayBar").hidden = false;
+    $("overlayTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+    if (window.overlay) {
+      $("overlayClose").addEventListener("click", () => window.overlay.close());
+      $("overlayMin").addEventListener("click", () => window.overlay.minimize());
+      $("overlayDash").addEventListener("click", () => window.overlay.openDashboard());
+    }
+  }
+}
+
+/* ---------- Mode ----------
+   Each mode is a folder in /modes (see server.mjs). The picker is the entry point,
+   and the chosen mode stays in the URL (?mode=) so a reload keeps it. In the
+   overlay, the second card and the dashboard follow the first card's choice. */
+const MODE_KEY = "cc-mode";
+const MODES = await fetch("/api/modes").then((r) => r.json()).then((d) => d.modes).catch(() => null);
+const MODE = await chooseMode();
+const { PLAYBOOK: MODE_PLAYBOOK } = await import(`/modes/${MODE.id}/playbook.js`);
+const PLAYBOOK = { ...MODE_PLAYBOOK, questions: MODE.questions };
+const CONFIG = { ...DEFAULT_CONFIG, ...PLAYBOOK.config };
+const REHEARSAL = MODE.kind === "rehearsal";
+const COPY = {
+  stageKicker: "Stage",
+  idleStage: "Waiting",
+  other: "Them",
+  rep: "You",
+  otherSpeaking: "They're speaking",
+  repSpeaking: "I'm speaking",
+  typeOther: "Type what they said",
+  typeRep: "Type what you said",
+  actionKicker: REHEARSAL ? "Work on" : "Suggested action",
+  idleAction: REHEARSAL ? "Your feedback shows here" : "Start the conversation",
+  idleTip: REHEARSAL ? "Write or say your reply to see how it lands." : "Press Start listening, or type what they say below. Press S to switch who's speaking.",
+  listenTitle: "Keep listening",
+  ...PLAYBOOK.copy,
+};
+const STAGES = PLAYBOOK.stages;
+const N = STAGES.length;
+document.body.dataset.kind = MODE.kind;
+mainEl.dataset.kind = MODE.kind;
+
+async function chooseMode() {
+  const chosen = MODES?.find((m) => m.id === _qp.get("mode"));
+  if (chosen) return chosen;
+  if (overlayCard === "next") return waitForMode();
+  return new Promise((resolve) => showPicker(resolve));
+}
+
+// The overlay's second card has no picker; it reloads into whatever the first card picks
+function waitForMode() {
+  document.body.classList.add("waiting");
+  overlayChannel.addEventListener("message", (e) => { if (e.data?.type === "mode") followMode(e.data.id); });
+  overlayChannel.postMessage({ type: "mode-request" });
+  return new Promise(() => {});
+}
+
+function followMode(id) {
+  const url = new URL(location.href);
+  if (url.searchParams.get("mode") === id) return;
+  url.searchParams.set("mode", id);
+  location.replace(url);
+}
+
+function changeMode() {
+  if (!REHEARSAL && app.turns.length && !confirm("Change mode? This clears the current conversation.")) return;
+  const url = new URL(location.href);
+  url.searchParams.delete("mode");
+  location.assign(url);
+}
+
+function showPicker(resolve) {
+  document.body.classList.add("picking");
+  $("picker").hidden = false;
+  if (!MODES) {
+    $("pickerNote").textContent = "Can't reach the local server. Start it with node server.mjs, then reload this page.";
+    return;
+  }
+  let last = null;
+  try { last = localStorage.getItem(MODE_KEY); } catch {}
+  $("pickerList").replaceChildren(...MODES.map((m) => {
+    const b = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt" + (m.id === last ? " last" : "") });
+    b.append(
+      Object.assign(document.createElement("span"), { className: "mode-name", textContent: m.name }),
+      Object.assign(document.createElement("span"), { className: "mode-kind", textContent: m.kind === "rehearsal" ? "Practice" : "Live call" }),
+      Object.assign(document.createElement("span"), { className: "mode-desc", textContent: m.description || "" }),
+    );
+    b.addEventListener("click", () => {
+      try { localStorage.setItem(MODE_KEY, m.id); } catch {}
+      // Practice doesn't need to float over a call, so the overlay opens it in a regular window
+      if (m.kind === "rehearsal" && isOverlay && window.overlay?.openPractice) {
+        window.overlay.openPractice(m.id);
+        $("pickerNote").textContent = `${m.name} opened in its own window.`;
+        return;
+      }
+      const url = new URL(location.href);
+      url.searchParams.set("mode", m.id);
+      history.replaceState(null, "", url);
+      overlayChannel?.postMessage({ type: "mode", id: m.id });
+      document.body.classList.remove("picking");
+      $("picker").hidden = true;
+      resolve(m);
+    });
+    return b;
+  }));
+  ($("pickerList").querySelector(".last") || $("pickerList").firstElementChild)?.focus();
+}
 
 /* ---------- Hero ---------- */
 $("stageLabels").replaceChildren(...STAGES.map((s) => Object.assign(document.createElement("li"), { textContent: s })));
@@ -580,7 +781,7 @@ function renderStageIdle() {
   const hero = $("hero");
   hero.dataset.state = "idle";
   mainEl.style.setProperty("--stage", "var(--s0)");
-  $("stageName").textContent = "Waiting for the customer";
+  $("stageName").textContent = COPY.idleStage;
   $("trend").textContent = ""; $("trend").className = "trend";
   $("scoreNum").textContent = "–"; app.shownScore = null;
   setGauge(0);
@@ -589,7 +790,7 @@ function renderStageIdle() {
   $("marker").style.opacity = "0"; $("spread").style.opacity = "0";
   [...$("stageLabels").children].forEach((li) => { li.removeAttribute("aria-current"); li.className = ""; });
   $("stageCount").textContent = "";
-  $("track").setAttribute("aria-label", "No buying stage yet");
+  $("track").setAttribute("aria-label", `No ${COPY.stageKicker.toLowerCase()} reading yet`);
 }
 
 function renderStage(st) {
@@ -642,11 +843,11 @@ function renderStage(st) {
 function renderNextIdle() {
   const next = $("next");
   next.dataset.status = "idle";
-  $("nextKicker").textContent = "Suggested action";
-  $("nextTitle").textContent = "Start the conversation";
+  $("nextKicker").textContent = COPY.actionKicker;
+  $("nextTitle").textContent = COPY.idleAction;
   $("nextNote").hidden = true;
   $("nextConf").hidden = true;
-  $("tipMain").textContent = "Press Start listening, or type what the customer says below. Press S to switch who's speaking.";
+  $("tipMain").textContent = COPY.idleTip;
   $("more").hidden = true;
   $("nextActions").hidden = true;
 }
@@ -655,7 +856,7 @@ function renderNext(r, animate) {
   const next = $("next");
   const acting = r.status === "act";
   next.dataset.status = r.status;
-  $("nextTitle").textContent = acting ? r.title : "Keep listening";
+  $("nextTitle").textContent = acting ? r.title : COPY.listenTitle;
 
   const note = r.note || (!acting && r.leaningTitle ? `Best guess so far: ${r.leaningTitle} (${Math.round(r.score * 100)}%)` : "");
   $("nextNote").textContent = note;
@@ -682,7 +883,7 @@ function renderNext(r, animate) {
 
 /* ---------- Status ---------- */
 function showHeard(text, speaker, interim = false) {
-  $("heardWho").textContent = speaker === "rep" ? "You" : "Customer";
+  $("heardWho").textContent = speaker === "rep" ? COPY.rep : COPY.other;
   $("heardText").textContent = text ? `"${text}"` : "Nothing yet";
   $("heardText").classList.toggle("interim", interim);
 }
@@ -690,7 +891,7 @@ function setActivity() { $("heard").className = "heard" + (app.inFlight ? " busy
 function showError(msg) {
   $("error").textContent = msg || ""; $("error").hidden = !msg;
   const oe = document.getElementById("overlayErr");
-  if (oe) { oe.textContent = msg || ""; oe.hidden = !msg; }
+  if (oe && isOverlay) { oe.textContent = msg || ""; oe.hidden = !msg; }
 }
 
 /* ---------- Jev + local logic ---------- */
@@ -709,15 +910,15 @@ async function evaluate() {
     const res = await fetch("/api/evaluate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ turns: app.turns, completed: activeDone() })
+      body: JSON.stringify({ mode: MODE.id, turns: app.turns, completed: activeDone() })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `The server returned status ${res.status}.`);
     if (sampleId !== app.sampleId) return;
     showError("");
 
-    const stage = trackStage(data.answers.buying_stage, app.memory.stage, STAGES);
-    app.result = decide(data.answers, PLAYBOOK, app.memory);
+    const stage = trackStage(data.answers[PLAYBOOK.questions.stage], app.memory.stage, STAGES, CONFIG);
+    app.result = decide(data.answers, PLAYBOOK, app.memory, Date.now(), CONFIG);
     if (stage) renderStage(stage);
     renderNext(app.result, !stage?.changed);
 
@@ -727,14 +928,11 @@ async function evaluate() {
         result: app.result,
         stageLevel: stage?.level ?? app.memory.stage.level ?? 0,
       });
-      if (data.answers) {
-        const sig = {};
-        for (const k of ["asked_about_pricing","mentions_timeline","discusses_budget","decision_maker_involved","uses_ownership_language","has_blocking_objection","is_returning_prospect"]) {
-          if (data.answers[k] != null) sig[k] = data.answers[k];
-        }
-        app.lastSignals = sig;
-        overlayChannel.postMessage({ type: "signals", signals: sig });
-      }
+      // Every yes/no signal, as a probability
+      const sig = {};
+      for (const [k, a] of Object.entries(data.answers)) if (a?.type === "noul") sig[k] = a.noul;
+      app.lastSignals = sig;
+      overlayChannel.postMessage({ type: "signals", signals: sig });
       if (stage?.changed) {
         overlayChannel.postMessage({
           type: "stage",
@@ -746,8 +944,8 @@ async function evaluate() {
     }
 
     const parts = [];
-    if (stage?.changed) parts.push(`Buying stage: ${stage.label}${stage.from ? `, moved ${stage.trend} from ${stage.from}` : ""}. Score ${stage.buyingScore}.`);
-    if (app.result.status === "act" && app.result.changed) parts.push(`Next step: ${app.result.title}.`);
+    if (stage && (stage.changed || REHEARSAL)) parts.push(`${COPY.stageKicker}: ${stage.label}${stage.from ? `, moved ${stage.trend} from ${stage.from}` : ""}. Score ${stage.buyingScore}.`);
+    if (app.result.status === "act" && (app.result.changed || REHEARSAL)) parts.push(`${COPY.actionKicker}: ${app.result.title}.`);
     if (parts.length) $("announce").textContent = parts.join(" ");
   } catch (err) {
     showError(err instanceof TypeError ? "Can't reach the local server. Check that node server.mjs is still running." : err.message);
@@ -943,11 +1141,11 @@ function setSpeaker(s) {
   if (capture?.kind === "auto") return; // speakers are labeled automatically
   app.speaker = s;
   document.querySelectorAll(".speaker button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.speaker === s)));
-  $("typeIn").placeholder = s === "rep" ? "Type what you said" : "Type what the customer said";
+  $("typeIn").placeholder = s === "rep" ? COPY.typeRep : COPY.typeOther;
 }
 document.querySelectorAll(".speaker button").forEach((b) => b.addEventListener("click", () => setSpeaker(b.dataset.speaker)));
 document.addEventListener("keydown", (e) => {
-  if (e.metaKey || e.ctrlKey || e.altKey || document.activeElement?.tagName === "INPUT") return;
+  if (REHEARSAL || e.metaKey || e.ctrlKey || e.altKey || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
   const k = e.key.toLowerCase();
   if (k === "s") setSpeaker(app.speaker === "customer" ? "rep" : "customer");
   if (k === "d") markCurrentDone();
@@ -958,6 +1156,8 @@ $("auto").addEventListener("click", () => toggleCapture("auto"));
 $("pipBtn").addEventListener("click", () => (pipWin ? closePiP() : openPiP()));
 $("done").addEventListener("click", markCurrentDone);
 $("typeForm").addEventListener("submit", (e) => { e.preventDefault(); addTurn($("typeIn").value); $("typeIn").value = ""; });
+$("modeBtn").addEventListener("click", changeMode);
+$("overlayMode").addEventListener("click", changeMode);
 
 function resetCall() {
   app.sampleId++;
@@ -970,98 +1170,211 @@ function resetCall() {
 }
 $("reset").addEventListener("click", resetCall);
 
-const SAMPLE = [
-  ["customer", "Hi, a colleague sent me your site. We're looking at a few tools to clean up how our support team tracks tickets."],
-  ["rep", "Thanks for reaching out. What's not working with how you track them today?"],
-  ["customer", "Honestly it's spreadsheets. We'd want to plug this straight into our help desk so the team stops copying things over."],
-  ["customer", "What does this cost for a team of about twenty? Is there an annual discount?"],
-  ["rep", "There is. I can walk you through the plans."],
-  ["customer", "Great. My director approved budget for this quarter and we want it running before the holidays."],
-  ["customer", "My only worry is the migration. Last time we switched tools we lost a month of history."]
-];
+$("sample").hidden = !PLAYBOOK.sample?.length;
 $("sample").addEventListener("click", async () => {
   if (app.listening) stopListening();
   resetCall();
   const id = app.sampleId;
   $("sample").disabled = true;
-  for (const [speaker, text] of SAMPLE) {
+  for (const [speaker, text] of PLAYBOOK.sample) {
     if (id !== app.sampleId) return;
     app.turns.push({ speaker, text, at: 0 });
     showHeard(text, speaker);
+    if (overlayChannel) overlayChannel.postMessage({ type: "turn", speaker, text });
     if (speaker === "customer") scheduleEvaluate();
     await new Promise((r) => setTimeout(r, 3500));
   }
   if (id === app.sampleId) $("sample").disabled = false;
 });
 
-/* ---------- Start ---------- */
-setTheme(getTheme(), false);
-{
-  const tb = document.getElementById("themeBtn");
-  if (tb) tb.addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+/* ---------- Rehearsal ----------
+   The other person's lines come from the mode's scenarios. You reply to each one,
+   typed or spoken (transcribed on this computer), and each reply is scored on its own. */
+const practice = { scenario: 0, line: 0, answered: false, speaking: null, starting: false, transcribing: false };
+
+function startScenario(i) {
+  practice.scenario = i;
+  practice.line = 0;
+  resetCall();
+  $("answerIn").value = "";
+  sayLine();
 }
+
+function sayLine() {
+  const sc = PLAYBOOK.scenarios[practice.scenario];
+  app.turns.push({ speaker: "customer", text: sc.lines[practice.line], at: Date.now() });
+  practice.answered = false;
+  renderScenario();
+  $("answerIn").focus();
+}
+
+function renderScenario() {
+  const sc = PLAYBOOK.scenarios[practice.scenario];
+  const lastLine = practice.line === sc.lines.length - 1;
+  $("scenarioSetup").textContent = sc.setup;
+  $("scenarioStep").textContent = `Line ${practice.line + 1} of ${sc.lines.length}`;
+  $("scenarioWho").textContent = COPY.other;
+  $("scenarioLine").textContent = sc.lines[practice.line];
+
+  // The conversation so far, up to the line being answered
+  const current = app.turns.findLastIndex((t) => t.speaker === "customer");
+  $("scenarioLog").replaceChildren(...app.turns.slice(0, current).map((t) => {
+    const li = document.createElement("li");
+    li.append(Object.assign(document.createElement("b"), { textContent: t.speaker === "rep" ? COPY.rep : COPY.other }), t.text);
+    return li;
+  }));
+  $("scenarioLog").hidden = current <= 0;
+
+  const busy = !!(practice.speaking || practice.starting || practice.transcribing);
+  $("answerIn").readOnly = practice.answered;
+  $("answerSubmit").hidden = practice.answered;
+  $("answerSubmit").disabled = busy;
+  $("speakBtn").hidden = practice.answered || !navigator.mediaDevices?.getUserMedia;
+  $("speakBtn").disabled = practice.starting || practice.transcribing;
+  $("speakBtn").setAttribute("aria-pressed", String(!!practice.speaking));
+  $("speakLabel").textContent = practice.transcribing ? "Transcribing…" : practice.speaking ? "Done speaking" : "Speak";
+  $("answerHint").hidden = practice.answered;
+  $("retryBtn").hidden = !practice.answered;
+  $("nextLineBtn").hidden = !practice.answered;
+  $("nextLineBtn").textContent = lastLine ? "Start over" : "Next line";
+}
+
+function submitAnswer() {
+  const text = $("answerIn").value.trim();
+  if (!text || practice.answered || practice.speaking || practice.starting || practice.transcribing) return;
+  app.turns.push({ speaker: "rep", text, at: Date.now() });
+  practice.answered = true;
+  renderScenario();
+  $("nextLineBtn").focus();
+  evaluate();
+}
+
+function retryAnswer() {
+  if (app.turns.at(-1)?.speaker === "rep") app.turns.pop();
+  practice.answered = false;
+  renderScenario();
+  $("answerIn").focus();
+  $("answerIn").select();
+}
+
+function nextLine() {
+  const sc = PLAYBOOK.scenarios[practice.scenario];
+  if (practice.line >= sc.lines.length - 1) { startScenario(practice.scenario); return; }
+  practice.line++;
+  $("answerIn").value = "";
+  // Fresh panels for the new line; the stage memory stays, so the next score shows movement
+  renderStageIdle();
+  renderNextIdle();
+  sayLine();
+}
+
+async function toggleSpeak() {
+  if (practice.starting || practice.transcribing) return;
+  if (practice.speaking) {
+    const session = practice.speaking;
+    practice.speaking = null;
+    practice.transcribing = true;
+    renderScenario();
+    await session.stop();
+    await session.settled(); // the last words are still being transcribed
+    practice.transcribing = false;
+    renderScenario();
+    $("answerIn").focus();
+    return;
+  }
+  practice.starting = true;
+  renderScenario();
+  let mic = null;
+  try {
+    mic = await getMicAudio();
+    practice.speaking = await startSession([{ stream: mic, speaker: "rep" }], {
+      onText: (_, text) => { const box = $("answerIn"); box.value = `${box.value.trim()} ${text}`.trim(); },
+      onError: showError,
+      onEnded: () => { if (practice.speaking) toggleSpeak(); },
+    });
+    showError("");
+  } catch (err) {
+    mic?.getTracks().forEach((t) => t.stop());
+    showError(err.name === "NotAllowedError" ? "Microphone access is blocked. Allow it and try again, or type your reply." : "Couldn't start the microphone: " + err.message);
+  } finally {
+    practice.starting = false;
+    renderScenario();
+  }
+}
+
+/* ---------- Start ---------- */
+document.title = `${MODE.name} · Call Coach`;
+$("modeTag").textContent = ` · ${MODE.name}`;
+$("overlayMode").textContent = MODE.name;
+$("stageKicker").textContent = COPY.stageKicker;
+$("otherBtn").textContent = COPY.otherSpeaking;
+$("typeIn").placeholder = COPY.typeOther;
 renderStageIdle();
 renderNextIdle();
 
-if (isOverlay) {
-  document.body.classList.add("overlay");
-  if (overlayCard) document.body.classList.add(`card-${overlayCard}`);
-  mainEl.classList.add("pip");
-
-  if (overlayCard !== "next") {
-    $("overlayBar").hidden = false;
-    if (window.overlay) {
-      $("overlayClose").addEventListener("click", () => window.overlay.close());
-      $("overlayMin").addEventListener("click", () => window.overlay.minimize());
-    }
-    $("overlayRec").addEventListener("click", () => toggleCapture("call"));
-    $("overlayAuto").addEventListener("click", () => toggleCapture("auto"));
-    $("overlayClear").addEventListener("click", resetCall);
-    $("overlayTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
-    if (window.overlay) {
-      $("overlayDash").addEventListener("click", () => window.overlay.openDashboard());
-    }
-  }
-
-  if (overlayCard === "next" && overlayChannel) {
-    overlayChannel.onmessage = (e) => {
-      if (e.data.type === "update" && e.data.result) {
-        app.result = e.data.result;
-        mainEl.style.setProperty("--stage", `var(--s${e.data.stageLevel})`);
-        renderNext(e.data.result, true);
-      }
-      if (e.data.type === "idle") { app.result = null; renderNextIdle(); }
-    };
-  }
-  if (overlayCard === "hero" && overlayChannel) {
-    overlayChannel.onmessage = (e) => {
-      if (e.data.type === "markDone") {
-        markDone(app.memory, e.data.action);
-        evaluate();
-      }
-      if (e.data.type === "sync-request") {
-        overlayChannel.postMessage({
-          type: "sync",
-          turns: app.turns.map(t => ({ speaker: t.speaker, text: t.text })),
-          signals: app.lastSignals || null,
-        });
-      }
-      if (e.data.type === "add-turn") {
-        addTurn(e.data.text, { speaker: e.data.speaker });
-      }
-      if (e.data.type === "clear") {
-        resetCall();
-      }
-    };
-  }
+if (REHEARSAL) {
+  for (const id of ["mic", "capture", "auto", "sample", "reset", "pipBtn"]) $(id).hidden = true;
+  document.querySelector(".speaker").hidden = true;
+  $("scenario").hidden = false;
+  $("scenarioPick").replaceChildren(...PLAYBOOK.scenarios.map((s, i) => new Option(s.title, i)));
+  $("scenarioPick").addEventListener("change", (e) => startScenario(Number(e.target.value)));
+  $("answerForm").addEventListener("submit", (e) => { e.preventDefault(); submitAnswer(); });
+  $("answerIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAnswer(); } });
+  $("speakBtn").addEventListener("click", toggleSpeak);
+  $("retryBtn").addEventListener("click", retryAnswer);
+  $("nextLineBtn").addEventListener("click", nextLine);
+  startScenario(0);
 }
 
-if (!isOverlay && "documentPictureInPicture" in window) $("pipBtn").hidden = false;
+if (isOverlay && overlayCard !== "next") {
+  $("overlayRec").addEventListener("click", () => toggleCapture("call"));
+  $("overlayAuto").addEventListener("click", () => toggleCapture("auto"));
+  $("overlayClear").addEventListener("click", resetCall);
+}
+
+if (overlayCard === "next" && overlayChannel) {
+  overlayChannel.onmessage = (e) => {
+    if (e.data.type === "mode") followMode(e.data.id);
+    if (e.data.type === "update" && e.data.result) {
+      app.result = e.data.result;
+      mainEl.style.setProperty("--stage", `var(--s${e.data.stageLevel})`);
+      renderNext(e.data.result, true);
+    }
+    if (e.data.type === "idle") { app.result = null; renderNextIdle(); }
+  };
+}
+if (overlayCard === "hero" && overlayChannel) {
+  overlayChannel.onmessage = (e) => {
+    if (e.data.type === "mode-request") {
+      overlayChannel.postMessage({ type: "mode", id: MODE.id });
+    }
+    if (e.data.type === "markDone") {
+      markDone(app.memory, e.data.action);
+      evaluate();
+    }
+    if (e.data.type === "sync-request") {
+      overlayChannel.postMessage({
+        type: "sync",
+        mode: MODE.id,
+        turns: app.turns.map(t => ({ speaker: t.speaker, text: t.text })),
+        signals: app.lastSignals || null,
+      });
+    }
+    if (e.data.type === "add-turn") {
+      addTurn(e.data.text, { speaker: e.data.speaker });
+    }
+    if (e.data.type === "clear") {
+      resetCall();
+    }
+  };
+}
+
+if (!isOverlay && !REHEARSAL && "documentPictureInPicture" in window) $("pipBtn").hidden = false;
 
 fetch("/api/health").then((r) => r.json()).then((h) => {
   $("setup").hidden = h.ready;
   const canCapture = navigator.mediaDevices?.getDisplayMedia || window.overlay?.getSources;
-  if (h.canTranscribe && canCapture) {
+  if (h.canTranscribe && canCapture && !REHEARSAL) {
     $("capture").hidden = false;
     $("auto").hidden = false;
     if (isOverlay && overlayCard !== "next") { $("overlayRec").hidden = false; $("overlayAuto").hidden = false; }

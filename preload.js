@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("overlay", {
   minimize: () => ipcRenderer.send("win-minimize"),
   pin: (on) => ipcRenderer.send("win-pin", on),
   openDashboard: () => ipcRenderer.send("win-dashboard"),
+  openPractice: (mode) => ipcRenderer.send("open-practice", mode),
   getSources: () => ipcRenderer.invoke("get-sources"),
   submitKey: (key, model) => ipcRenderer.send("submit-key", key, model),
 });

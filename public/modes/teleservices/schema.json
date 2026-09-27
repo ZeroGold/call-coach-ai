@@ -1,0 +1,86 @@
+{
+  "next_best_action": {
+    "type": "choice",
+    "instructions": "Given the caller's most recent statements in `support_call_transcript`, what should the support agent do next to resolve the caller's issue?",
+    "criteria": {
+      "acknowledge_feelings": "Caller is upset or frustrated and the agent hasn't acknowledged it yet",
+      "ask_clarifying_question": "The caller's problem or what they need is still unclear",
+      "verify_details": "The agent needs the caller's order, account, or other details before they can help",
+      "explain_solution": "The problem is clear and the agent can give a fix, answer, or options",
+      "set_expectations": "Caller needs to know what happens next, how long it takes, or what they must do",
+      "escalate": "Caller asks for a supervisor, or the issue is beyond what the agent can resolve",
+      "confirm_resolution": "The issue looks resolved, so check the caller is satisfied and close out",
+      "no_action": "Nothing needs doing right now, or the conversation is not about an issue"
+    }
+  },
+  "caller_state": {
+    "type": "score",
+    "instructions": "Based on the caller's most recent statements in `support_call_transcript`, how is the caller feeling about their issue right now?",
+    "criteria": [
+      {
+        "what": "Upset: angry, threatening to cancel or complain, or feels ignored",
+        "examples": ["This is ridiculous, I've called three times!", "I want to cancel my account.", "Let me talk to your manager."]
+      },
+      {
+        "what": "Frustrated: annoyed or worried, but still working with the agent",
+        "examples": ["I just need this fixed.", "It's been a week and nothing's happened.", "I'm not sure why this is so hard."]
+      },
+      {
+        "what": "Calm: cooperative and working through the issue",
+        "examples": ["Okay, what do you need from me?", "Sure, my order number is right here.", "That makes sense."]
+      },
+      {
+        "what": "Satisfied: the issue is resolved or they're happy with the plan",
+        "examples": ["Perfect, thank you so much.", "Great, that fixes it.", "Thanks, you've been really helpful."]
+      }
+    ]
+  },
+  "repeat_contact": {
+    "type": "noul",
+    "instructions": "Has the caller contacted support about this issue before?",
+    "criteria": {
+      "true": "Mentions calling, emailing, or chatting about it before",
+      "false": "No sign of earlier contact about this issue"
+    }
+  },
+  "wants_to_cancel": {
+    "type": "noul",
+    "instructions": "Is the caller talking about cancelling, leaving, or asking for a refund?",
+    "criteria": {
+      "true": "Mentions cancelling, closing the account, switching providers, or wanting their money back",
+      "false": "No talk of leaving or refunds"
+    }
+  },
+  "asks_for_supervisor": {
+    "type": "noul",
+    "instructions": "Has the caller asked to speak to a supervisor or someone else?",
+    "criteria": {
+      "true": "Asks for a manager, supervisor, or a different person",
+      "false": "Happy to keep working with this agent"
+    }
+  },
+  "time_pressure": {
+    "type": "noul",
+    "instructions": "Does the caller say the issue is urgent or time-sensitive?",
+    "criteria": {
+      "true": "Mentions a deadline, an event, or that they need it fixed today",
+      "false": "No urgency mentioned"
+    }
+  },
+  "strong_emotion": {
+    "type": "noul",
+    "instructions": "Is the caller expressing strong emotion such as anger, distress, or panic?",
+    "criteria": {
+      "true": "Sounds angry, upset, distressed, or panicked",
+      "false": "Calm or only mildly annoyed"
+    }
+  },
+  "issue_resolved": {
+    "type": "noul",
+    "instructions": "Does the caller indicate their issue has been resolved?",
+    "criteria": {
+      "true": "Confirms it's fixed, answered, or that they're happy with the outcome",
+      "false": "The issue is still open"
+    }
+  }
+}

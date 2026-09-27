@@ -207,19 +207,11 @@ body {
   <div class="sidebar">
     <div class="signal-section">
       <div class="panel-head">Signals</div>
-      <ul class="signal-list" id="signalList">
-        <li class="signal-item" data-key="asked_about_pricing"><span class="signal-dot"></span>Asked about pricing<span class="signal-val"></span></li>
-        <li class="signal-item" data-key="mentions_timeline"><span class="signal-dot"></span>Mentions timeline<span class="signal-val"></span></li>
-        <li class="signal-item" data-key="discusses_budget"><span class="signal-dot"></span>Discusses budget<span class="signal-val"></span></li>
-        <li class="signal-item" data-key="decision_maker_involved"><span class="signal-dot"></span>Decision maker involved<span class="signal-val"></span></li>
-        <li class="signal-item" data-key="uses_ownership_language"><span class="signal-dot"></span>Ownership language<span class="signal-val"></span></li>
-        <li class="signal-item" data-key="has_blocking_objection"><span class="signal-dot"></span>Blocking objection<span class="signal-val"></span></li>
-        <li class="signal-item" data-key="is_returning_prospect"><span class="signal-dot"></span>Returning prospect<span class="signal-val"></span></li>
-      </ul>
+      <ul class="signal-list" id="signalList"></ul>
     </div>
 
     <div class="signal-section">
-      <div class="panel-head">Stage History</div>
+      <div class="panel-head" id="historyHead">Stage History</div>
       <ul class="history-list" id="historyList">
         <li class="history-item" style="color:var(--faint);font-style:italic">No changes yet</li>
       </ul>
@@ -234,21 +226,42 @@ body {
 
   <form class="input-strip" id="inputForm">
     <select id="speaker">
-      <option value="customer">Customer</option>
-      <option value="rep">Rep</option>
+      <option value="customer" id="otherOpt">Them</option>
+      <option value="rep">You</option>
     </select>
     <input id="textIn" autocomplete="off" placeholder="Type what was said...">
     <button type="submit">Add</button>
   </form>
 </div>
 
-<script>
+<script type="module">
 const channel = new BroadcastChannel("call-coach-sync");
 const transcript = document.getElementById("transcript");
 const emptyMsg = document.getElementById("emptyMsg");
 const signalList = document.getElementById("signalList");
 const historyList = document.getElementById("historyList");
-const history = [];
+
+// The mode's playbook supplies the signal names and who's who. It arrives with
+// the overlay's "sync" reply, or a "mode" message when the mode changes.
+let mode = null;
+let playbook = { copy: {}, signals: {} };
+
+async function loadMode(id) {
+  if (!/^[a-z0-9-]+$/.test(id || "") || id === mode) return;
+  playbook = (await import(`/modes/${id}/playbook.js`)).PLAYBOOK;
+  mode = id;
+  const copy = playbook.copy || {};
+  document.getElementById("otherOpt").textContent = copy.other || "Them";
+  document.getElementById("historyHead").textContent = `${copy.stageKicker || "Stage"} History`;
+  signalList.replaceChildren(...Object.entries(playbook.signals || {}).map(([key, s]) => {
+    const li = document.createElement("li");
+    li.className = "signal-item";
+    li.dataset.key = key;
+    li.append(Object.assign(document.createElement("span"), { className: "signal-dot" }), s.label || key,
+      Object.assign(document.createElement("span"), { className: "signal-val" }));
+    return li;
+  }));
+}
 
 function addBubble(speaker, text) {
   emptyMsg.hidden = true;
@@ -256,7 +269,7 @@ function addBubble(speaker, text) {
   div.className = "turn " + speaker;
   const who = document.createElement("div");
   who.className = "who";
-  who.textContent = speaker === "rep" ? "You" : "Customer";
+  who.textContent = speaker === "rep" ? (playbook.copy?.rep || "You") : (playbook.copy?.other || "Them");
   const body = document.createElement("div");
   body.textContent = text;
   div.appendChild(who);
@@ -268,14 +281,25 @@ function addBubble(speaker, text) {
 function renderSignals(signals) {
   for (const li of signalList.children) {
     const key = li.dataset.key;
-    if (!key || signals[key] == null) continue;
     const val = signals[key];
-    const pct = Math.round(val * 100);
-    li.querySelector(".signal-val").textContent = pct + "%";
+    if (typeof val !== "number") continue;
+    const s = playbook.signals?.[key] || {};
+    li.querySelector(".signal-val").textContent = Math.round(val * 100) + "%";
     li.classList.toggle("on", val >= 0.6);
-    li.classList.toggle("warn", key === "has_blocking_objection" && val >= 0.6);
-    li.classList.toggle("block", key === "has_blocking_objection" && val >= 0.7);
+    li.classList.toggle("warn", s.warn != null && val >= s.warn);
+    li.classList.toggle("block", s.block != null && val >= s.block);
   }
+}
+
+function clearAll() {
+  transcript.innerHTML = "";
+  emptyMsg.hidden = false;
+  transcript.appendChild(emptyMsg);
+  for (const li of signalList.children) {
+    li.classList.remove("on", "warn", "block");
+    li.querySelector(".signal-val").textContent = "";
+  }
+  historyList.innerHTML = '<li class="history-item" style="color:var(--faint);font-style:italic">No changes yet</li>';
 }
 
 function addHistory(label, from, trend) {
@@ -297,8 +321,12 @@ function addHistory(label, from, trend) {
   historyList.prepend(li);
 }
 
-channel.onmessage = (e) => {
+channel.onmessage = async (e) => {
   const d = e.data;
+  if (d.type === "mode" && d.id !== mode) {
+    await loadMode(d.id);
+    clearAll();
+  }
   if (d.type === "turn") {
     addBubble(d.speaker, d.text);
   }
@@ -309,19 +337,14 @@ channel.onmessage = (e) => {
     addHistory(d.label, d.from, d.trend);
   }
   if (d.type === "sync") {
+    await loadMode(d.mode);
+    clearAll();
     emptyMsg.hidden = d.turns.length > 0;
     for (const t of d.turns) addBubble(t.speaker, t.text);
     if (d.signals) renderSignals(d.signals);
   }
   if (d.type === "idle") {
-    transcript.innerHTML = "";
-    emptyMsg.hidden = false;
-    transcript.appendChild(emptyMsg);
-    for (const li of signalList.children) {
-      li.classList.remove("on", "warn", "block");
-      li.querySelector(".signal-val").textContent = "";
-    }
-    historyList.innerHTML = '<li class="history-item" style="color:var(--faint);font-style:italic">No changes yet</li>';
+    clearAll();
   }
 };
 
@@ -332,8 +355,7 @@ document.getElementById("inputForm").addEventListener("submit", (e) => {
   const text = document.getElementById("textIn").value.trim();
   if (!text) return;
   const speaker = document.getElementById("speaker").value;
-  channel.postMessage({ type: "add-turn", speaker, text });
-  addBubble(speaker, text);
+  channel.postMessage({ type: "add-turn", speaker, text }); // the overlay echoes it back as a "turn"
   document.getElementById("textIn").value = "";
 });
 

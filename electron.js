@@ -170,3 +170,28 @@ ipcMain.on("win-dashboard", () => {
   dashWin.loadURL(`http://localhost:${PORT}/dashboard.html`);
   dashWin.on("closed", () => { dashWin = null; });
 });
+
+// Practice modes don't float over a call, so they get a regular window
+let practiceWin = null;
+ipcMain.on("open-practice", (_event, mode) => {
+  if (typeof mode !== "string" || !/^[a-z0-9-]+$/.test(mode)) return;
+  const url = `http://localhost:${PORT}/?mode=${mode}`;
+  if (practiceWin && !practiceWin.isDestroyed()) {
+    if (practiceWin.webContents.getURL() !== url) practiceWin.loadURL(url);
+    practiceWin.focus();
+    return;
+  }
+  practiceWin = new BrowserWindow({
+    width: 1100,
+    height: 780,
+    backgroundColor: "#edf0f4",
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      sandbox: false,
+    },
+  });
+  practiceWin.loadURL(url);
+  practiceWin.on("closed", () => { practiceWin = null; });
+});

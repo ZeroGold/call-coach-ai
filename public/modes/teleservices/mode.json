@@ -1,0 +1,8 @@
+{
+  "name": "Customer service call",
+  "description": "Live coaching on a support call: how the caller is feeling, and what to do next to resolve it.",
+  "kind": "live",
+  "order": 2,
+  "transcript": { "key": "support_call_transcript", "rep": "agent", "other": "caller" },
+  "questions": { "action": "next_best_action", "stage": "caller_state" }
+}

@@ -6,7 +6,8 @@
   "description": "Live sales-call coach using TypeSafe Jev",
   "scripts": {
     "start": "node server.mjs",
-    "overlay": "electron ."
+    "overlay": "electron .",
+    "check-modes": "node tools/check-modes.mjs"
   },
   "engines": {
     "node": ">=18"

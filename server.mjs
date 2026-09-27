@@ -1,5 +1,5 @@
 import http from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
@@ -28,7 +28,42 @@ const MAX_TURNS = 40;
 const MAX_TURN_CHARS = 1500;
 const MAX_BODY_BYTES = 200_000;
 
-const QUESTIONS = JSON.parse(await readFile(path.join(HERE, "schema.json"), "utf8"));
+// Each folder in public/modes is one mode:
+//   mode.json     name, kind ("live" or "rehearsal"), transcript labels, which questions drive the screen
+//   schema.json   the questions sent to Jev
+//   playbook.js   actions, tips, stage names and screen text (loaded by the browser)
+const MODES_DIR = path.join(PUBLIC, "modes");
+const DEFAULT_MODE = "sales";
+const MODES = await loadModes();
+
+async function loadModes() {
+  const modes = {};
+  for (const id of (await readdir(MODES_DIR)).sort()) {
+    if (!/^[a-z0-9-]+$/.test(id)) continue;
+    try {
+      const dir = path.join(MODES_DIR, id);
+      const meta = JSON.parse(await readFile(path.join(dir, "mode.json"), "utf8"));
+      const schema = JSON.parse(await readFile(path.join(dir, "schema.json"), "utf8"));
+      const { action, stage } = meta.questions || {};
+      if (schema[action]?.type !== "choice") throw new Error(`questions.action ("${action}") must be a choice question in schema.json`);
+      if (schema[stage]?.type !== "score") throw new Error(`questions.stage ("${stage}") must be a score question in schema.json`);
+      const t = meta.transcript || {};
+      if (!t.key || !t.rep || !t.other) throw new Error("mode.json needs transcript.key, transcript.rep and transcript.other");
+      if (meta.kind !== "live" && meta.kind !== "rehearsal") throw new Error('kind must be "live" or "rehearsal"');
+      modes[id] = { id, ...meta, schema };
+    } catch (err) {
+      console.warn(`Skipping mode "${id}": ${err.message}`);
+    }
+  }
+  if (!modes[DEFAULT_MODE]) throw new Error(`The "${DEFAULT_MODE}" mode is missing from public/modes.`);
+  return modes;
+}
+
+function publicModes() {
+  return Object.values(MODES)
+    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+    .map(({ id, name, description, kind, questions }) => ({ id, name, description, kind, questions }));
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -43,11 +78,11 @@ const MIME = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function askJev(turns) {
+async function askJev(turns, mode) {
   const body = JSON.stringify({
     model: MODEL,
-    state: { sales_call_transcript: turns },
-    questions: QUESTIONS,
+    state: { [mode.transcript.key]: turns },
+    questions: mode.schema,
   });
 
   for (let attempt = 0; ; attempt++) {
@@ -148,13 +183,13 @@ function transcribe(samples) {
   return run;
 }
 
-function cleanTurns(input) {
+function cleanTurns(input, mode) {
   if (!Array.isArray(input)) return [];
   return input
     .filter((t) => t && typeof t.text === "string" && t.text.trim())
     .slice(-MAX_TURNS)
     .map((t) => ({
-      speaker: t.speaker === "rep" ? "sales_rep" : "customer",
+      speaker: t.speaker === "rep" ? mode.transcript.rep : mode.transcript.other,
       text: t.text.trim().slice(0, MAX_TURN_CHARS),
     }));
 }
@@ -165,6 +200,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && url.pathname === "/api/health") {
       return sendJson(res, 200, { ready: Boolean(API_KEY), model: MODEL, canTranscribe: true, asrModel: ASR_MODEL });
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/modes") {
+      return sendJson(res, 200, { modes: publicModes(), default: DEFAULT_MODE });
     }
 
     if (req.method === "GET" && url.pathname === "/api/models") {
@@ -199,14 +238,16 @@ const server = http.createServer(async (req, res) => {
       if (!API_KEY) {
         return sendJson(res, 500, { error: "TYPESAFE_API_KEY is not set. Stop the server and start it again with your key." });
       }
-      const { turns } = await readJson(req);
-      const clean = cleanTurns(turns);
-      if (!clean.some((t) => t.speaker === "customer")) {
-        return sendJson(res, 400, { error: "Add at least one thing the customer said." });
+      const { turns, mode: modeId = DEFAULT_MODE } = await readJson(req);
+      const mode = Object.hasOwn(MODES, modeId) ? MODES[modeId] : null;
+      if (!mode) return sendJson(res, 400, { error: `Unknown mode "${modeId}".` });
+      const clean = cleanTurns(turns, mode);
+      if (!clean.some((t) => t.speaker === mode.transcript.other)) {
+        return sendJson(res, 400, { error: `Add at least one thing the ${mode.transcript.other.replace(/_/g, " ")} said.` });
       }
 
       const started = performance.now();
-      const { status, data } = await askJev(clean);
+      const { status, data } = await askJev(clean, mode);
       const latency_ms = Math.round(performance.now() - started);
 
       if (status !== 200) {
@@ -258,4 +299,5 @@ server.listen(PORT, () => {
   console.log(`Call Coach running at http://localhost:${PORT}`);
   if (!API_KEY) console.warn("Warning: TYPESAFE_API_KEY is not set. The page will load but cannot analyze calls.");
   console.log(`Speech model: ${ASR_MODEL} (change with ASR_MODEL env var)`);
+  console.log(`Modes: ${publicModes().map((m) => m.id).join(", ")}`);
 });

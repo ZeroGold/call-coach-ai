@@ -70,7 +70,7 @@ export function getMicAudio() {
  *   onBehind(waiting)         transcription is falling behind (0 once caught up)
  *   onError(message)
  *   onEnded()                 a stream ended on its own (e.g. screen share stopped)
- * Returns { stop() }.
+ * Returns { stop(), settled() }.
  */
 export async function startSession(sources, handlers = {}) {
   const { onText = () => {}, onDrop = () => {}, onBehind = () => {}, onError = () => {}, onEnded = () => {} } = handlers;
@@ -95,6 +95,8 @@ export async function startSession(sources, handlers = {}) {
     // segments pile up, consecutive ones from the same speaker go in one request.
     const queue = [];
     let busy = false, warned = false;
+    let waiters = [];
+    const settle = () => { if (!busy && !queue.length) { waiters.forEach((w) => w()); waiters = []; } };
     const pump = async () => {
       if (busy || !queue.length) return;
       busy = true;
@@ -123,6 +125,7 @@ export async function startSession(sources, handlers = {}) {
       busy = false;
       if (warned && !queue.length) { warned = false; onBehind(0); }
       pump();
+      settle();
     };
 
     node.port.onmessage = (e) => {
@@ -145,6 +148,10 @@ export async function startSession(sources, handlers = {}) {
         running = false;
         ctx.close().catch(() => {});
         for (const s of sources) s.stream.getTracks().forEach((t) => t.stop());
+      },
+      /** Resolves once every segment so far has been transcribed and delivered. */
+      settled() {
+        return new Promise((resolve) => { waiters.push(resolve); settle(); });
       },
     };
   } catch (err) {

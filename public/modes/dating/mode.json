@@ -1,0 +1,8 @@
+{
+  "name": "Dating practice",
+  "description": "Rehearse first-date conversation. Reply to your date and get feedback on how it lands.",
+  "kind": "rehearsal",
+  "order": 3,
+  "transcript": { "key": "practice_conversation", "rep": "user", "other": "date" },
+  "questions": { "action": "coaching_focus", "stage": "reply_quality" }
+}
