@@ -1,4 +1,4 @@
-// Call audio capture, transcribed by the local Whisper model on the server.
+// Call audio capture, transcribed by Whisper (see transcriber.js for where it runs).
 //
 //   Capture call:  call audio only, every line labeled "customer".
 //   Auto capture:  call audio -> "customer", microphone -> "rep". Each side is
@@ -9,6 +9,8 @@
 // All streams run through one AudioContext so they share a clock. The segmenter
 // worklet cuts each one at natural pauses, and segments are transcribed and
 // delivered in the order they finished.
+
+import { transcribe } from "/transcriber.js";
 
 export const SAMPLE_RATE = 16000;
 
@@ -113,14 +115,12 @@ export async function startSession(sources, handlers = {}) {
       let off = 0;
       for (const p of parts) { pcm.set(p, off); off += p.length; }
       try {
-        const res = await fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: pcm.buffer });
-        const data = await res.json();
-        if (data.error) onError(data.error);
-        const text = data.text?.trim();
+        const text = (await transcribe(pcm)).text.trim();
         if (text && !isHallucination(text)) onText(speaker, text); // includes segments flushed by stop()
         else onDrop(speaker, "noise");
       } catch (err) {
         console.error("Transcription error:", err);
+        onError(err.message);
       }
       busy = false;
       if (warned && !queue.length) { warned = false; onBehind(0); }

@@ -15,7 +15,7 @@
   --s0: #7d889c; --s1: #4b5fd1; --s2: #0f7f8c; --s3: #178049;
   /* Overlay cards. The overlay floats over whatever is behind it, so
      it carries its own surface tokens rather than the page's. */
-  --card-bg: rgba(255,255,255,0.93); --card-line: rgba(0,0,0,0.10);
+  --card-bg: #ffffff; --card-line: rgba(0,0,0,0.10);
   --card-ink: #172033; --card-dim: rgba(23,32,51,0.68); --card-mute: rgba(23,32,51,0.45);
   --card-well: rgba(0,0,0,0.08); --card-well-2: rgba(0,0,0,0.05);
   --card-hover: rgba(0,0,0,0.12); --card-edge: rgba(0,0,0,0.16);
@@ -27,7 +27,7 @@
     --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
     --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a;
     --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
-    --card-bg: rgba(14,18,30,0.88); --card-line: rgba(255,255,255,0.08);
+    --card-bg: #121826; --card-line: rgba(255,255,255,0.08);
     --card-ink: #e7ebf2; --card-dim: rgba(255,255,255,0.70); --card-mute: rgba(255,255,255,0.45);
     --card-well: rgba(255,255,255,0.10); --card-well-2: rgba(255,255,255,0.06);
     --card-hover: rgba(255,255,255,0.14); --card-edge: rgba(255,255,255,0.20);
@@ -39,7 +39,7 @@
   --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
   --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a;
   --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
-  --card-bg: rgba(14,18,30,0.88); --card-line: rgba(255,255,255,0.08);
+  --card-bg: #121826; --card-line: rgba(255,255,255,0.08);
   --card-ink: #e7ebf2; --card-dim: rgba(255,255,255,0.70); --card-mute: rgba(255,255,255,0.45);
   --card-well: rgba(255,255,255,0.10); --card-well-2: rgba(255,255,255,0.06);
   --card-hover: rgba(255,255,255,0.14); --card-edge: rgba(255,255,255,0.20);
@@ -340,47 +340,68 @@ main.pip .conf-pill { border-color: var(--card-edge); color: var(--card-ink); }
 main.pip .score-num { color: var(--stage); }
 main.pip .next-kicker { color: var(--card-mute); }
 
-/* Overlay mode (Electron transparent window) */
-body.overlay { background: transparent !important; overflow: hidden; }
+/* Overlay mode (Electron transparent window). Everything in it sits on a solid
+   card, so it stays readable over any desktop. */
+html:has(body.overlay), body.overlay { background: transparent !important; }
+body.overlay { overflow: hidden; }
 body.overlay header.bar, body.overlay footer.strip { display: none !important; }
-body.card-hero .next { display: none !important; }
-body.card-next .hero { display: none !important; }
-body.card-next main.pip { -webkit-app-region: drag; }
-body.card-next main.pip button,
-body.card-next main.pip details,
-body.card-next main.pip summary { -webkit-app-region: no-drag; }
 
 .overlay-bar {
   -webkit-app-region: drag;
-  display: flex; align-items: center;
-  padding: 5px 10px; gap: 6px;
-  background: transparent;
-  color: var(--card-mute);
-  font-size: 0.72rem; font-weight: 600;
+  position: relative;
+  display: flex; align-items: center; gap: 4px;
+  margin: 6px 8px 0; padding: 4px 4px 4px 6px;
+  background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  color: var(--card-ink);
+  font-size: 0.8rem; font-weight: 600;
   font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
 }
-.overlay-brand { flex: 1; letter-spacing: -0.01em; }
+.overlay-brand {
+  -webkit-app-region: no-drag;
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px;
+  border: none; background: none; border-radius: 7px; padding: 4px 6px;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.overlay-brand:hover { background: var(--card-well); }
+.overlay-brand::after { content: "▾"; color: var(--card-mute); font-size: 0.7rem; }
 .overlay-btn {
   -webkit-app-region: no-drag;
   border: none; background: var(--card-well-2);
-  color: var(--card-mute);
-  border-radius: 5px; width: 22px; height: 22px;
+  color: var(--card-dim);
+  border-radius: 7px; min-width: 26px; height: 26px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; cursor: pointer; padding: 0; line-height: 1;
+  font-size: 0.85rem; cursor: pointer; padding: 0; line-height: 1;
   transition: background 0.15s, color 0.15s;
 }
-.overlay-btn:hover { background: var(--card-hover); color: var(--card-ink); }
+.overlay-btn:hover, .overlay-btn[aria-expanded="true"] { background: var(--card-hover); color: var(--card-ink); }
 .overlay-rec .rec-dot {
-  width: 8px; height: 8px; border-radius: 50%;
+  width: 9px; height: 9px; border-radius: 50%;
   background: var(--card-mute);
   transition: background 0.2s;
 }
 .overlay-rec[aria-pressed="true"] .rec-dot { background: #f07167; animation: pulse 1.2s infinite; }
-.overlay-auto { width: auto; gap: 4px; padding: 0 6px; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.overlay-auto { gap: 5px; padding: 0 8px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .overlay-auto[aria-pressed="true"] { color: var(--card-ink); }
+.overlay-menu {
+  -webkit-app-region: no-drag;
+  position: absolute; top: calc(100% + 4px); right: 30px; z-index: 10;
+  min-width: 180px; padding: 4px;
+  display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--card-edge); border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+}
+.overlay-menu button {
+  border: none; background: none; border-radius: 6px; padding: 7px 10px;
+  text-align: left; font: inherit; font-weight: 500; color: var(--ink); cursor: pointer;
+}
+.overlay-menu button:hover, .overlay-menu button:focus-visible { background: var(--paper); outline: none; }
 .overlay-err {
-  padding: 0 10px 4px;
-  color: #f07167; font-size: 0.72rem; font-weight: 500;
+  margin: 6px 8px 0; padding: 6px 10px;
+  background: var(--card-bg); border: 1px solid var(--card-line); border-left: 3px solid #f07167; border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  color: var(--card-ink); font-size: 0.76rem; font-weight: 500;
   font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
 }
 
@@ -396,21 +417,21 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 .mode-kind { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
 .mode-desc { grid-column: 1 / -1; color: var(--muted); font-size: 0.92rem; }
 .picker-note { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.mode-opt.mode-new { border-style: dashed; background: transparent; }
+.mode-opt.mode-new .mode-name { color: var(--cobalt); }
+main.pip .mode-opt.mode-new { background: transparent; border-color: var(--card-edge); }
 body.picking main > :not(.picker),
 body.picking footer.strip,
-body.picking header.bar > :not(.brand, #themeBtn),
-body.picking .overlay-bar > :not(.overlay-brand, #overlayTheme, #overlayMin, #overlayClose),
-body.waiting main, body.waiting .overlay-bar { display: none !important; }
-main.pip .picker { margin: 0; gap: 8px; }
+body.picking header.bar > :not(.brand, #themeBtn, #settingsBtn),
+body.picking [data-needs-mode] { display: none !important; }
+main.pip .picker { margin: 0; gap: 8px; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 14px; box-shadow: var(--card-shadow); }
 main.pip .picker-title { font-size: 0.95rem; color: var(--card-ink); }
 main.pip .picker-note { color: var(--card-mute); font-size: 0.78rem; }
-main.pip .mode-opt { padding: 8px 12px; border-radius: 12px; background: var(--card-bg); border-color: var(--card-line); box-shadow: var(--card-shadow); }
+main.pip .mode-opt { padding: 8px 12px; border-radius: 10px; background: var(--card-well-2); border-color: var(--card-line); }
 main.pip .mode-opt.last { border-color: var(--cobalt); }
 main.pip .mode-name { font-size: 0.9rem; color: var(--card-ink); }
 main.pip .mode-kind { color: var(--card-mute); border-color: var(--card-edge); font-size: 0.62rem; }
 main.pip .mode-desc { display: none; }
-button.overlay-brand { -webkit-app-region: no-drag; border: none; background: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
-button.overlay-brand:hover { color: var(--card-ink); }
 
 /* ---------- Rehearsal ---------- */
 .scenario { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: clamp(18px, 3vw, 28px); display: flex; flex-direction: column; gap: 14px; }
@@ -468,13 +489,18 @@ body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
 
 <div class="overlay-bar" id="overlayBar" hidden>
   <button type="button" class="overlay-brand" id="overlayMode" title="Change mode">Call Coach</button>
-  <button class="overlay-btn overlay-rec overlay-auto" id="overlayAuto" aria-pressed="false" title="Auto capture (experimental): hears both sides and labels who's speaking. Everyone on the call must agree to be recorded." hidden><span class="rec-dot"></span>Auto</button>
-  <button class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" hidden><span class="rec-dot"></span></button>
-  <button class="overlay-btn" id="overlayClear" title="Clear call">&#8635;</button>
-  <button class="overlay-btn" id="overlayTheme" title="Light / dark">&#9681;</button>
-  <button class="overlay-btn" id="overlayDash" title="Dashboard">&#9638;</button>
-  <button class="overlay-btn" id="overlayMin" title="Minimize">&#8211;</button>
-  <button class="overlay-btn" id="overlayClose" title="Close">&times;</button>
+  <button type="button" class="overlay-btn overlay-rec overlay-auto" id="overlayAuto" aria-pressed="false" title="Auto capture (experimental): hears both sides and labels who's speaking. Everyone on the call must agree to be recorded." data-needs-mode hidden><span class="rec-dot"></span>Auto</button>
+  <button type="button" class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" data-needs-mode hidden><span class="rec-dot"></span></button>
+  <button type="button" class="overlay-btn" id="overlayMore" title="More" aria-haspopup="menu" aria-expanded="false" aria-controls="overlayMenu">&#8943;</button>
+  <button type="button" class="overlay-btn" id="overlayMin" title="Minimize">&#8211;</button>
+  <button type="button" class="overlay-btn" id="overlayClose" title="Close">&times;</button>
+  <div class="overlay-menu" id="overlayMenu" role="menu" hidden>
+    <button type="button" role="menuitem" id="menuClear" data-needs-mode>Clear conversation</button>
+    <button type="button" role="menuitem" id="menuDash" data-needs-mode>Open dashboard</button>
+    <button type="button" role="menuitem" id="menuMode" data-needs-mode>Change mode</button>
+    <button type="button" role="menuitem" id="menuSettings">Settings and coaches</button>
+    <button type="button" role="menuitem" id="menuTheme">Dark mode</button>
+  </div>
 </div>
 <p class="overlay-err" id="overlayErr" hidden></p>
 
@@ -490,6 +516,7 @@ body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
   <button type="button" class="ghost" id="sample">Play sample call</button>
   <button type="button" class="ghost" id="reset">Clear call</button>
   <button type="button" class="ghost" id="modeBtn">Change mode</button>
+  <button type="button" class="ghost" id="settingsBtn">Settings</button>
   <button type="button" class="ghost" id="themeBtn" title="Light / dark">Dark mode</button>
   <button type="button" class="ghost" id="pipBtn" hidden>Pop out</button>
 </header>
@@ -585,6 +612,8 @@ body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
 <script type="module">
 import { decide, trackStage, createMemory, markDone, DEFAULT_CONFIG } from "/decide.js";
 import { startSession, getCallAudio, getMicAudio } from "/capture.js";
+import { listCoaches, getCoach, buildCoach, onCoachesChanged } from "/coaches.js";
+import { apiHeaders, getKey, getAccessCode } from "/access.js";
 
 let pipWin = null;
 const $ = (id) => document.getElementById(id) || pipWin?.document.getElementById(id) || null;
@@ -603,7 +632,6 @@ const app = {
 
 const _qp = new URLSearchParams(location.search);
 const isOverlay = _qp.has("overlay");
-const overlayCard = _qp.get("card");
 const overlayChannel = isOverlay ? new BroadcastChannel("call-coach-sync") : null;
 
 /* ---------- Theme ----------
@@ -634,31 +662,50 @@ themeChannel.onmessage = (e) => { if (e.data && e.data.theme) setTheme(e.data.th
 setTheme(getTheme(), false);
 $("themeBtn").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
 
+function openSettings(hash = "") {
+  if (window.overlay?.openSettings) window.overlay.openSettings(hash);
+  else location.assign(`/settings.html${hash}`);
+}
+$("settingsBtn").addEventListener("click", () => openSettings());
+
 /* ---------- Overlay window controls ----------
    Wired before a mode is picked, so the window can be moved and closed from the picker. */
 if (isOverlay) {
   document.body.classList.add("overlay");
-  if (overlayCard) document.body.classList.add(`card-${overlayCard}`);
   mainEl.classList.add("pip");
-  if (overlayCard !== "next") {
-    $("overlayBar").hidden = false;
-    $("overlayTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
-    if (window.overlay) {
-      $("overlayClose").addEventListener("click", () => window.overlay.close());
-      $("overlayMin").addEventListener("click", () => window.overlay.minimize());
-      $("overlayDash").addEventListener("click", () => window.overlay.openDashboard());
+  $("overlayBar").hidden = false;
+  const menu = $("overlayMenu"), more = $("overlayMore");
+  const showMenu = (open) => {
+    menu.hidden = !open;
+    more.setAttribute("aria-expanded", String(open));
+    if (open) {
+      $("menuTheme").textContent = getTheme() === "dark" ? "Light mode" : "Dark mode";
+      menu.querySelector("button:not([hidden])")?.focus();
     }
+  };
+  more.addEventListener("click", () => showMenu(menu.hidden));
+  document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target) && e.target !== more) showMenu(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { showMenu(false); more.focus(); } });
+  menu.addEventListener("click", (e) => { if (e.target.closest("button")) showMenu(false); });
+  $("menuTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+  $("menuSettings").addEventListener("click", () => openSettings());
+  if (window.overlay) {
+    $("overlayClose").addEventListener("click", () => window.overlay.close());
+    $("overlayMin").addEventListener("click", () => window.overlay.minimize());
+    $("menuDash").addEventListener("click", () => window.overlay.openDashboard());
+  } else {
+    $("menuDash").hidden = true;
   }
 }
 
 /* ---------- Mode ----------
-   Each mode is a folder in /modes (see server.mjs). The picker is the entry point,
-   and the chosen mode stays in the URL (?mode=) so a reload keeps it. In the
-   overlay, the second card and the dashboard follow the first card's choice. */
+   Built-in modes are folders in /modes (see server.mjs); custom coaches are built
+   in Settings (see coaches.js). The picker is the entry point, and the chosen
+   mode stays in the URL (?mode=) so a reload keeps it. */
 const MODE_KEY = "cc-mode";
-const MODES = await fetch("/api/modes").then((r) => r.json()).then((d) => d.modes).catch(() => null);
+const MODES = await loadModes();
 const MODE = await chooseMode();
-const { PLAYBOOK: MODE_PLAYBOOK } = await import(`/modes/${MODE.id}/playbook.js`);
+const { PLAYBOOK: MODE_PLAYBOOK, COACH } = await loadPlaybook(MODE);
 const PLAYBOOK = { ...MODE_PLAYBOOK, questions: MODE.questions };
 const CONFIG = { ...DEFAULT_CONFIG, ...PLAYBOOK.config };
 const REHEARSAL = MODE.kind === "rehearsal";
@@ -682,26 +729,30 @@ const N = STAGES.length;
 document.body.dataset.kind = MODE.kind;
 mainEl.dataset.kind = MODE.kind;
 
+async function loadModes() {
+  const builtIn = await fetch("/api/modes").then((r) => r.json()).then((d) => d.modes).catch(() => null);
+  if (!builtIn) return null;
+  const custom = listCoaches().map((c) => buildCoach(c.id, c.fields).meta);
+  return [...builtIn, ...custom];
+}
+
+async function loadPlaybook(mode) {
+  if (!mode.custom) return import(`/modes/${mode.id}/playbook.js`);
+  const { meta, schema, playbook } = buildCoach(mode.id, getCoach(mode.id).fields);
+  return { PLAYBOOK: playbook, COACH: { transcript: meta.transcript, schema } };
+}
+
 async function chooseMode() {
   const chosen = MODES?.find((m) => m.id === _qp.get("mode"));
   if (chosen) return chosen;
-  if (overlayCard === "next") return waitForMode();
-  return new Promise((resolve) => showPicker(resolve));
-}
-
-// The overlay's second card has no picker; it reloads into whatever the first card picks
-function waitForMode() {
-  document.body.classList.add("waiting");
-  overlayChannel.addEventListener("message", (e) => { if (e.data?.type === "mode") followMode(e.data.id); });
-  overlayChannel.postMessage({ type: "mode-request" });
-  return new Promise(() => {});
-}
-
-function followMode(id) {
-  const url = new URL(location.href);
-  if (url.searchParams.get("mode") === id) return;
-  url.searchParams.set("mode", id);
-  location.replace(url);
+  return new Promise((resolve) => {
+    showPicker(resolve);
+    onCoachesChanged(async () => {
+      if (!document.body.classList.contains("picking")) return;
+      const fresh = await loadModes();
+      if (fresh) { MODES.splice(0, MODES.length, ...fresh); showPicker(resolve); }
+    });
+  });
 }
 
 function changeMode() {
@@ -720,12 +771,13 @@ function showPicker(resolve) {
   }
   let last = null;
   try { last = localStorage.getItem(MODE_KEY); } catch {}
-  $("pickerList").replaceChildren(...MODES.map((m) => {
+  const span = (className, textContent) => Object.assign(document.createElement("span"), { className, textContent });
+  const options = MODES.map((m) => {
     const b = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt" + (m.id === last ? " last" : "") });
     b.append(
-      Object.assign(document.createElement("span"), { className: "mode-name", textContent: m.name }),
-      Object.assign(document.createElement("span"), { className: "mode-kind", textContent: m.kind === "rehearsal" ? "Practice" : "Live call" }),
-      Object.assign(document.createElement("span"), { className: "mode-desc", textContent: m.description || "" }),
+      span("mode-name", m.name),
+      span("mode-kind", (m.custom ? "Custom · " : "") + (m.kind === "rehearsal" ? "Practice" : "Live call")),
+      span("mode-desc", m.description || ""),
     );
     b.addEventListener("click", () => {
       try { localStorage.setItem(MODE_KEY, m.id); } catch {}
@@ -744,7 +796,11 @@ function showPicker(resolve) {
       resolve(m);
     });
     return b;
-  }));
+  });
+  const add = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt mode-new" });
+  add.append(span("mode-name", "+ Build your own coach"), span("mode-desc", "Set up a coach for another kind of call or practice in Settings."));
+  add.addEventListener("click", () => openSettings("#new"));
+  $("pickerList").replaceChildren(...options, add);
   ($("pickerList").querySelector(".last") || $("pickerList").firstElementChild)?.focus();
 }
 
@@ -895,10 +951,6 @@ function showError(msg) {
 }
 
 /* ---------- Jev + local logic ---------- */
-function activeDone() {
-  const now = Date.now();
-  return Object.entries(app.memory.done).filter(([, until]) => until > now).map(([k]) => k);
-}
 function scheduleEvaluate() { clearTimeout(app.timer); app.timer = setTimeout(evaluate, 350); }
 
 async function evaluate() {
@@ -909,8 +961,9 @@ async function evaluate() {
   try {
     const res = await fetch("/api/evaluate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: MODE.id, turns: app.turns, completed: activeDone() })
+      headers: { "Content-Type": "application/json", ...apiHeaders() },
+      // Custom coaches send their questions along; built-in modes are known to the server
+      body: JSON.stringify({ ...(COACH ? { coach: COACH } : { mode: MODE.id }), turns: app.turns })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `The server returned status ${res.status}.`);
@@ -923,12 +976,7 @@ async function evaluate() {
     renderNext(app.result, !stage?.changed);
 
     if (overlayChannel) {
-      overlayChannel.postMessage({
-        type: "update",
-        result: app.result,
-        stageLevel: stage?.level ?? app.memory.stage.level ?? 0,
-      });
-      // Every yes/no signal, as a probability
+      // Every yes/no signal, as a probability, for the dashboard
       const sig = {};
       for (const [k, a] of Object.entries(data.answers)) if (a?.type === "noul") sig[k] = a.noul;
       app.lastSignals = sig;
@@ -969,15 +1017,6 @@ function addTurn(text, { speaker = app.speaker, merge = false, evaluate = true }
 function markCurrentDone() {
   const r = app.result;
   if (!r || r.status !== "act") return;
-
-  if (overlayCard === "next" && overlayChannel) {
-    overlayChannel.postMessage({ type: "markDone", action: r.action });
-    $("doneMsg").textContent = `Marked "${r.title}" done.`;
-    clearTimeout(markCurrentDone.t);
-    markCurrentDone.t = setTimeout(() => ($("doneMsg").textContent = ""), 5000);
-    return;
-  }
-
   markDone(app.memory, r.action);
   const mins = Math.round(DEFAULT_CONFIG.doneCooldownMs / 60000);
   $("doneMsg").textContent = `Marked "${r.title}" done. It's hidden for ${mins} minutes.`;
@@ -1190,7 +1229,7 @@ $("sample").addEventListener("click", async () => {
 /* ---------- Rehearsal ----------
    The other person's lines come from the mode's scenarios. You reply to each one,
    typed or spoken (transcribed on this computer), and each reply is scored on its own. */
-const practice = { scenario: 0, line: 0, answered: false, speaking: null, starting: false, transcribing: false };
+const practice = { scenario: 0, line: 0, answered: false, speaking: null, starting: false, transcribing: false, canSpeak: !!navigator.mediaDevices?.getUserMedia };
 
 function startScenario(i) {
   practice.scenario = i;
@@ -1229,7 +1268,7 @@ function renderScenario() {
   $("answerIn").readOnly = practice.answered;
   $("answerSubmit").hidden = practice.answered;
   $("answerSubmit").disabled = busy;
-  $("speakBtn").hidden = practice.answered || !navigator.mediaDevices?.getUserMedia;
+  $("speakBtn").hidden = practice.answered || !practice.canSpeak;
   $("speakBtn").disabled = practice.starting || practice.transcribing;
   $("speakBtn").setAttribute("aria-pressed", String(!!practice.speaking));
   $("speakLabel").textContent = practice.transcribing ? "Transcribing…" : practice.speaking ? "Done speaking" : "Speak";
@@ -1326,32 +1365,14 @@ if (REHEARSAL) {
   startScenario(0);
 }
 
-if (isOverlay && overlayCard !== "next") {
+if (isOverlay) {
   $("overlayRec").addEventListener("click", () => toggleCapture("call"));
   $("overlayAuto").addEventListener("click", () => toggleCapture("auto"));
-  $("overlayClear").addEventListener("click", resetCall);
-}
-
-if (overlayCard === "next" && overlayChannel) {
+  $("menuClear").addEventListener("click", resetCall);
+  $("menuMode").addEventListener("click", changeMode);
+  // The dashboard window mirrors this one over the channel
+  overlayChannel.postMessage({ type: "mode", id: MODE.id });
   overlayChannel.onmessage = (e) => {
-    if (e.data.type === "mode") followMode(e.data.id);
-    if (e.data.type === "update" && e.data.result) {
-      app.result = e.data.result;
-      mainEl.style.setProperty("--stage", `var(--s${e.data.stageLevel})`);
-      renderNext(e.data.result, true);
-    }
-    if (e.data.type === "idle") { app.result = null; renderNextIdle(); }
-  };
-}
-if (overlayCard === "hero" && overlayChannel) {
-  overlayChannel.onmessage = (e) => {
-    if (e.data.type === "mode-request") {
-      overlayChannel.postMessage({ type: "mode", id: MODE.id });
-    }
-    if (e.data.type === "markDone") {
-      markDone(app.memory, e.data.action);
-      evaluate();
-    }
     if (e.data.type === "sync-request") {
       overlayChannel.postMessage({
         type: "sync",
@@ -1372,12 +1393,21 @@ if (overlayCard === "hero" && overlayChannel) {
 if (!isOverlay && !REHEARSAL && "documentPictureInPicture" in window) $("pipBtn").hidden = false;
 
 fetch("/api/health").then((r) => r.json()).then((h) => {
-  $("setup").hidden = h.ready;
+  if (h.hosted) {
+    // On a website, visitors bring their own key (or the site's access code)
+    const covered = getKey() || h.access === "open" || (h.access === "code-or-key" && getAccessCode());
+    $("setup").replaceChildren("To get coaching, add your TypeSafe API key", h.access === "code-or-key" ? " or this site's access code" : "", " in ",
+      Object.assign(document.createElement("a"), { href: "/settings.html#access", textContent: "Settings" }), ".");
+    $("setup").hidden = !!covered;
+  } else {
+    $("setup").hidden = h.ready;
+  }
+  if (!h.canTranscribe) { practice.canSpeak = false; if (REHEARSAL) renderScenario(); }
   const canCapture = navigator.mediaDevices?.getDisplayMedia || window.overlay?.getSources;
   if (h.canTranscribe && canCapture && !REHEARSAL) {
     $("capture").hidden = false;
     $("auto").hidden = false;
-    if (isOverlay && overlayCard !== "next") { $("overlayRec").hidden = false; $("overlayAuto").hidden = false; }
+    if (isOverlay) { $("overlayRec").hidden = false; $("overlayAuto").hidden = false; }
   }
 }).catch(() => showError("Open this page through the local server (node server.mjs)."));
 </script>

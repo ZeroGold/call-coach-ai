@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.git
+.env
+.claude
+.backup-*
+tools
+*.md

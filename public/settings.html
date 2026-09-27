@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · Call Coach</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" crossorigin>
+<style>
+:root {
+  --paper: #edf0f4; --surface: #ffffff; --ink: #172033; --muted: #5e6a80; --faint: #8a94a7; --line: #d5dbe5;
+  --cobalt: #2743c9; --on-cobalt: #ffffff; --stop: #b8322a; --warn: #a86c07; --ok: #178049;
+  --field: #f6f8fb;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
+  --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a; --ok: #52c98e;
+  --field: #131a28;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+  font-size: 15px; line-height: 1.45;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; border-radius: 6px; }
+[hidden] { display: none !important; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Top bar */
+.bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 12px clamp(16px, 3vw, 32px); background: var(--surface); border-bottom: 1px solid var(--line); }
+.brand { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; color: inherit; text-decoration: none; }
+.crumb { color: var(--muted); font-weight: 500; }
+.crumb::before { content: "· "; }
+.spacer { flex: 1; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 999px; padding: 8px 16px; background: var(--cobalt); color: var(--on-cobalt); font-weight: 600; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.ghost:hover { background: var(--paper); }
+.btn.danger { background: transparent; color: var(--stop); border: 1px solid color-mix(in srgb, var(--stop) 40%, var(--line)); }
+.btn.small { padding: 5px 12px; font-size: 0.86rem; }
+.icon-btn { border: 1px solid var(--line); background: transparent; border-radius: 8px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+.icon-btn:hover { background: var(--paper); color: var(--ink); }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* Layout */
+main { width: min(880px, 100%); margin: 0 auto; padding: clamp(16px, 4vh, 36px) 16px 80px; display: flex; flex-direction: column; gap: 24px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: clamp(18px, 3vw, 28px); }
+.panel-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.panel-head .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+h1, h2 { margin: 0; letter-spacing: -0.02em; line-height: 1.15; }
+h1 { font-size: clamp(1.5rem, 3.5vw, 2rem); font-weight: 800; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+.lede { color: var(--muted); margin: 8px 0 18px; max-width: 62ch; }
+.note { color: var(--muted); font-size: 0.88rem; margin: 6px 0 0; }
+
+/* Coach list */
+.coach-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.coach { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.coach-name { font-weight: 700; font-size: 1.02rem; }
+.coach-desc { grid-column: 1; color: var(--muted); font-size: 0.9rem; }
+.coach-tags { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: 2px; }
+.tag { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+.tag.custom { color: var(--cobalt); border-color: color-mix(in srgb, var(--cobalt) 40%, var(--line)); }
+.coach-actions { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Form */
+form { display: flex; flex-direction: column; gap: 22px; margin-top: 18px; }
+fieldset { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+legend { padding: 0; margin-bottom: 4px; font-weight: 700; font-size: 1.02rem; }
+.legend-note { display: block; font-weight: 400; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field > span { font-weight: 600; font-size: 0.88rem; }
+.field > span small { font-weight: 400; color: var(--muted); }
+input[type="text"], input[type="password"], textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--field);
+}
+textarea { resize: vertical; min-height: 64px; }
+input:focus-visible, textarea:focus-visible { border-radius: 10px; outline-offset: 1px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kind { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kind label { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.kind label:has(input:checked) { border-color: var(--cobalt); box-shadow: inset 0 0 0 1px var(--cobalt); }
+.kind input { margin-top: 3px; accent-color: var(--cobalt); }
+.kind b { display: block; }
+.kind small { color: var(--muted); }
+.rows { display: flex; flex-direction: column; gap: 10px; }
+.row { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.row-head { display: flex; align-items: center; gap: 6px; }
+.row-head .num { font-weight: 700; color: var(--muted); font-size: 0.82rem; margin-right: auto; }
+.level-row { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.level-row .examples { grid-column: 1 / -1; }
+.add { align-self: flex-start; }
+details.advanced summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+details.advanced[open] summary { margin-bottom: 10px; }
+.problems { margin: 0; padding: 12px 14px 12px 32px; border: 1px solid var(--stop); border-radius: 12px; background: color-mix(in srgb, var(--stop) 8%, transparent); color: var(--ink); }
+.form-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; position: sticky; bottom: 0; padding: 12px 0 4px; background: var(--surface); border-top: 1px solid var(--line); }
+
+/* Model picker (shared with the dashboard) */
+.model-picker { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.model-opt { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--field); text-align: left; color: var(--muted); }
+.model-opt:hover { border-color: var(--cobalt); }
+.model-opt.active { border-color: var(--cobalt); box-shadow: inset 0 0 0 1px var(--cobalt); }
+.model-opt.loading { border-color: var(--warn); }
+.model-name { font-weight: 700; color: var(--ink); }
+.model-size { color: var(--faint); margin-left: auto; font-size: 0.8rem; }
+.model-status { margin-top: 8px; color: var(--muted); font-size: 0.86rem; min-height: 1.2em; }
+.model-bar { height: 4px; border-radius: 2px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.model-bar-fill { height: 100%; background: var(--cobalt); }
+
+/* Access */
+.key-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.key-row input { flex: 1; min-width: 220px; }
+.saved { color: var(--ok); font-weight: 600; font-size: 0.88rem; }
+
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 12px; align-items: center; background: var(--ink); color: var(--surface); padding: 10px 12px 10px 16px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.25); max-width: calc(100% - 32px); z-index: 20; }
+.toast .btn { background: var(--surface); color: var(--ink); }
+
+@media (max-width: 640px) {
+  .grid2, .kind, .level-row { grid-template-columns: 1fr; }
+  .coach { grid-template-columns: 1fr; }
+  .coach-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; }
+  .crumb { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script>
+(function () {
+  var t;
+  try { t = localStorage.getItem("cc-theme"); } catch (e) {}
+  document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
+})();
+</script>
+</head>
+<body>
+
+<header class="bar">
+  <a class="brand" href="/">Call Coach</a><span class="crumb">Settings</span>
+  <span class="spacer"></span>
+  <a class="btn ghost small" id="backBtn" href="/">Back to Call Coach</a>
+  <button type="button" class="btn ghost small" id="themeBtn">Dark mode</button>
+</header>
+
+<main>
+  <section class="panel" aria-labelledby="coachesTitle">
+    <div class="panel-head">
+      <h1 id="coachesTitle">Coaches</h1>
+      <div class="actions">
+        <button type="button" class="btn" id="newLive">New live coach</button>
+        <button type="button" class="btn ghost" id="newPractice">New practice coach</button>
+        <button type="button" class="btn ghost" id="importBtn">Import</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <p class="lede">A coach decides what the gauge measures and what to suggest next. Build one for any conversation: job interviews, negotiations, a support desk, or a practice run for something you're nervous about. Duplicate a built-in coach to start from something that works.</p>
+    <ul class="coach-list" id="coachList"></ul>
+  </section>
+
+  <section class="panel" id="editor" hidden aria-labelledby="editorTitle">
+    <h2 id="editorTitle">New coach</h2>
+    <form id="coachForm" novalidate>
+      <fieldset>
+        <legend>Basics</legend>
+        <label class="field"><span>Name</span><input type="text" id="fName" maxlength="60" placeholder="Job interview" required></label>
+        <label class="field"><span>Description <small>(shown on the start screen)</small></span><input type="text" id="fDescription" maxlength="200" placeholder="Live coaching while you interview a candidate."></label>
+        <div class="kind" role="radiogroup" aria-label="Kind of coach">
+          <label><input type="radio" name="kind" value="live" checked><span><b>Live call</b><small>Coaches you during a real conversation, from the call audio or what you type.</small></span></label>
+          <label><input type="radio" name="kind" value="rehearsal"><span><b>Practice</b><small>You reply to scripted lines and get feedback on each reply.</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Who's talking</legend>
+        <div class="grid2">
+          <label class="field"><span>You are</span><input type="text" id="fYou" maxlength="40" placeholder="Recruiter"></label>
+          <label class="field"><span>You're talking with</span><input type="text" id="fThem" maxlength="40" placeholder="Candidate"></label>
+        </div>
+        <label class="field"><span id="goalLabel">What you're working toward <small>(optional)</small></span><input type="text" id="fGoal" maxlength="200" placeholder="get the candidate excited to accept an offer"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>The gauge<span class="legend-note">Four levels, lowest to highest. The gauge shows where things stand right now.</span></legend>
+        <div class="grid2">
+          <label class="field"><span>What it measures</span><input type="text" id="fGaugeLabel" maxlength="40" placeholder="Candidate interest"></label>
+          <label class="field"><span>The question it answers</span><input type="text" id="fGaugeQuestion" maxlength="200" placeholder="how interested are they in the role right now?"></label>
+        </div>
+        <div class="rows" id="levels"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend id="actionsLegend">Next steps to suggest<span class="legend-note">The coach picks one at a time. When two fit equally well, the one higher in the list wins.</span></legend>
+        <div class="rows" id="actions"></div>
+        <button type="button" class="btn ghost small add" id="addAction">+ Add a step</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Signals <small class="legend-note">Optional yes/no questions, shown in the dashboard.</small></legend>
+        <div class="rows" id="signals"></div>
+        <button type="button" class="btn ghost small add" id="addSignal">+ Add a signal</button>
+      </fieldset>
+
+      <fieldset id="scenarioSet" hidden>
+        <legend>Practice scenarios<span class="legend-note">The other person says each line in turn, and you reply to each.</span></legend>
+        <div class="rows" id="scenarios"></div>
+        <button type="button" class="btn ghost small add" id="addScenario">+ Add a scenario</button>
+      </fieldset>
+
+      <details class="advanced">
+        <summary>Advanced: the exact questions sent to Jev</summary>
+        <p class="note">Leave these empty to use the wording built from the fields above, shown in grey.</p>
+        <label class="field"><span>Next step question</span><textarea id="fActionInstructions" rows="3"></textarea></label>
+        <label class="field"><span>Gauge question</span><textarea id="fStageInstructions" rows="3"></textarea></label>
+      </details>
+
+      <ul class="problems" id="problems" role="alert" hidden></ul>
+
+      <div class="form-actions">
+        <button type="submit" class="btn">Save coach</button>
+        <button type="button" class="btn ghost" id="cancelEdit">Cancel</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel" id="accessPanel" hidden aria-labelledby="accessTitle">
+    <h2 id="accessTitle">TypeSafe access</h2>
+    <p class="note" id="accessNote">Coaching uses TypeSafe Jev. Add your TypeSafe API key; it stays in this browser and is sent through this site to TypeSafe with each request. The site doesn't store it.</p>
+    <form class="key-row" id="keyForm">
+      <label class="visually-hidden" for="keyIn">Your TypeSafe API key</label>
+      <input type="password" id="keyIn" autocomplete="off" placeholder="Your TypeSafe API key">
+      <button type="submit" class="btn">Save key</button>
+      <button type="button" class="btn ghost" id="keyRemove">Remove</button>
+      <span class="saved" id="keySaved" role="status"></span>
+    </form>
+    <form class="key-row" id="codeForm" hidden>
+      <label class="visually-hidden" for="codeIn">Access code</label>
+      <input type="password" id="codeIn" autocomplete="off" placeholder="Or this site's access code">
+      <button type="submit" class="btn ghost">Save code</button>
+      <span class="saved" id="codeSaved" role="status"></span>
+    </form>
+  </section>
+
+  <section class="panel" aria-labelledby="speechTitle">
+    <h2 id="speechTitle">Speech model</h2>
+    <p class="note">Turns call audio and spoken practice replies into text. Bigger models are more accurate but slower.</p>
+    <div class="model-picker" id="modelPicker"></div>
+    <div class="model-status" id="modelStatus" role="status"></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" class="btn small" id="toastAction" hidden></button></div>
+
+<script type="module">
+import {
+  listCoaches, getCoach, saveCoach, deleteCoach, onCoachesChanged, validateCoach,
+  blankCoach, buildCoach, fieldsFromMode, defaultInstructions, exportCoach, parseImport, slug, LIMITS,
+} from "/coaches.js";
+import { mountModelPicker } from "/model-picker.js";
+import { getKey, setKey, getAccessCode, setAccessCode } from "/access.js";
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, { dataset, ...props } = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), props);
+  if (dataset) Object.assign(n.dataset, dataset);
+  n.append(...kids.filter((k) => k != null));
+  return n;
+};
+const inDesktopApp = !!window.overlay;
+
+/* ---------- Theme ---------- */
+const themeChannel = new BroadcastChannel("call-coach-theme");
+function setTheme(t, broadcast = true) {
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem("cc-theme", t); } catch {}
+  $("themeBtn").textContent = t === "dark" ? "Light mode" : "Dark mode";
+  if (broadcast) themeChannel.postMessage({ theme: t });
+}
+themeChannel.onmessage = (e) => e.data?.theme && setTheme(e.data.theme, false);
+setTheme(document.documentElement.getAttribute("data-theme"), false);
+$("themeBtn").addEventListener("click", () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"));
+
+// In the desktop app, Settings is its own window
+if (inDesktopApp) {
+  $("backBtn").textContent = "Close";
+  $("backBtn").addEventListener("click", (e) => { e.preventDefault(); window.overlay.close(); });
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(text, action) {
+  $("toastText").textContent = text;
+  $("toastAction").hidden = !action;
+  if (action) { $("toastAction").textContent = action.label; $("toastAction").onclick = () => { $("toast").hidden = true; action.run(); }; }
+  $("toast").hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => ($("toast").hidden = true), 7000);
+}
+
+/* ---------- Opening a coach ---------- */
+function useCoach(id, kind) {
+  try { localStorage.setItem("cc-mode", id); } catch {}
+  if (inDesktopApp && window.overlay.useCoach) window.overlay.useCoach(id, kind);
+  else location.assign(`/?mode=${encodeURIComponent(id)}`);
+}
+
+/* ---------- Coach list ---------- */
+const builtIns = await fetch("/api/modes").then((r) => r.json()).then((d) => d.modes).catch(() => []);
+
+function renderList() {
+  const kindTag = (k) => el("span", { className: "tag", textContent: k === "rehearsal" ? "Practice" : "Live call" });
+  const row = (m, custom) => {
+    const actions = el("div", { className: "coach-actions" });
+    const btn = (label, cls, fn, aria) => { const b = el("button", { type: "button", className: `btn small ${cls}`, textContent: label, onclick: fn }); if (aria) b.setAttribute("aria-label", aria); actions.append(b); };
+    btn("Use", "", () => useCoach(m.id, m.kind), `Use ${m.name}`);
+    if (custom) btn("Edit", "ghost", () => openEditor(custom.fields, m.id), `Edit ${m.name}`);
+    btn("Duplicate", "ghost", () => duplicate(m, custom), `Duplicate ${m.name}`);
+    if (custom) {
+      btn("Export", "ghost", () => download(custom), `Export ${m.name}`);
+      btn("Delete", "danger", () => remove(m), `Delete ${m.name}`);
+    }
+    return el("li", { className: "coach" },
+      el("div", {}, el("span", { className: "coach-name", textContent: m.name }),
+        el("span", { className: "coach-tags" }, kindTag(m.kind), custom ? el("span", { className: "tag custom", textContent: "Custom" }) : el("span", { className: "tag", textContent: "Built in" }))),
+      actions,
+      el("div", { className: "coach-desc", textContent: m.description || "" }));
+  };
+  const custom = listCoaches();
+  $("coachList").replaceChildren(
+    ...builtIns.map((m) => row(m, null)),
+    ...custom.map((c) => row({ id: c.id, name: c.fields.name, description: c.fields.description, kind: c.fields.kind }, c)),
+  );
+}
+renderList();
+onCoachesChanged(renderList);
+
+async function duplicate(m, custom) {
+  if (custom) { openEditor({ ...structuredClone(custom.fields), name: `${custom.fields.name} (copy)` }, null); return; }
+  try {
+    const [meta, schema, { PLAYBOOK }] = await Promise.all([
+      fetch(`/modes/${m.id}/mode.json`).then((r) => r.json()),
+      fetch(`/modes/${m.id}/schema.json`).then((r) => r.json()),
+      import(`/modes/${m.id}/playbook.js`),
+    ]);
+    openEditor(fieldsFromMode(meta, schema, PLAYBOOK), null);
+  } catch (err) {
+    toast(`Couldn't copy ${m.name}: ${err.message}`);
+  }
+}
+
+function remove(m) {
+  if (!confirm(`Delete the "${m.name}" coach? This can't be undone. Export it first if you might want it back.`)) return;
+  deleteCoach(m.id);
+  if (editing?.id === m.id) closeEditor();
+  toast(`Deleted "${m.name}".`);
+}
+
+function download(c) {
+  const url = URL.createObjectURL(new Blob([exportCoach(c)], { type: "application/json" }));
+  const a = el("a", { href: url, download: `${slug(c.fields.name, "coach").replace(/_/g, "-")}.coach.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try {
+    openEditor(parseImport(await file.text()), null);
+    toast(`Loaded "${file.name}". Check it over, then save.`);
+  } catch (err) {
+    toast(err instanceof SyntaxError ? "That file isn't valid JSON." : err.message);
+  }
+});
+
+/* ---------- Editor ---------- */
+let editing = null;   // { id, fields }
+let dirty = false;
+
+const PLACEHOLDERS = {
+  live: {
+    levels: ["Not interested", "Curious", "Serious", "Ready"],
+    levelWhat: ["Polite but not engaged", "Asking questions, exploring", "Talking specifics and next steps", "Wants to move forward"],
+    action: { title: "Share the salary range", when: "They ask about pay and haven't heard the range yet", tip: "Give the range, then ask how it compares with what they're looking for." },
+    gaugeLabel: "Candidate interest", gaugeQuestion: "how interested are they in the role right now?",
+    goalLabel: "What you're working toward", goal: "get the candidate excited to accept an offer",
+    actionsLegend: "Next steps to suggest", when: "Suggest it when",
+  },
+  rehearsal: {
+    levels: ["Misses", "Okay", "Good", "Great"],
+    levelWhat: ["Doesn't answer, or comes across badly", "Answers, but vague or flat", "Clear, with a concrete example", "Specific, confident, and memorable"],
+    action: { title: "Give an example", when: "The reply makes a claim without a concrete example", tip: "Back it up with one short story: the situation, what you did, what happened." },
+    gaugeLabel: "Your answer", gaugeQuestion: "how well does it answer the interviewer's question?",
+    goalLabel: "The goal of the conversation", goal: "come across as a strong candidate",
+    actionsLegend: "Things to work on", when: "Point it out when the reply",
+  },
+};
+
+function openEditor(fields, id) {
+  if (editing && dirty && !confirm("Discard the changes to the coach you're editing?")) return;
+  editing = { id, fields: structuredClone(fields) };
+  dirty = false;
+  $("editorTitle").textContent = id ? `Edit "${fields.name}"` : fields.name ? `New coach: ${fields.name}` : "New coach";
+  $("problems").hidden = true;
+  fillForm(editing.fields);
+  $("editor").hidden = false;
+  $("editor").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  $("fName").focus({ preventScroll: true });
+}
+
+function closeEditor() {
+  editing = null;
+  dirty = false;
+  $("editor").hidden = true;
+  if (location.hash) history.replaceState(null, "", location.pathname);
+}
+
+$("newLive").addEventListener("click", () => openEditor(blankCoach("live"), null));
+$("newPractice").addEventListener("click", () => openEditor(blankCoach("rehearsal"), null));
+$("cancelEdit").addEventListener("click", () => { if (!dirty || confirm("Discard your changes?")) { dirty = false; closeEditor(); } });
+$("coachForm").addEventListener("input", () => { dirty = true; refreshPlaceholders(); });
+$("coachForm").addEventListener("change", (e) => { if (e.target.name === "kind") mutate((f) => { f.kind = e.target.value; ensureRows(f); }); });
+addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
+
+function ensureRows(f) {
+  if (f.kind === "rehearsal" && !f.scenarios.length) f.scenarios.push({ title: "", setup: "", lines: [] });
+}
+
+// Read the form, change the fields, draw the form again
+function mutate(fn) {
+  const f = readForm();
+  fn(f);
+  editing.fields = f;
+  fillForm(f);
+  dirty = true;
+}
+
+const lines = (text) => text.split("\n").map((s) => s.trim()).filter(Boolean);
+
+function readForm() {
+  const f = structuredClone(editing.fields);
+  f.name = $("fName").value;
+  f.description = $("fDescription").value;
+  f.kind = document.querySelector('input[name="kind"]:checked').value;
+  f.you = $("fYou").value;
+  f.them = $("fThem").value;
+  f.goal = $("fGoal").value;
+  f.gauge.label = $("fGaugeLabel").value;
+  f.gauge.question = $("fGaugeQuestion").value;
+  f.gauge.levels = [...$("levels").children].map((row, i) => ({
+    ...f.gauge.levels[i],
+    name: row.querySelector("[data-k=name]").value,
+    what: row.querySelector("[data-k=what]").value,
+    examples: lines(row.querySelector("[data-k=examples]").value),
+  }));
+  f.actions = [...$("actions").children].map((row, i) => ({
+    ...f.actions[i],
+    title: row.querySelector("[data-k=title]").value,
+    when: row.querySelector("[data-k=when]").value,
+    tip: row.querySelector("[data-k=tip]").value,
+  }));
+  f.signals = [...$("signals").children].map((row, i) => ({
+    ...f.signals[i],
+    label: row.querySelector("[data-k=label]").value,
+    question: row.querySelector("[data-k=question]").value,
+  }));
+  f.scenarios = [...$("scenarios").children].map((row, i) => ({
+    ...f.scenarios[i],
+    title: row.querySelector("[data-k=title]").value,
+    setup: row.querySelector("[data-k=setup]").value,
+    lines: lines(row.querySelector("[data-k=lines]").value),
+  }));
+  f.advanced = { actionInstructions: $("fActionInstructions").value, stageInstructions: $("fStageInstructions").value };
+  return f;
+}
+
+function field(label, control) {
+  return el("label", { className: "field" }, el("span", { textContent: label }), control);
+}
+const input = (k, value, placeholder, max = 200) => el("input", { type: "text", value: value || "", placeholder, maxLength: max, dataset: { k } });
+const area = (k, value, placeholder, rows = 2) => el("textarea", { value: value || "", placeholder, rows, dataset: { k } });
+
+function rowControls(list, i, noun, minRows) {
+  const head = el("div", { className: "row-head" }, el("span", { className: "num", textContent: `${noun} ${i + 1}` }));
+  const move = (d) => mutate((f) => { const a = f[list]; [a[i], a[i + d]] = [a[i + d], a[i]]; });
+  const up = el("button", { type: "button", className: "icon-btn", textContent: "↑", disabled: i === 0, onclick: () => move(-1) });
+  const down = el("button", { type: "button", className: "icon-btn", textContent: "↓", disabled: i === editing.fields[list].length - 1, onclick: () => move(1) });
+  const del = el("button", { type: "button", className: "icon-btn", textContent: "✕", disabled: editing.fields[list].length <= minRows, onclick: () => mutate((f) => f[list].splice(i, 1)) });
+  up.setAttribute("aria-label", `Move ${noun.toLowerCase()} ${i + 1} up`);
+  down.setAttribute("aria-label", `Move ${noun.toLowerCase()} ${i + 1} down`);
+  del.setAttribute("aria-label", `Remove ${noun.toLowerCase()} ${i + 1}`);
+  if (list === "actions") head.append(up, down);
+  head.append(del);
+  return head;
+}
+
+function fillForm(f) {
+  const ph = PLACEHOLDERS[f.kind === "rehearsal" ? "rehearsal" : "live"];
+  $("fName").value = f.name;
+  $("fDescription").value = f.description;
+  document.querySelector(`input[name="kind"][value="${f.kind}"]`).checked = true;
+  $("fYou").value = f.you;
+  $("fThem").value = f.them;
+  $("fGoal").value = f.goal;
+  $("fGoal").placeholder = ph.goal;
+  $("goalLabel").firstChild.textContent = `${ph.goalLabel} `;
+  $("fGaugeLabel").value = f.gauge.label;
+  $("fGaugeLabel").placeholder = ph.gaugeLabel;
+  $("fGaugeQuestion").value = f.gauge.question;
+  $("fGaugeQuestion").placeholder = ph.gaugeQuestion;
+  $("actionsLegend").firstChild.textContent = ph.actionsLegend;
+
+  $("levels").replaceChildren(...f.gauge.levels.map((l, i) => el("div", { className: "row level-row" },
+    field(`Level ${i + 1}${i === 0 ? " (lowest)" : i === 3 ? " (highest)" : ""}`, input("name", l.name, ph.levels[i], 40)),
+    field("What it looks like", input("what", l.what, ph.levelWhat[i])),
+    el("label", { className: "field examples" }, el("span", {}, "Examples ", el("small", { textContent: "(optional, one per line)" })), area("examples", (l.examples || []).join("\n"), "", 2)),
+  )));
+
+  $("actions").replaceChildren(...f.actions.map((a, i) => el("div", { className: "row" },
+    rowControls("actions", i, "Step", 2),
+    el("div", { className: "grid2" }, field("Title", input("title", a.title, ph.action.title, 60)), field(ph.when, input("when", a.when, ph.action.when))),
+    field("Coaching tip", area("tip", a.tip, ph.action.tip)),
+  )));
+  $("addAction").disabled = f.actions.length >= LIMITS.actions;
+
+  $("signals").replaceChildren(...f.signals.map((s, i) => el("div", { className: "row" },
+    rowControls("signals", i, "Signal", 0),
+    el("div", { className: "grid2" }, field("Label", input("label", s.label, "Mentions another offer", 40)), field("Yes/no question", input("question", s.question, "Has the candidate mentioned another job offer?"))),
+  )));
+  $("addSignal").disabled = f.signals.length >= LIMITS.signals;
+
+  $("scenarioSet").hidden = f.kind !== "rehearsal";
+  $("scenarios").replaceChildren(...f.scenarios.map((s, i) => el("div", { className: "row" },
+    rowControls("scenarios", i, "Scenario", 1),
+    el("div", { className: "grid2" }, field("Title", input("title", s.title, "The opening question", 60)), field("Setup", input("setup", s.setup, "Final-round interview. The interviewer seems friendly but busy."))),
+    el("label", { className: "field" }, el("span", {}, "Their lines ", el("small", { textContent: "(one per line, in order)" })),
+      area("lines", (s.lines || []).join("\n"), "So, tell me about yourself.\nWhy do you want to leave your current job?", 4)),
+  )));
+  $("addScenario").disabled = f.scenarios.length >= LIMITS.scenarios;
+
+  $("fActionInstructions").value = f.advanced?.actionInstructions || "";
+  $("fStageInstructions").value = f.advanced?.stageInstructions || "";
+  refreshPlaceholders();
+}
+
+// The advanced boxes show the wording that will be used if they're left empty
+function refreshPlaceholders() {
+  if (!editing) return;
+  const f = readForm();
+  const auto = defaultInstructions(f);
+  $("fActionInstructions").placeholder = auto.action;
+  $("fStageInstructions").placeholder = auto.stage;
+}
+
+$("addAction").addEventListener("click", () => mutate((f) => f.actions.push({ title: "", when: "", tip: "" })));
+$("addSignal").addEventListener("click", () => mutate((f) => f.signals.push({ label: "", question: "" })));
+$("addScenario").addEventListener("click", () => mutate((f) => f.scenarios.push({ title: "", setup: "", lines: [] })));
+
+$("coachForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = readForm();
+  const problems = validateCoach(f);
+  if (problems.length) {
+    $("problems").replaceChildren(...problems.map((p) => el("li", { textContent: p })));
+    $("problems").hidden = false;
+    $("problems").scrollIntoView({ block: "center" });
+    return;
+  }
+  $("problems").hidden = true;
+  const id = saveCoach(f, editing.id);
+  const saved = getCoach(id);
+  buildCoach(id, saved.fields); // sanity: throws if something can't be built
+  dirty = false;
+  closeEditor();
+  renderList();
+  toast(`Saved "${saved.fields.name}". It's on the start screen now.`, { label: "Use it now", run: () => useCoach(id, saved.fields.kind) });
+});
+
+/* ---------- Access (hosted site) ---------- */
+const health = await fetch("/api/health").then((r) => r.json()).catch(() => ({}));
+if (health.hosted) {
+  $("accessPanel").hidden = false;
+  $("codeForm").hidden = health.access !== "code-or-key";
+  if (health.access === "open") $("accessNote").textContent = "This site lets everyone use its TypeSafe key, so you don't need one. You can still use your own key.";
+  $("keyIn").value = getKey();
+  $("codeIn").value = getAccessCode();
+  const flash = (id, text) => { $(id).textContent = text; setTimeout(() => ($(id).textContent = ""), 3000); };
+  $("keyForm").addEventListener("submit", (e) => { e.preventDefault(); setKey($("keyIn").value); flash("keySaved", $("keyIn").value.trim() ? "Saved in this browser" : "Removed"); });
+  $("keyRemove").addEventListener("click", () => { setKey(""); $("keyIn").value = ""; flash("keySaved", "Removed"); });
+  $("codeForm").addEventListener("submit", (e) => { e.preventDefault(); setAccessCode($("codeIn").value); flash("codeSaved", "Saved in this browser"); });
+}
+
+/* ---------- Speech model ---------- */
+mountModelPicker($("modelPicker"), $("modelStatus"));
+
+/* ---------- Links into Settings ---------- */
+function route() {
+  const h = location.hash;
+  if (h === "#new") openEditor(blankCoach("live"), null);
+  else if (h === "#new-practice") openEditor(blankCoach("rehearsal"), null);
+  else if (h.startsWith("#edit=")) { const c = getCoach(decodeURIComponent(h.slice(6))); if (c) openEditor(c.fields, c.id); }
+  else if (h === "#access") $("accessPanel").scrollIntoView();
+}
+addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>

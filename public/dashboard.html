@@ -122,10 +122,10 @@ body {
 /* Model picker */
 .model-picker { display: flex; flex-direction: column; gap: 5px; }
 .model-opt {
-  display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px; width: 100%;
   border-radius: 8px; border: 1px solid var(--line); background: var(--card);
   cursor: pointer; transition: border-color 0.2s, background 0.2s;
-  font-size: 0.82rem;
+  font: inherit; font-size: 0.82rem; color: inherit; text-align: left;
 }
 .model-opt:hover { border-color: var(--accent); }
 .model-opt.active { border-color: var(--accent); background: rgba(128, 152, 255, 0.08); }
@@ -235,6 +235,8 @@ body {
 </div>
 
 <script type="module">
+import { mountModelPicker } from "/model-picker.js";
+import { getCoach, buildCoach } from "/coaches.js";
 const channel = new BroadcastChannel("call-coach-sync");
 const transcript = document.getElementById("transcript");
 const emptyMsg = document.getElementById("emptyMsg");
@@ -248,7 +250,8 @@ let playbook = { copy: {}, signals: {} };
 
 async function loadMode(id) {
   if (!/^[a-z0-9-]+$/.test(id || "") || id === mode) return;
-  playbook = (await import(`/modes/${id}/playbook.js`)).PLAYBOOK;
+  const custom = getCoach(id);
+  playbook = custom ? buildCoach(id, custom.fields).playbook : (await import(`/modes/${id}/playbook.js`)).PLAYBOOK;
   mode = id;
   const copy = playbook.copy || {};
   document.getElementById("otherOpt").textContent = copy.other || "Them";
@@ -371,92 +374,7 @@ if (window.overlay) {
   document.getElementById("minBtn").hidden = true;
 }
 
-const modelPicker = document.getElementById("modelPicker");
-const modelStatusEl = document.getElementById("modelStatus");
-let pollTimer = null;
-
-async function loadModels() {
-  try {
-    const res = await fetch("/api/models");
-    const data = await res.json();
-    modelPicker.innerHTML = "";
-    for (const m of data.models) {
-      const div = document.createElement("div");
-      div.className = "model-opt" + (m.id === data.current ? " active" : "");
-      div.dataset.id = m.id;
-      div.innerHTML = '<span class="model-name">' + m.label + '</span> ' + m.desc + '<span class="model-size">' + m.size + '</span>';
-      div.addEventListener("click", () => switchModel(m.id));
-      modelPicker.appendChild(div);
-    }
-    if (data.progress && data.progress.status === "downloading") {
-      showProgress(data.progress);
-      startPoll();
-    } else if (data.loaded) {
-      modelStatusEl.textContent = data.loaded === data.current ? "Loaded and ready" : "Will load on next transcription";
-    } else {
-      modelStatusEl.textContent = "Downloads on first use";
-    }
-  } catch {}
-}
-
-async function switchModel(id) {
-  const opts = modelPicker.querySelectorAll(".model-opt");
-  opts.forEach((o) => {
-    o.classList.toggle("active", o.dataset.id === id);
-    o.classList.remove("loading");
-  });
-  modelStatusEl.textContent = "Switching...";
-  try {
-    const res = await fetch("/api/models/switch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: id }),
-    });
-    const data = await res.json();
-    if (data.status === "already_loaded") {
-      modelStatusEl.textContent = "Already loaded";
-      return;
-    }
-    const opt = modelPicker.querySelector('[data-id="' + id + '"]');
-    if (opt) opt.classList.add("loading");
-    startPoll();
-  } catch (err) {
-    modelStatusEl.textContent = "Error: " + err.message;
-  }
-}
-
-function showProgress(p) {
-  if (p.status === "downloading") {
-    modelStatusEl.innerHTML = "Downloading " + p.model.split("/").pop() + "... " + p.pct + "%" +
-      '<div class="model-bar"><div class="model-bar-fill" style="width:' + p.pct + '%"></div></div>';
-  } else if (p.status === "ready") {
-    modelStatusEl.textContent = "Loaded and ready";
-    modelPicker.querySelectorAll(".model-opt").forEach((o) => o.classList.remove("loading"));
-    stopPoll();
-    loadModels();
-  } else if (p.status === "error") {
-    modelStatusEl.textContent = "Error: " + (p.error || "failed to load");
-    modelPicker.querySelectorAll(".model-opt").forEach((o) => o.classList.remove("loading"));
-    stopPoll();
-  }
-}
-
-function startPoll() {
-  stopPoll();
-  pollTimer = setInterval(async () => {
-    try {
-      const res = await fetch("/api/models/progress");
-      const p = await res.json();
-      showProgress(p);
-    } catch {}
-  }, 800);
-}
-
-function stopPoll() {
-  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-}
-
-loadModels();
+mountModelPicker(document.getElementById("modelPicker"), document.getElementById("modelStatus"));
 </script>
 </body>
 </html>

@@ -134,7 +134,9 @@ export function decide(answers, playbook, memory, now = Date.now(), config = DEF
   }
   const blockNotes = {};
   for (const rule of playbook.rules || []) {
-    if (!rule.when(signals)) continue;
+    // A rule is a function of the signals, or data like { signal, min } for playbooks stored as JSON
+    const hit = typeof rule.when === "function" ? rule.when(signals) : (signals[rule.signal] ?? 0) >= (rule.min ?? 0.7);
+    if (!hit) continue;
     for (const key of rule.block) { skipped.add(key); blockNotes[key] = rule.note; }
   }
 
