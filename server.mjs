@@ -31,9 +31,9 @@ const TRUST_PROXY = process.env.TRUST_PROXY === "1";
 
 const ASR_MODELS = [
   { id: "onnx-community/whisper-tiny.en",  label: "Tiny",   size: "~40 MB",  desc: "Fastest, lowest accuracy" },
-  { id: "onnx-community/whisper-base.en",  label: "Base",   size: "~150 MB", desc: "Good balance of speed and accuracy" },
-  { id: "onnx-community/whisper-small.en", label: "Small",  size: "~500 MB", desc: "High accuracy, moderate speed" },
-  { id: "onnx-community/whisper-medium.en",label: "Medium", size: "~1.5 GB", desc: "Best accuracy, slower" },
+  { id: "onnx-community/whisper-base.en",  label: "Base",   size: "~80 MB", desc: "Good balance of speed and accuracy" },
+  { id: "onnx-community/whisper-small.en", label: "Small",  size: "~250 MB", desc: "High accuracy, moderate speed" },
+  { id: "onnx-community/whisper-medium.en",label: "Medium", size: "~800 MB", desc: "Best accuracy, slower" },
 ];
 
 // Whisper runs as two ONNX sessions (encoder and decoder). By default each one
@@ -91,6 +91,7 @@ const MIME = {
   ".svg":  "image/svg+xml",
   ".png":  "image/png",
   ".ico":  "image/x-icon",
+  ".woff2": "font/woff2",
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

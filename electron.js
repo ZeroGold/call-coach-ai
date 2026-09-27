@@ -1,4 +1,4 @@
-const { app, BrowserWindow, desktopCapturer, ipcMain, screen } = require("electron");
+const { app, BrowserWindow, desktopCapturer, ipcMain, screen, shell } = require("electron");
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
@@ -95,9 +95,16 @@ function savedBounds() {
   }
 }
 
+// Windows 11 (22H2+) can blur whatever is behind a window with its Acrylic material.
+// It's opt-in (CALL_COACH_GLASS=1): Windows draws Acrylic as flat gray whenever the
+// window isn't focused, and during a call the focus is on the call app. By default the
+// window is transparent and the page draws solid cards, which read well over anything.
+const OS_GLASS = process.platform === "win32" && process.env.CALL_COACH_GLASS === "1"
+  && Number(process.getSystemVersion().split(".")[2] || 0) >= 22621;
+
 // The floating coach: one window with both cards, on top of the call
 function openOverlay(mode) {
-  const url = `${BASE}/?overlay=1${mode ? `&mode=${encodeURIComponent(mode)}` : ""}`;
+  const url = `${BASE}/?overlay=1${OS_GLASS ? "&glass=os" : ""}${mode ? `&mode=${encodeURIComponent(mode)}` : ""}`;
   if (overlayWin && !overlayWin.isDestroyed()) {
     overlayWin.loadURL(url);
     overlayWin.show();
@@ -111,12 +118,13 @@ function openOverlay(mode) {
     minWidth: 280,
     minHeight: 220,
     title: "Call Coach",
-    transparent: true,
     frame: false,
     alwaysOnTop: true,
     resizable: true,
-    hasShadow: false,
     backgroundColor: "#00000000",
+    // Acrylic needs an opaque window with a clear background; elsewhere the window is
+    // transparent and the page draws solid cards
+    ...(OS_GLASS ? { transparent: false, backgroundMaterial: "acrylic" } : { transparent: true, hasShadow: false }),
     webPreferences,
   });
   overlayWin.loadURL(url);
@@ -157,11 +165,12 @@ function openPractice(mode) {
 function showKeyPrompt() {
   return new Promise((resolve) => {
     const win = new BrowserWindow({
-      width: 380,
-      height: 310,
+      width: 560,
+      height: 660,
       frame: false,
       resizable: false,
       center: true,
+      title: "Welcome to Call Coach",
       backgroundColor: "#edf0f4",
       webPreferences,
     });
@@ -224,6 +233,11 @@ ipcMain.on("win-dashboard", () => {
 });
 
 ipcMain.on("open-practice", (_event, mode) => { if (validMode(mode)) openPractice(mode); });
+
+// Links out of the app open in the user's browser; only known sites are allowed
+ipcMain.on("open-external", (_event, url) => {
+  if (typeof url === "string" && /^https:\/\/(www\.)?typesafe\.ai(\/|$)/.test(url)) shell.openExternal(url);
+});
 
 ipcMain.on("open-settings", (_event, hash) => {
   const h = typeof hash === "string" && /^#[a-z0-9=-]*$/i.test(hash) ? hash : "";

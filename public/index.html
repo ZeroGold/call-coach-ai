@@ -4,554 +4,478 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Call Coach</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/icon.png">
+<link rel="preload" href="/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/theme.css">
 <style>
-:root {
-  --paper: #edf0f4; --surface: #ffffff; --ink: #172033; --muted: #5e6a80; --faint: #8a94a7; --line: #d5dbe5;
-  --cobalt: #2743c9; --on-cobalt: #ffffff; --stop: #b8322a; --warn: #a86c07;
-  --s0: #7d889c; --s1: #4b5fd1; --s2: #0f7f8c; --s3: #178049;
-  /* Overlay cards. The overlay floats over whatever is behind it, so
-     it carries its own surface tokens rather than the page's. */
-  --card-bg: #ffffff; --card-line: rgba(0,0,0,0.10);
-  --card-ink: #172033; --card-dim: rgba(23,32,51,0.68); --card-mute: rgba(23,32,51,0.45);
-  --card-well: rgba(0,0,0,0.08); --card-well-2: rgba(0,0,0,0.05);
-  --card-hover: rgba(0,0,0,0.12); --card-edge: rgba(0,0,0,0.16);
-  --card-shadow: 0 2px 16px rgba(0,0,0,0.16); --card-shadow-live: 0 2px 22px rgba(0,0,0,0.22);
-  color-scheme: light;
+/* ================= Toolbar ================= */
+.bar {
+  position: sticky; top: 12px; z-index: 30;
+  width: min(1120px, calc(100% - 24px)); margin: 12px auto 0;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 8px 8px 12px; border-radius: 20px;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
-    --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a;
-    --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
-    --card-bg: #121826; --card-line: rgba(255,255,255,0.08);
-    --card-ink: #e7ebf2; --card-dim: rgba(255,255,255,0.70); --card-mute: rgba(255,255,255,0.45);
-    --card-well: rgba(255,255,255,0.10); --card-well-2: rgba(255,255,255,0.06);
-    --card-hover: rgba(255,255,255,0.14); --card-edge: rgba(255,255,255,0.20);
-    --card-shadow: 0 2px 16px rgba(0,0,0,0.40); --card-shadow-live: 0 2px 20px rgba(0,0,0,0.50);
-    color-scheme: dark;
-  }
+.brand .brand-name { transition: opacity var(--t-med); }
+@media (max-width: 1400px) { body:not(.picking) .brand .brand-name { display: none; } }
+@media (max-width: 1500px) { body:not(.picking) .k-chip .k-label { display: none; } }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 1.02rem; letter-spacing: -0.015em; margin-right: 2px; }
+.logo {
+  width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none;
+  color: #fff; background: linear-gradient(140deg, #5b6cf0, #2c3aa8);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 12px -4px rgba(44,58,168,.6);
 }
-:root[data-theme="dark"] {
-  --paper: #10151f; --surface: #182030; --ink: #e7ebf2; --muted: #98a3b7; --faint: #6c7890; --line: #2a3448;
-  --cobalt: #8098ff; --on-cobalt: #0e1422; --stop: #f07167; --warn: #e0a53a;
-  --s0: #8490a6; --s1: #8d9cff; --s2: #45c4d1; --s3: #52c98e;
-  --card-bg: #121826; --card-line: rgba(255,255,255,0.08);
-  --card-ink: #e7ebf2; --card-dim: rgba(255,255,255,0.70); --card-mute: rgba(255,255,255,0.45);
-  --card-well: rgba(255,255,255,0.10); --card-well-2: rgba(255,255,255,0.06);
-  --card-hover: rgba(255,255,255,0.14); --card-edge: rgba(255,255,255,0.20);
-  --card-shadow: 0 2px 16px rgba(0,0,0,0.40); --card-shadow-live: 0 2px 20px rgba(0,0,0,0.50);
-  color-scheme: dark;
+.logo svg { width: 19px; height: 19px; }
+.mode-chip {
+  display: inline-flex; align-items: center; gap: 8px; max-width: 260px;
+  border: 1px solid var(--glass-edge); background: var(--well); border-radius: 999px;
+  padding: 6px 10px 6px 12px; font-weight: 600; color: var(--ink);
+  transition: background var(--t-fast) var(--ease-out);
 }
-
-* { box-sizing: border-box; }
-html, body { margin: 0; }
-body {
-  min-height: 100vh; display: flex; flex-direction: column;
-  background: var(--paper); color: var(--ink);
-  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
-  font-size: 16px; line-height: 1.45; font-variant-numeric: tabular-nums;
+.mode-chip:hover { background: var(--well-2); }
+.mode-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--stage); box-shadow: 0 0 0 3px color-mix(in oklab, var(--stage) 25%, transparent); flex: none; }
+.mode-chip span:not(.dot) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mode-chip svg { width: 14px; height: 14px; color: var(--ink-3); flex: none; }
+.bar .spacer { flex: 1; }
+.capture-group { display: flex; gap: 6px; align-items: center; }
+.rec {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 38px;
+  border: 1px solid var(--glass-edge); background: var(--well); border-radius: 999px;
+  padding: 7px 14px 7px 11px; font-weight: 600; font-size: 0.9rem; color: var(--ink);
+  transition: background var(--t-fast) var(--ease-out), border-color var(--t-med), transform var(--t-fast) var(--ease-out);
 }
-button, input { font: inherit; color: inherit; }
-button, summary { cursor: pointer; }
-:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; border-radius: 6px; }
-[hidden] { display: none !important; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
-/* ---------- Top bar ---------- */
-.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px clamp(16px, 3vw, 32px); background: var(--surface); border-bottom: 1px solid var(--line); }
-.brand { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; margin-right: auto; }
-.speaker { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--paper); }
-.speaker button { border: none; background: transparent; border-radius: 999px; padding: 7px 14px; font-weight: 500; color: var(--muted); }
-.speaker button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
-.mic { display: inline-flex; align-items: center; gap: 10px; border: none; border-radius: 999px; padding: 10px 20px 10px 14px; background: var(--cobalt); color: var(--on-cobalt); font-weight: 600; }
-.mic .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; }
-.mic[aria-pressed="true"] { background: var(--stop); color: #fff; }
-.mic[aria-pressed="true"] .dot { animation: pulse 1.2s ease-in-out infinite; }
-.mic:disabled { opacity: 0.5; cursor: default; }
-@keyframes pulse { 50% { transform: scale(0.55); opacity: 0.6; } }
-.ghost { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 14px; font-weight: 500; }
-.ghost:hover { background: var(--paper); }
-.ghost:disabled { opacity: 0.5; cursor: default; }
-.capture { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 0.88rem; }
-.capture:hover { background: var(--paper); }
-.capture .cap-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; }
-.capture[aria-pressed="true"] { border-color: var(--stop); }
-.capture[aria-pressed="true"] .cap-dot { background: var(--stop); animation: pulse 1.2s ease-in-out infinite; }
-.capture[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--stop) 8%, transparent); }
-.capture:disabled { opacity: 0.5; cursor: default; }
-.capture .exp { border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); }
+.rec:hover { background: var(--well-2); }
+.rec:active { transform: scale(0.97); }
+.rec:disabled { opacity: 0.45; cursor: default; transform: none; }
+.rec svg { width: 17px; height: 17px; color: var(--ink-2); }
+.rec.primary { background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 88%, white), var(--accent)); color: var(--accent-ink); border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 6px 18px -8px color-mix(in oklab, var(--accent) 80%, transparent); }
+.rec.primary svg { color: currentColor; }
+.rec[aria-pressed="true"] { background: color-mix(in oklab, var(--danger) 14%, var(--film)); border-color: color-mix(in oklab, var(--danger) 55%, transparent); color: var(--ink); box-shadow: 0 0 0 4px color-mix(in oklab, var(--danger) 12%, transparent); }
+.rec[aria-pressed="true"] svg { display: none; }
+.rec .live-dot { display: none; width: 9px; height: 9px; border-radius: 50%; background: var(--danger); animation: pulse-dot 1.2s ease-in-out infinite; }
+.rec[aria-pressed="true"] .live-dot { display: inline-block; }
+.rec .exp { font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 700; color: var(--warn); border: 1px solid color-mix(in oklab, var(--warn) 45%, transparent); border-radius: 999px; padding: 0 6px; }
+.k-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px;
+  border: 1px solid var(--glass-edge); background: var(--well); border-radius: 12px;
+  padding: 6px 8px 6px 10px; color: var(--ink-3); font-weight: 500;
+}
+.k-chip:hover { background: var(--well-2); color: var(--ink-2); }
+.k-chip svg { width: 16px; height: 16px; }
+.bar-end { display: flex; align-items: center; gap: 2px; position: relative; }
+.bar-menu { top: calc(100% + 8px); right: 0; }
+.menu button[aria-pressed="true"] { color: var(--danger); font-weight: 650; }
+.menu button[aria-pressed="true"] svg { color: var(--danger); }
+.speaker[aria-disabled="true"] { opacity: 0.6; }
 .speaker[aria-disabled="true"] button { cursor: default; }
-.speaker[aria-disabled="true"] button[aria-pressed="true"] { color: var(--muted); }
 
-/* ---------- Main ---------- */
+/* ================= Main ================= */
 main {
   --stage: var(--s0);
-  flex: 1; width: min(1000px, 100%); margin: 0 auto;
-  padding: clamp(20px, 4vh, 44px) clamp(16px, 3vw, 32px) 32px;
-  display: flex; flex-direction: column; gap: 20px;
+  width: min(1120px, calc(100% - 24px)); margin: 18px auto 0; padding-bottom: 130px;
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start;
 }
-.notice { border: 1px solid var(--warn); border-radius: 10px; padding: 12px 14px; background: color-mix(in srgb, var(--warn) 10%, transparent); }
-.notice code { background: var(--paper); padding: 1px 5px; border-radius: 4px; }
+main > .notice, main > .picker { grid-column: 1 / -1; }
+.notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 16px; border-radius: var(--r-md);
+  border-left: 3px solid var(--warn) !important;
+  animation: rise-in var(--t-slow) var(--ease-out);
+}
+.notice a { font-weight: 600; }
+.notice code { background: var(--well-2); padding: 1px 6px; border-radius: 6px; }
 
-/* ========== HERO: buying stage + gauge (primary) ========== */
+/* ----- Gauge card ----- */
 .hero {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  padding: clamp(20px, 3vw, 32px) clamp(22px, 4vw, 40px) clamp(22px, 4vw, 36px);
-  transition: box-shadow 0.5s;
+  border-radius: var(--r-xl); padding: clamp(20px, 3vw, 30px);
+  background: radial-gradient(120% 70% at 50% -10%, color-mix(in oklab, var(--stage) 16%, transparent), transparent 62%), var(--panel);
+  animation: rise-in var(--t-slow) var(--ease-out) both;
 }
-.hero[data-state="live"] {
-  box-shadow: 0 6px 36px -8px color-mix(in srgb, var(--stage) 18%, transparent);
-}
-
-.hero-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.hero-kicker {
-  margin: 0 0 4px;
-  color: var(--faint);
-  font-weight: 600;
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-/* Arc gauge */
-.gauge-wrap {
-  position: relative;
-  width: clamp(170px, 34vw, 280px);
-  margin: 0 auto 4px;
-}
-.gauge { display: block; width: 100%; height: auto; }
-.gauge-bg, .gauge-fill {
-  fill: none;
-  stroke-width: 14;
-  stroke-linecap: round;
-  transform: rotate(150deg);
-  transform-origin: 100px 100px;
-}
-.gauge-bg {
-  stroke: color-mix(in srgb, var(--stage) 15%, var(--paper));
-  transition: stroke 0.4s;
-}
-.gauge-fill {
-  stroke: var(--stage);
-  transition: stroke 0.4s, opacity 0.3s;
-}
-.hero[data-state="idle"] .gauge-bg { stroke: color-mix(in srgb, var(--faint) 12%, var(--paper)); }
+.hero-center { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.hero-kicker { margin: 0 0 4px; color: var(--ink-3); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.gauge-wrap { position: relative; width: clamp(190px, 30vw, 290px); margin: 0 auto 2px; }
+.gauge-wrap::after { content: ""; position: absolute; inset: 6% 6% 20%; border-radius: 50%; border: 2px solid var(--stage); opacity: 0; pointer-events: none; }
+.hero.moved .gauge-wrap::after { animation: ring-out 900ms var(--ease-out); }
+.gauge { display: block; width: 100%; height: auto; overflow: visible; }
+.gauge-bg, .gauge-fill { fill: none; stroke-width: 13; stroke-linecap: round; }
+.gauge-bg { stroke: var(--well-2); }
+.gauge-fill { stroke: var(--stage); filter: drop-shadow(0 0 8px color-mix(in oklab, var(--stage) 55%, transparent)); transition: opacity var(--t-med); }
+.gauge-ticks line { stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; opacity: 0.3; }
 .hero[data-state="idle"] .gauge-fill { opacity: 0; }
-
-.gauge-value {
-  position: absolute;
-  top: 54%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  pointer-events: none;
-}
-.score-num {
-  font-size: clamp(3rem, 7.5vw, 5rem);
-  line-height: 0.9;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  color: var(--stage);
-  transition: color 0.4s;
-}
-.hero[data-state="idle"] .score-num { color: var(--faint); }
-.score-sub {
-  color: var(--muted);
-  font-size: clamp(0.72rem, 1.5vw, 0.88rem);
-  margin-top: 2px;
-}
-
-.stage-name {
-  margin: 0;
-  text-wrap: balance;
-  font-size: clamp(1.6rem, 4vw, 2.6rem);
-  line-height: 1.05;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-}
-.hero[data-state="idle"] .stage-name { color: var(--faint); }
-
-.conf-pill {
-  display: inline-block;
-  margin-top: 8px;
-  border-radius: 999px;
-  padding: 3px 11px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border: 1.5px solid var(--stage);
-  color: var(--ink);
-}
-.conf-pill[data-level="high"] { background: color-mix(in srgb, var(--stage) 16%, transparent); }
-.conf-pill[data-level="low"] { border-style: dashed; color: var(--muted); }
-
-.trend { margin: 8px 0 0; font-weight: 600; min-height: 1.45em; }
-.trend.up { color: var(--s3); }
+.gauge-value { position: absolute; top: 54%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+.score-num { font-size: clamp(3.1rem, 6.4vw, 4.8rem); line-height: 0.9; font-weight: 800; letter-spacing: -0.045em; color: var(--ink); }
+.hero[data-state="idle"] .score-num { color: var(--ink-3); }
+.score-sub { color: var(--stage); font-weight: 700; font-size: 0.8rem; margin-top: 4px; letter-spacing: 0.02em; }
+.hero[data-state="idle"] .score-sub { color: var(--ink-3); }
+.stage-name { margin: 2px 0 0; text-wrap: balance; font-size: clamp(1.5rem, 3.4vw, 2.2rem); line-height: 1.08; font-weight: 800; letter-spacing: -0.03em; }
+.hero[data-state="idle"] .stage-name { color: var(--ink-3); }
+.conf-pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; border-radius: 999px; padding: 3px 11px; font-size: 0.8rem; font-weight: 650; border: 1px solid color-mix(in oklab, var(--stage) 55%, transparent); color: var(--ink); background: color-mix(in oklab, var(--stage) 10%, transparent); }
+.conf-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--stage); }
+.conf-pill[data-level="low"] { border-style: dashed; color: var(--ink-2); background: transparent; }
+.trend { margin: 10px 0 0; font-weight: 650; min-height: 1.45em; font-size: 0.94rem; }
+.trend.up { color: var(--ok); }
 .trend.down { color: var(--warn); }
-.trend .arrow { display: inline-block; margin-right: 6px; font-size: 0.8em; }
-
-/* Stage track bar */
-.track { position: relative; margin-top: clamp(20px, 3vw, 30px); display: grid; grid-template-columns: var(--cols); gap: 4px; height: 16px; }
-.seg { position: relative; overflow: hidden; border-radius: 5px; background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
-.seg:first-child { border-radius: 8px 5px 5px 8px; }
-.seg:last-child { border-radius: 5px 8px 8px 5px; }
-.seg i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--c); transition: width 0.55s cubic-bezier(.2,.8,.2,1); }
+.trend .arrow { display: inline-block; margin-right: 6px; font-size: 0.8em; animation: rise-in var(--t-slow) var(--ease-bounce, var(--ease-spring)); }
+.track { position: relative; margin-top: clamp(18px, 3vw, 26px); display: grid; grid-template-columns: var(--cols); gap: 5px; height: 10px; }
+.seg { position: relative; overflow: hidden; border-radius: 99px; background: var(--well-2); }
+.seg i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--c); border-radius: inherit; transition: width 0.6s var(--ease-spring); }
 .seg:nth-child(1) { --c: var(--s0); } .seg:nth-child(2) { --c: var(--s1); } .seg:nth-child(3) { --c: var(--s2); } .seg:nth-child(4) { --c: var(--s3); }
-.spread {
-  position: absolute; top: -7px; bottom: -7px; left: 0; width: 0; pointer-events: none; opacity: 0; border-radius: 10px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--stage) 30%, transparent) 50%, transparent);
-  transition: left 0.55s cubic-bezier(.2,.8,.2,1), width 0.55s, opacity 0.3s;
-}
-.marker {
-  position: absolute; top: -8px; bottom: -8px; width: 6px; margin-left: -3px; left: 0; border-radius: 5px; opacity: 0;
-  background: var(--ink); box-shadow: 0 0 0 2.5px var(--surface);
-  transition: left 0.55s cubic-bezier(.2,.8,.2,1), opacity 0.3s;
-}
-.stage-labels { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: var(--cols); gap: 4px; }
-.stage-labels li { color: var(--faint); font-size: 0.88rem; padding-right: 6px; min-width: 0; }
-.stage-labels li.past { color: var(--muted); }
+.spread { position: absolute; top: -8px; bottom: -8px; left: 0; width: 0; pointer-events: none; opacity: 0; border-radius: 12px; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--stage) 30%, transparent) 50%, transparent); transition: left 0.6s var(--ease-spring), width 0.6s var(--ease-spring), opacity 0.3s; }
+.marker { position: absolute; top: -7px; bottom: -7px; width: 6px; margin-left: -3px; left: 0; border-radius: 6px; opacity: 0; background: var(--ink); box-shadow: 0 0 0 3px var(--film), 0 0 14px color-mix(in oklab, var(--stage) 70%, transparent); transition: left 0.6s var(--ease-spring), opacity 0.3s; }
+.stage-labels { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: var(--cols); gap: 5px; }
+.stage-labels li { color: var(--ink-3); font-size: 0.84rem; padding-right: 6px; min-width: 0; }
+.stage-labels li.past { color: var(--ink-2); }
 .stage-labels li[aria-current="step"] { color: var(--ink); font-weight: 700; }
 .stage-count { display: none; }
+.hero.moved .stage-name { animation: swap-in 520ms var(--ease-out); }
 
-.hero.moved .stage-name { animation: arrive 0.45s ease-out; }
-@keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
-/* ========== NEXT STEP: secondary ========== */
+/* ----- Next step card ----- */
 .next {
-  position: relative;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px 20px 16px 26px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px 20px;
-  align-items: start;
+  border-radius: var(--r-xl); padding: 22px 22px 20px 26px; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 18px; align-items: start;
+  animation: rise-in var(--t-slow) var(--ease-out) both; animation-delay: 60ms;
 }
-.next::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0; width: 5px;
-  background: var(--line);
-  transition: background 0.3s;
+.next-accent { position: absolute; left: 0; top: 18px; bottom: 18px; width: 4px; border-radius: 0 4px 4px 0; background: var(--well-2); transition: background var(--t-slow); }
+.next[data-status="act"] .next-accent { background: var(--stage); box-shadow: 0 0 14px color-mix(in oklab, var(--stage) 70%, transparent); }
+.next.thinking .next-accent { background: linear-gradient(180deg, transparent, var(--accent), var(--accent-2), transparent); background-size: 100% 220%; animation: think-bar 1.1s linear infinite; }
+@keyframes think-bar { from { background-position: 0 100%; } to { background-position: 0 -120%; } }
+.next-kicker { margin: 0; color: var(--ink-3); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.thinking-label { display: none; color: var(--accent); letter-spacing: 0.02em; text-transform: none; font-weight: 600; }
+.next.thinking .thinking-label { display: inline-flex; gap: 3px; align-items: center; }
+.thinking-label i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; animation: typing 1s infinite; }
+.thinking-label i:nth-child(2) { animation-delay: 0.15s; } .thinking-label i:nth-child(3) { animation-delay: 0.3s; }
+.next-title { margin: 6px 0 0; font-size: clamp(1.25rem, 2.6vw, 1.6rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.next[data-status="listen"] .next-title, .next[data-status="idle"] .next-title { color: var(--ink-2); }
+.next.changed .next-title { animation: swap-in 480ms var(--ease-out); }
+.next-note { margin: 6px 0 0; color: var(--ink-2); font-size: 0.9rem; }
+.next-conf { text-align: right; color: var(--ink-3); font-size: 0.78rem; padding-top: 2px; }
+.next-conf b { display: block; font-size: 1.35rem; color: var(--ink); line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+.next-conf .bar-mini { width: 84px; height: 5px; border-radius: 99px; background: var(--well-2); margin: 6px 0 0 auto; overflow: hidden; }
+.next-conf .bar-mini i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, color-mix(in oklab, var(--stage) 60%, transparent), var(--stage)); border-radius: 99px; transition: width 0.6s var(--ease-spring); }
+.next-body { grid-column: 1 / -1; margin-top: 10px; }
+.tip-main { margin: 0; font-size: 0.98rem; padding: 10px 14px; border-radius: 12px; background: var(--well); color: var(--ink-2); }
+.next[data-status="act"] .tip-main { color: var(--ink); background: color-mix(in oklab, var(--stage) 9%, var(--well)); }
+.tip-main:empty { display: none; }
+.more { margin-top: 10px; }
+.more summary { color: var(--ink-2); font-size: 0.86rem; font-weight: 650; width: fit-content; cursor: pointer; }
+.more ul { margin: 8px 0 0; padding-left: 18px; color: var(--ink); font-size: 0.93rem; }
+.more li { margin: 4px 0; }
+.next-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.done-msg { color: var(--ink-3); font-size: 0.85rem; margin: 0; }
+.quick-start { grid-column: 1 / -1; list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; counter-reset: qs; }
+.quick-start li { counter-increment: qs; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; animation: rise-in var(--t-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 80ms); }
+.quick-start li::before { content: counter(qs); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 0.85rem; color: var(--accent); background: color-mix(in oklab, var(--accent) 13%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent); }
+.quick-start b { display: block; }
+.quick-start span { color: var(--ink-2); font-size: 0.9rem; }
+.quick-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+/* ----- Dock (what was heard + typing) ----- */
+.strip {
+  position: fixed; left: 50%; bottom: 14px; z-index: 25; transform: translateX(-50%);
+  width: min(1120px, calc(100% - 24px));
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 400px); gap: 8px 14px; align-items: center;
+  padding: 9px 9px 9px 16px; border-radius: 20px;
 }
-.next[data-status="act"]::before { background: var(--stage); }
-
-.next-kicker { margin: 0; color: var(--muted); font-weight: 500; font-size: 0.88rem; }
-.next-title { margin: 2px 0 0; font-size: clamp(1.15rem, 2.6vw, 1.5rem); font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
-.next[data-status="listen"] .next-title, .next[data-status="idle"] .next-title { color: var(--muted); }
-.next-note { margin: 4px 0 0; color: var(--muted); font-size: 0.88rem; }
-.next-conf { text-align: right; color: var(--muted); font-size: 0.85rem; padding-top: 4px; }
-.next-conf b { display: block; font-size: 1.2rem; color: var(--muted); line-height: 1.1; font-weight: 700; }
-.next-conf .bar-mini { width: 80px; height: 4px; border-radius: 99px; background: var(--line); margin: 5px 0 0 auto; overflow: hidden; }
-.next-conf .bar-mini i { display: block; height: 100%; width: 0; background: var(--muted); border-radius: 99px; transition: width 0.4s; }
-.next-body { grid-column: 1 / -1; margin-top: 6px; }
-.tip-main { margin: 0; font-size: 0.95rem; padding-left: 12px; border-left: 2.5px solid var(--line); color: var(--muted); }
-.next[data-status="act"] .tip-main { color: var(--ink); }
-.more { margin-top: 8px; }
-.more summary { color: var(--muted); font-size: 0.86rem; font-weight: 600; width: fit-content; }
-.more ul { margin: 6px 0 0; padding-left: 17px; color: var(--ink); font-size: 0.93rem; }
-.more li { margin: 3px 0; }
-.next-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
-.done { border: 1.5px solid var(--ink); background: transparent; border-radius: 999px; padding: 7px 16px; font-weight: 600; font-size: 0.9rem; }
-.done:hover { background: var(--ink); color: var(--surface); }
-.done kbd { font: inherit; font-size: 0.8em; color: var(--muted); margin-left: 6px; }
-.done:hover kbd { color: inherit; opacity: 0.7; }
-.done-msg { color: var(--muted); font-size: 0.85rem; margin: 0; }
-.next.changed .next-title { animation: arrive 0.4s ease-out; }
-
-/* ---------- Bottom strip ---------- */
-.strip { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 12px clamp(16px, 3vw, 32px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 360px); gap: 10px 20px; align-items: center; }
-.heard { margin: 0; display: flex; gap: 10px; align-items: baseline; min-width: 0; color: var(--muted); }
-.heard .led { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); align-self: center; }
-.heard.live .led { background: var(--stop); animation: pulse 1.2s infinite; }
-.heard.busy .led { background: var(--cobalt); animation: pulse 0.8s infinite; }
-.heard .who { flex: none; font-weight: 700; color: var(--ink); font-size: 0.9rem; }
+.heard { margin: 0; display: flex; gap: 10px; align-items: center; min-width: 0; color: var(--ink-2); }
+.heard .led { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); opacity: 0.5; }
+.heard.live .led { background: var(--danger); opacity: 1; animation: pulse-dot 1.2s infinite; }
+.heard.busy .led { background: var(--accent); opacity: 1; animation: pulse-dot 0.8s infinite; }
+.heard .who { flex: none; font-weight: 700; color: var(--ink); font-size: 0.88rem; }
 .heard .text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.heard .text.interim { font-style: italic; }
-.type-row { display: flex; gap: 8px; }
-.type-row input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; background: var(--paper); }
-.type-row input:focus-visible { border-radius: 999px; outline-offset: 1px; }
-.type-row button { border: none; border-radius: 999px; padding: 8px 16px; background: var(--ink); color: var(--surface); font-weight: 600; }
-.error { grid-column: 1 / -1; margin: 0; color: var(--stop); font-size: 0.93rem; }
+.heard .text.interim { font-style: italic; color: var(--ink-3); }
+.type-row { display: flex; gap: 6px; }
+.type-row input { flex: 1; min-width: 0; border-radius: 999px !important; padding: 8px 14px; }
+.type-row .icon-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); }
+.type-row .icon-btn:hover { background: color-mix(in oklab, var(--accent) 88%, white); color: var(--accent-ink); }
+.error { grid-column: 1 / -1; margin: 0; color: var(--danger); font-size: 0.9rem; font-weight: 500; }
 
-@media (max-width: 640px) {
-  .gauge-wrap { width: clamp(150px, 44vw, 200px); }
-  .stage-name { font-size: clamp(1.3rem, 5vw, 1.8rem); }
-  .stage-labels { display: block; }
-  .stage-labels li:not([aria-current="step"]) { display: none; }
-  .stage-count { display: block; margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
-  .trend { margin-top: 6px; }
-  .next { grid-template-columns: 1fr; padding-left: 22px; }
-  .next-conf { text-align: left; }
-  .next-conf .bar-mini { margin-left: 0; }
-  .strip { grid-template-columns: 1fr; }
+/* ================= Mode picker ================= */
+.picker { display: flex; flex-direction: column; gap: 6px; width: min(900px, 100%); margin: clamp(10px, 5vh, 48px) auto 0; }
+.picker-title { margin: 0; font-size: clamp(2rem, 4.8vw, 3.1rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; background: linear-gradient(120deg, var(--ink) 30%, color-mix(in oklab, var(--accent) 70%, var(--ink))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.picker-sub { margin: 4px 0 18px; color: var(--ink-2); font-size: 1.02rem; }
+.picker-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.mode-opt {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr auto; gap: 4px 14px;
+  text-align: left; border-radius: var(--r-lg); padding: 16px 16px 14px; min-height: 150px;
+  background: var(--panel); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--shadow-1);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7); backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+  transition: transform var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out), border-color var(--t-med);
 }
-/* PiP / overlay compact mode — transparent between cards, opaque cards */
-main.pip {
-  padding: 6px 8px 8px; gap: 8px;
-  background: transparent;
-}
-main.pip .notice { display: none; }
-main.pip .hero {
-  padding: 10px 14px; border-radius: 14px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-line);
-  box-shadow: var(--card-shadow);
-  backdrop-filter: none;
-}
-main.pip .hero[data-state="live"] { box-shadow: var(--card-shadow-live); }
-main.pip .gauge-wrap { width: clamp(80px, 40vw, 180px); margin-bottom: 0; }
-main.pip .gauge-bg { stroke: var(--card-well); }
-main.pip .hero-kicker { margin-bottom: 0; color: var(--card-mute); }
-main.pip .stage-name { font-size: clamp(0.9rem, 4vw, 1.3rem); color: var(--card-ink); }
-main.pip .track { margin-top: 12px; }
-main.pip .stage-labels { display: none; }
-main.pip .stage-count { display: block; margin: 4px 0 0; color: var(--card-mute); font-size: 0.8rem; }
-main.pip .next {
-  padding: 8px 10px 8px 16px; border-radius: 12px; grid-template-columns: 1fr;
-  background: var(--card-bg);
-  border: 1px solid var(--card-line);
-  box-shadow: var(--card-shadow);
-  backdrop-filter: none;
-}
-main.pip .next::before { background: var(--card-well); }
-main.pip .next[data-status="act"]::before { background: var(--stage); }
-main.pip .next-title { font-size: 1rem; color: var(--card-ink); }
-main.pip .next-conf { text-align: left; }
-main.pip .next-conf .bar-mini { margin-left: 0; background: var(--card-well); }
-main.pip .tip-main { font-size: 0.85rem; border-left-color: var(--card-edge); color: var(--card-dim); }
-main.pip .done { font-size: 0.82rem; padding: 5px 12px; border-color: var(--card-edge); color: var(--card-ink); }
-main.pip .done:hover { background: var(--card-well); }
-main.pip .seg { background: var(--card-well); }
-main.pip .conf-pill { border-color: var(--card-edge); color: var(--card-ink); }
-main.pip .score-num { color: var(--stage); }
-main.pip .next-kicker { color: var(--card-mute); }
+.mode-opt:hover { transform: translateY(-3px); box-shadow: inset 0 1px 0 var(--glass-rim), var(--shadow-2); border-color: color-mix(in oklab, var(--accent) 35%, var(--glass-edge)); }
+.mode-opt:active { transform: translateY(-1px) scale(0.99); }
+.mode-opt.last { border-color: color-mix(in oklab, var(--accent) 60%, transparent); box-shadow: inset 0 1px 0 var(--glass-rim), 0 0 0 3px color-mix(in oklab, var(--accent) 16%, transparent), var(--shadow-1); }
+.mode-icon { grid-row: 1 / span 2; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #6470f2, #22b8d6); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px -8px rgba(40,60,200,.6); }
+.mode-icon svg { width: 21px; height: 21px; }
+.mode-opt[data-kind="rehearsal"] .mode-icon { background: linear-gradient(140deg, #a855f7, #ec4899); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px -8px rgba(168,85,247,.6); }
+.mode-opt[data-custom] .mode-icon { background: linear-gradient(140deg, #f59e0b, #ef4444); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px -8px rgba(239,68,68,.55); }
+.mode-name { font-weight: 750; font-size: 1.06rem; letter-spacing: -0.01em; align-self: end; }
+.mode-desc { grid-column: 2; color: var(--ink-2); font-size: 0.9rem; }
+.mode-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.mode-kind { font-size: 0.66rem; }
+.mode-opt.mode-new { border-style: dashed; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.mode-opt.mode-new .mode-icon { background: var(--well-2); color: var(--accent); box-shadow: none; }
+.mode-opt.mode-new .mode-name { color: var(--accent); }
+.picker-note { margin: 12px 0 0; color: var(--ink-2); font-size: 0.92rem; }
 
-/* Overlay mode (Electron transparent window). Everything in it sits on a solid
-   card, so it stays readable over any desktop. */
-html:has(body.overlay), body.overlay { background: transparent !important; }
-body.overlay { overflow: hidden; }
-body.overlay header.bar, body.overlay footer.strip { display: none !important; }
-
-.overlay-bar {
-  -webkit-app-region: drag;
-  position: relative;
-  display: flex; align-items: center; gap: 4px;
-  margin: 6px 8px 0; padding: 4px 4px 4px 6px;
-  background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 12px;
-  box-shadow: var(--card-shadow);
-  color: var(--card-ink);
-  font-size: 0.8rem; font-weight: 600;
-  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
-}
-.overlay-brand {
-  -webkit-app-region: no-drag;
-  flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px;
-  border: none; background: none; border-radius: 7px; padding: 4px 6px;
-  font: inherit; color: inherit; text-align: left; cursor: pointer;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.overlay-brand:hover { background: var(--card-well); }
-.overlay-brand::after { content: "▾"; color: var(--card-mute); font-size: 0.7rem; }
-.overlay-btn {
-  -webkit-app-region: no-drag;
-  border: none; background: var(--card-well-2);
-  color: var(--card-dim);
-  border-radius: 7px; min-width: 26px; height: 26px;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; cursor: pointer; padding: 0; line-height: 1;
-  transition: background 0.15s, color 0.15s;
-}
-.overlay-btn:hover, .overlay-btn[aria-expanded="true"] { background: var(--card-hover); color: var(--card-ink); }
-.overlay-rec .rec-dot {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: var(--card-mute);
-  transition: background 0.2s;
-}
-.overlay-rec[aria-pressed="true"] .rec-dot { background: #f07167; animation: pulse 1.2s infinite; }
-.overlay-auto { gap: 5px; padding: 0 8px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-.overlay-auto[aria-pressed="true"] { color: var(--card-ink); }
-.overlay-menu {
-  -webkit-app-region: no-drag;
-  position: absolute; top: calc(100% + 4px); right: 30px; z-index: 10;
-  min-width: 180px; padding: 4px;
-  display: flex; flex-direction: column;
-  background: var(--surface); border: 1px solid var(--card-edge); border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
-}
-.overlay-menu button {
-  border: none; background: none; border-radius: 6px; padding: 7px 10px;
-  text-align: left; font: inherit; font-weight: 500; color: var(--ink); cursor: pointer;
-}
-.overlay-menu button:hover, .overlay-menu button:focus-visible { background: var(--paper); outline: none; }
-.overlay-err {
-  margin: 6px 8px 0; padding: 6px 10px;
-  background: var(--card-bg); border: 1px solid var(--card-line); border-left: 3px solid #f07167; border-radius: 10px;
-  box-shadow: var(--card-shadow);
-  color: var(--card-ink); font-size: 0.76rem; font-weight: 500;
-  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
-}
-
-/* ---------- Mode picker ---------- */
-.brand .mode-tag { font-weight: 500; color: var(--muted); }
-.picker { display: flex; flex-direction: column; gap: 14px; width: min(640px, 100%); margin: clamp(8px, 4vh, 40px) auto 0; }
-.picker-title { margin: 0; font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
-.picker-list { display: grid; gap: 10px; }
-.mode-opt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 18px; transition: border-color 0.15s; }
-.mode-opt:hover { border-color: var(--cobalt); }
-.mode-opt.last { box-shadow: inset 0 0 0 1px var(--cobalt); border-color: var(--cobalt); }
-.mode-name { font-weight: 700; font-size: 1.05rem; }
-.mode-kind { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
-.mode-desc { grid-column: 1 / -1; color: var(--muted); font-size: 0.92rem; }
-.picker-note { margin: 0; color: var(--muted); font-size: 0.9rem; }
-.mode-opt.mode-new { border-style: dashed; background: transparent; }
-.mode-opt.mode-new .mode-name { color: var(--cobalt); }
-main.pip .mode-opt.mode-new { background: transparent; border-color: var(--card-edge); }
-body.picking main > :not(.picker),
-body.picking footer.strip,
-body.picking header.bar > :not(.brand, #themeBtn, #settingsBtn),
-body.picking [data-needs-mode] { display: none !important; }
-main.pip .picker { margin: 0; gap: 8px; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 14px; box-shadow: var(--card-shadow); }
-main.pip .picker-title { font-size: 0.95rem; color: var(--card-ink); }
-main.pip .picker-note { color: var(--card-mute); font-size: 0.78rem; }
-main.pip .mode-opt { padding: 8px 12px; border-radius: 10px; background: var(--card-well-2); border-color: var(--card-line); }
-main.pip .mode-opt.last { border-color: var(--cobalt); }
-main.pip .mode-name { font-size: 0.9rem; color: var(--card-ink); }
-main.pip .mode-kind { color: var(--card-mute); border-color: var(--card-edge); font-size: 0.62rem; }
-main.pip .mode-desc { display: none; }
-
-/* ---------- Rehearsal ---------- */
-.scenario { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: clamp(18px, 3vw, 28px); display: flex; flex-direction: column; gap: 14px; }
+/* ================= Practice ================= */
+.scenario { border-radius: var(--r-xl); padding: clamp(18px, 3vw, 26px); display: flex; flex-direction: column; gap: 14px; animation: rise-in var(--t-slow) var(--ease-out) both; }
 .scenario-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.scenario-head select { font: inherit; font-weight: 600; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--ink); max-width: 100%; }
-.scenario-step { margin-left: auto; color: var(--muted); font-size: 0.88rem; }
-.scenario-setup { margin: 0; color: var(--muted); }
-.scenario-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.scenario-log li { font-size: 0.92rem; color: var(--muted); padding-left: 12px; border-left: 2.5px solid var(--line); }
-.scenario-log li b { color: var(--ink); font-weight: 600; margin-right: 6px; }
-.scenario-line { margin: 0; padding: 14px 18px; border-radius: 14px; background: var(--paper); }
-.scenario-line .who { display: block; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.scenario-line p { margin: 4px 0 0; font-size: clamp(1.1rem, 2.4vw, 1.35rem); font-weight: 600; line-height: 1.3; }
+.scenario-head select { font-weight: 650; border: 1px solid var(--glass-edge); border-radius: 999px; padding: 7px 14px; background: var(--film); color: var(--ink); max-width: 100%; }
+.scenario-step { margin-left: auto; }
+.scenario-setup { margin: 0; color: var(--ink-2); }
+.scenario-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.scenario-log li { max-width: 82%; padding: 9px 13px; border-radius: 16px 16px 16px 5px; background: var(--well-2); font-size: 0.93rem; animation: rise-in var(--t-med) var(--ease-out); }
+.scenario-log li.mine { align-self: flex-end; border-radius: 16px 16px 5px 16px; background: color-mix(in oklab, var(--accent) 16%, var(--film)); }
+.scenario-log li b { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+.scenario-line { margin: 0; padding: 14px 18px; border-radius: 20px 20px 20px 6px; background: var(--film); border: 1px solid var(--glass-edge); box-shadow: var(--shadow-1); max-width: 92%; }
+.scenario-line .who { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.scenario-line p { margin: 4px 0 0; font-size: clamp(1.1rem, 2.4vw, 1.35rem); font-weight: 650; line-height: 1.32; }
+.scenario-line p.said { animation: swap-in 420ms var(--ease-out); }
+.typing-dots { display: inline-flex; gap: 5px; padding: 8px 0 4px; }
+.typing-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); animation: typing 1s infinite; }
+.typing-dots i:nth-child(2) { animation-delay: 0.15s; } .typing-dots i:nth-child(3) { animation-delay: 0.3s; }
 .answer { display: flex; flex-direction: column; gap: 10px; }
-.answer textarea { width: 100%; min-height: 88px; resize: vertical; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--paper); font: inherit; color: var(--ink); }
-.answer textarea:focus-visible { border-radius: 14px; outline-offset: 1px; }
+.answer textarea { min-height: 92px; resize: vertical; }
 .answer textarea:read-only { background: transparent; resize: none; }
-.answer-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.answer-actions .mic { padding: 10px 20px; }
-.answer-hint { margin: 0 0 0 auto; color: var(--faint); font-size: 0.82rem; }
+.answer-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.answer-hint { margin: 0 0 0 auto; color: var(--ink-3); font-size: 0.8rem; }
 main[data-kind="rehearsal"] .next-actions { display: none !important; }
-@media (min-width: 860px) {
-  main[data-kind="rehearsal"] { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
-  main[data-kind="rehearsal"] > .notice, main[data-kind="rehearsal"] > .picker { grid-column: 1 / -1; }
-  main[data-kind="rehearsal"] > .scenario { grid-column: 1; grid-row: span 2; }
-  main[data-kind="rehearsal"] > .hero, main[data-kind="rehearsal"] > .next { grid-column: 2; }
-  main[data-kind="rehearsal"] .gauge-wrap { width: clamp(150px, 20vw, 210px); }
-  main[data-kind="rehearsal"] .stage-name { font-size: clamp(1.3rem, 2.6vw, 1.9rem); }
-  main[data-kind="rehearsal"] .stage-labels { display: none; }
-  main[data-kind="rehearsal"] .stage-count { display: block; margin: 8px 0 0; color: var(--muted); font-size: 0.88rem; }
-}
+main[data-kind="rehearsal"] > .scenario { grid-column: 1; grid-row: span 2; }
+main[data-kind="rehearsal"] > .hero, main[data-kind="rehearsal"] > .next { grid-column: 2; }
+main[data-kind="rehearsal"] .gauge-wrap { width: clamp(150px, 20vw, 210px); }
+main[data-kind="rehearsal"] .stage-name { font-size: clamp(1.3rem, 2.6vw, 1.8rem); }
+main[data-kind="rehearsal"] .score-num { font-size: clamp(2.3rem, 4.2vw, 3.3rem); }
+main[data-kind="rehearsal"] .stage-labels { display: none; }
+main[data-kind="rehearsal"] .stage-count { display: block; margin: 8px 0 0; color: var(--ink-3); font-size: 0.86rem; }
 body[data-kind="rehearsal"] .type-row, body[data-kind="rehearsal"] .heard { display: none; }
 body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before { animation: none !important; transition: none !important; }
+/* ================= Welcome (first visit) ================= */
+.welcome { place-items: center; padding-top: 16px; }
+.welcome .sheet { display: grid; grid-template-columns: 180px minmax(0, 1fr); width: min(640px, 100%); }
+.w-art {
+  display: grid; place-items: center; min-height: 280px;
+  background: radial-gradient(90% 70% at 20% 10%, rgba(255,255,255,.28), transparent 60%), linear-gradient(160deg, #5b6cf0, #7c3aed 58%, #db2777);
+}
+.w-icon {
+  width: 78px; height: 78px; border-radius: 24px; display: grid; place-items: center; color: #fff;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 14px 34px -12px rgba(0,0,0,.45);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  animation: sheet-in var(--t-spring) var(--ease-bounce, var(--ease-spring));
+}
+.w-icon svg { width: 36px; height: 36px; }
+.w-body { padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.w-dots { display: flex; gap: 6px; }
+.w-dots i { width: 16px; height: 5px; border-radius: 99px; background: var(--well-2); transition: width var(--t-slow) var(--ease-spring), background var(--t-med); }
+.w-dots i.on { width: 30px; background: var(--accent); }
+.w-body h2 { margin: 6px 0 0; font-size: 1.5rem; letter-spacing: -0.025em; line-height: 1.15; }
+.w-text { margin: 0; color: var(--ink-2); }
+.w-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 16px; }
+@media (max-width: 560px) {
+  .welcome .sheet { grid-template-columns: 1fr; }
+  .w-art { min-height: 130px; }
+}
+
+/* ================= Picking a mode ================= */
+body.picking main > :not(.picker),
+body.picking footer.strip,
+body.picking .bar > :not(.brand, .spacer, .bar-end),
+body.picking #moreBtn,
+body.picking [data-needs-mode] { display: none !important; }
+
+@media (max-width: 960px) {
+  main { grid-template-columns: 1fr; }
+  main[data-kind="rehearsal"] > * { grid-column: 1 !important; grid-row: auto !important; }
+  .k-chip .k-label { display: none; }
+}
+@media (max-width: 640px) {
+  .bar { top: 8px; }
+  .gauge-wrap { width: clamp(160px, 50vw, 210px); }
+  .stage-labels { display: block; }
+  .stage-labels li:not([aria-current="step"]) { display: none; }
+  .stage-count { display: block; margin: 2px 0 0; color: var(--ink-3); font-size: 0.9rem; }
+  .next { grid-template-columns: 1fr; }
+  .next-conf { text-align: left; }
+  .next-conf .bar-mini { margin-left: 0; }
+  .strip { grid-template-columns: 1fr; }
+  .capture-group .rec span.lbl { display: none; }
+}
+
+/* ================= Overlay (the desktop app's floating window) =================
+   By default the window is transparent and every surface is solid, so nothing is
+   unreadable over the desktop. On Windows 11 the window gets the OS Acrylic
+   material instead (body.os-glass): the desktop behind is blurred by the system,
+   and the panels are tinted glass on top of it. */
+html:has(body.overlay), body.overlay { background: transparent !important; }
+body.overlay { overflow: hidden; min-height: 0; }
+body.overlay::before, body.overlay::after { display: none; }
+body.overlay .bar, body.overlay footer.strip { display: none !important; }
+body.overlay { --panel: #ffffff; --glass: #ffffff; }
+:root[data-theme="dark"] body.overlay { --panel: #121826; --glass: #121826; }
+body.overlay.os-glass { --panel: rgba(255,255,255,0.5); --glass: rgba(255,255,255,0.34); --glass-blur: 0px; }
+:root[data-theme="dark"] body.overlay.os-glass { --panel: rgba(12,16,28,0.45); --glass: rgba(12,16,28,0.28); }
+@media (prefers-reduced-transparency: reduce) {
+  body.overlay.os-glass { --panel: var(--film); --glass: var(--film); }
+}
+main.pip { display: flex; flex-direction: column; gap: 8px; width: auto; margin: 0; padding: 6px 8px 8px; }
+main.pip .notice { display: none; }
+main.pip .hero { padding: 12px 14px 14px; border-radius: 16px; animation: none; }
+main.pip .gauge-wrap { width: clamp(110px, 44vw, 170px); margin-bottom: 0; }
+main.pip .hero-kicker { margin-bottom: 0; }
+main.pip .stage-name { font-size: clamp(1rem, 4.4vw, 1.3rem); }
+main.pip .score-num { font-size: clamp(2rem, 9vw, 2.8rem); }
+main.pip .track { margin-top: 12px; height: 8px; }
+main.pip .stage-labels { display: none; }
+main.pip .stage-count { display: block; margin: 4px 0 0; color: var(--ink-3); font-size: 0.78rem; }
+main.pip .next { padding: 12px 12px 12px 18px; border-radius: 16px; grid-template-columns: 1fr; animation: none; }
+main.pip .next-accent { top: 12px; bottom: 12px; }
+main.pip .next-title { font-size: 1.02rem; }
+main.pip .next-conf { text-align: left; }
+main.pip .next-conf .bar-mini { margin-left: 0; }
+main.pip .tip-main { font-size: 0.86rem; padding: 8px 10px; }
+main.pip .quick-start { gap: 6px; margin-top: 8px; }
+main.pip .quick-start li { grid-template-columns: 22px 1fr; gap: 8px; font-size: 0.85rem; }
+main.pip .quick-start li::before { width: 22px; height: 22px; font-size: 0.72rem; }
+main.pip .quick-start span, main.pip .quick-actions { display: none; }
+main.pip .picker { margin: 0; gap: 8px; padding: 12px; border-radius: 16px; background: var(--panel); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--shadow-1); }
+main.pip .picker-title { font-size: 1.05rem; letter-spacing: -0.02em; }
+main.pip .picker-sub { display: none; }
+main.pip .picker-list { grid-template-columns: 1fr; gap: 6px; }
+main.pip .mode-opt { min-height: 0; padding: 9px 11px; border-radius: 12px; grid-template-rows: auto; gap: 0 10px; background: var(--well); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+main.pip .mode-opt:hover { transform: none; background: var(--well-2); }
+main.pip .mode-icon { grid-row: auto; width: 28px; height: 28px; border-radius: 8px; }
+main.pip .mode-icon svg { width: 15px; height: 15px; }
+main.pip .mode-desc, main.pip .mode-foot { display: none; }
+main.pip .mode-name { font-size: 0.92rem; align-self: center; }
+main.pip .picker-note { font-size: 0.8rem; margin-top: 4px; }
+
+.overlay-bar {
+  -webkit-app-region: drag; position: relative; z-index: 20;
+  display: flex; align-items: center; gap: 3px;
+  margin: 6px 8px 0; padding: 4px; border-radius: 14px;
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--shadow-1);
+  color: var(--ink); font-size: 0.82rem; font-weight: 650;
+}
+.overlay-bar button { -webkit-app-region: no-drag; }
+.overlay-brand {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 7px;
+  border: none; background: none; border-radius: 10px; padding: 4px 7px 4px 4px;
+  font: inherit; color: inherit; text-align: left; white-space: nowrap; overflow: hidden;
+}
+.overlay-brand:hover { background: var(--well-2); }
+.overlay-brand .logo { width: 22px; height: 22px; border-radius: 7px; }
+.overlay-brand .logo svg { width: 14px; height: 14px; }
+.overlay-brand .name { overflow: hidden; text-overflow: ellipsis; }
+.overlay-brand .chev { width: 12px; height: 12px; color: var(--ink-3); flex: none; }
+.overlay-btn {
+  border: none; background: transparent; color: var(--ink-2);
+  border-radius: 9px; min-width: 28px; height: 28px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.overlay-btn svg { width: 15px; height: 15px; }
+.overlay-btn:hover, .overlay-btn[aria-expanded="true"] { background: var(--well-2); color: var(--ink); }
+.overlay-rec .rec-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-3); transition: background var(--t-med); }
+.overlay-rec[aria-pressed="true"] { background: color-mix(in oklab, var(--danger) 16%, transparent); }
+.overlay-rec[aria-pressed="true"] .rec-dot { background: var(--danger); animation: pulse-dot 1.2s infinite; }
+.overlay-auto { padding: 0 9px; font-size: 0.68rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; }
+.overlay-menu { top: calc(100% + 6px); right: 34px; }
+.overlay-err {
+  margin: 6px 8px 0; padding: 7px 11px; border-radius: 12px;
+  background: var(--panel); border: 1px solid var(--glass-edge); border-left: 3px solid var(--danger);
+  color: var(--ink); font-size: 0.78rem; font-weight: 500;
 }
 </style>
 <script>
-/* Theme resolves before first paint to avoid a flash. Light is the
-   product default; the OS preference only applies if the user has
-   actively chosen "system". */
+/* Theme resolves before first paint to avoid a flash. Light is the default. */
 (function () {
-  var KEY = "cc-theme";
   var t;
-  try { t = localStorage.getItem(KEY); } catch (e) {}
-  if (t === "system") {
-    t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
+  try { t = localStorage.getItem("cc-theme"); } catch (e) {}
+  if (t === "system") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
 })();
 </script>
 </head>
-<body>
+<body class="aurora">
 
 <div class="overlay-bar" id="overlayBar" hidden>
-  <button type="button" class="overlay-brand" id="overlayMode" title="Change mode">Call Coach</button>
+  <button type="button" class="overlay-brand" id="overlayMode" title="Change mode"><span class="logo" data-icon="logo"></span><span class="name">Call Coach</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
   <button type="button" class="overlay-btn overlay-rec overlay-auto" id="overlayAuto" aria-pressed="false" title="Auto capture (experimental): hears both sides and labels who's speaking. Everyone on the call must agree to be recorded." data-needs-mode hidden><span class="rec-dot"></span>Auto</button>
-  <button type="button" class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" data-needs-mode hidden><span class="rec-dot"></span></button>
-  <button type="button" class="overlay-btn" id="overlayMore" title="More" aria-haspopup="menu" aria-expanded="false" aria-controls="overlayMenu">&#8943;</button>
-  <button type="button" class="overlay-btn" id="overlayMin" title="Minimize">&#8211;</button>
-  <button type="button" class="overlay-btn" id="overlayClose" title="Close">&times;</button>
-  <div class="overlay-menu" id="overlayMenu" role="menu" hidden>
-    <button type="button" role="menuitem" id="menuClear" data-needs-mode>Clear conversation</button>
-    <button type="button" role="menuitem" id="menuDash" data-needs-mode>Open dashboard</button>
-    <button type="button" role="menuitem" id="menuMode" data-needs-mode>Change mode</button>
-    <button type="button" role="menuitem" id="menuSettings">Settings and coaches</button>
-    <button type="button" role="menuitem" id="menuTheme">Dark mode</button>
+  <button type="button" class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" aria-label="Capture call audio" data-needs-mode hidden><span class="rec-dot"></span></button>
+  <button type="button" class="overlay-btn" id="overlayMore" title="More" aria-label="More" aria-haspopup="menu" aria-expanded="false" aria-controls="overlayMenu" data-icon="more"></button>
+  <button type="button" class="overlay-btn" id="overlayMin" title="Minimize" aria-label="Minimize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+  <button type="button" class="overlay-btn" id="overlayClose" title="Close" aria-label="Close" data-icon="close"></button>
+  <div class="menu overlay-menu" id="overlayMenu" role="menu" hidden>
+    <button type="button" role="menuitem" id="menuClear" data-needs-mode data-icon="refresh">Clear conversation</button>
+    <button type="button" role="menuitem" id="menuDash" data-needs-mode data-icon="dashboard">Open dashboard</button>
+    <button type="button" role="menuitem" id="menuMode" data-needs-mode data-icon="swap">Change mode</button>
+    <hr>
+    <button type="button" role="menuitem" id="menuSettings" data-icon="settings">Settings and coaches</button>
+    <button type="button" role="menuitem" id="menuTheme" data-icon="moon">Dark mode</button>
   </div>
 </div>
 <p class="overlay-err" id="overlayErr" hidden></p>
 
-<header class="bar">
-  <div class="brand">Call Coach<span class="mode-tag" id="modeTag"></span></div>
-  <div class="speaker" role="group" aria-label="Who is speaking">
+<header class="bar glass rim">
+  <div class="brand"><span class="logo" data-icon="logo"></span><span class="brand-name">Call Coach</span></div>
+  <button type="button" class="mode-chip" id="modeBtn" title="Change mode"><span class="dot" aria-hidden="true"></span><span id="modeTag">Pick a coach</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
+  <span class="spacer"></span>
+  <div class="speaker segmented" role="group" aria-label="Who is speaking">
     <button type="button" data-speaker="customer" aria-pressed="true" id="otherBtn">They're speaking</button>
     <button type="button" data-speaker="rep" aria-pressed="false">I'm speaking</button>
   </div>
-  <button type="button" class="mic" id="mic" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span id="micLabel">Start listening</span></button>
-  <button type="button" class="capture" id="capture" aria-pressed="false" hidden><span class="cap-dot" aria-hidden="true"></span><span id="captureLabel">Capture call</span></button>
-  <button type="button" class="capture" id="auto" aria-pressed="false" title="Hears both sides of the call and labels who's speaking" hidden><span class="cap-dot" aria-hidden="true"></span><span id="autoLabel">Auto capture</span><span class="exp">Experimental</span></button>
-  <button type="button" class="ghost" id="sample">Play sample call</button>
-  <button type="button" class="ghost" id="reset">Clear call</button>
-  <button type="button" class="ghost" id="modeBtn">Change mode</button>
-  <button type="button" class="ghost" id="settingsBtn">Settings</button>
-  <button type="button" class="ghost" id="themeBtn" title="Light / dark">Dark mode</button>
-  <button type="button" class="ghost" id="pipBtn" hidden>Pop out</button>
+  <div class="capture-group">
+    <button type="button" class="rec primary" id="mic" aria-pressed="false" data-icon="mic"><span class="live-dot" aria-hidden="true"></span><span class="lbl" id="micLabel">Start listening</span></button>
+    <button type="button" class="rec" id="auto" aria-pressed="false" data-icon="auto" title="Hears both sides of the call and labels who's speaking" hidden><span class="live-dot" aria-hidden="true"></span><span class="lbl" id="autoLabel">Auto capture</span><span class="exp">Beta</span></button>
+  </div>
+  <div class="bar-end">
+    <button type="button" class="k-chip" id="paletteBtn" title="Search coaches and actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><span class="k-label">Search</span><kbd id="paletteKbd">Ctrl K</kbd></button>
+    <button type="button" class="icon-btn" id="settingsBtn" aria-label="Settings" title="Settings and coaches" data-icon="settings"></button>
+    <button type="button" class="icon-btn" id="themeBtn" aria-label="Switch to dark mode" title="Light / dark"></button>
+    <button type="button" class="icon-btn" id="moreBtn" aria-label="More" title="More" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu" data-icon="more"></button>
+    <div class="menu bar-menu" id="moreMenu" role="menu" hidden>
+      <button type="button" role="menuitem" id="capture" aria-pressed="false" data-icon="capture" title="Transcribe the call's audio; every line is labeled as them" hidden><span id="captureLabel">Capture call audio</span></button>
+      <button type="button" role="menuitem" id="sample" data-icon="play">Play sample call</button>
+      <button type="button" role="menuitem" id="reset" data-icon="refresh">Clear conversation</button>
+      <button type="button" role="menuitem" id="pipBtn" data-icon="popout" hidden>Pop out</button>
+      <hr>
+      <button type="button" role="menuitem" id="helpBtn" data-icon="help">How it works</button>
+    </div>
+  </div>
 </header>
 
 <main>
-  <div class="notice" id="setup" hidden>The server has no API key yet. Stop it and restart with <code>TYPESAFE_API_KEY=your_key node server.mjs</code>.</div>
-  <div class="notice" id="autoNotice" hidden><strong>Auto capture is recording both sides of this call.</strong> Everyone on the call should know and agree. Audio is transcribed on this computer; the text goes to TypeSafe. Headphones work best: without them, the mic hears the other person too, and those lines are filtered out as echo.</div>
+  <div class="notice panel" id="setup" hidden>The server has no API key yet. Stop it and restart with <code>TYPESAFE_API_KEY=your_key node server.mjs</code>.</div>
+  <div class="notice panel" id="autoNotice" hidden><span><strong>Auto capture is recording both sides of this call.</strong> Everyone on the call should know and agree. Audio is transcribed on this computer; the text goes to TypeSafe. Headphones work best: without them, the mic hears the other person too, and those lines are filtered out as echo.</span></div>
 
   <section class="picker" id="picker" hidden aria-labelledby="pickerTitle">
     <h1 class="picker-title" id="pickerTitle">What are you doing today?</h1>
+    <p class="picker-sub">Pick a coach. You can switch any time from the top bar.</p>
     <div class="picker-list" id="pickerList"></div>
     <p class="picker-note" id="pickerNote"></p>
   </section>
 
-  <section class="scenario" id="scenario" hidden aria-labelledby="scenarioLine">
+  <section class="scenario panel rim" id="scenario" hidden aria-labelledby="scenarioLine">
     <div class="scenario-head">
       <select id="scenarioPick" aria-label="Scenario"></select>
-      <span class="scenario-step" id="scenarioStep"></span>
+      <span class="scenario-step chip" id="scenarioStep"></span>
     </div>
     <p class="scenario-setup" id="scenarioSetup"></p>
     <ol class="scenario-log" id="scenarioLog" aria-label="Earlier in the conversation"></ol>
-    <blockquote class="scenario-line"><span class="who" id="scenarioWho"></span><p id="scenarioLine"></p></blockquote>
+    <blockquote class="scenario-line"><span class="who" id="scenarioWho"></span><p id="scenarioLine" aria-live="polite"></p></blockquote>
     <form class="answer" id="answerForm">
-      <textarea id="answerIn" aria-label="Your reply" placeholder="Type your reply, or press Speak and say it"></textarea>
+      <textarea class="field-input" id="answerIn" aria-label="Your reply" placeholder="Type your reply, or press Speak and say it"></textarea>
       <div class="answer-actions">
-        <button type="submit" class="mic" id="answerSubmit">Get feedback</button>
-        <button type="button" class="capture" id="speakBtn" aria-pressed="false"><span class="cap-dot" aria-hidden="true"></span><span id="speakLabel">Speak</span></button>
-        <button type="button" class="ghost" id="retryBtn" hidden>Try again</button>
-        <button type="button" class="mic" id="nextLineBtn" hidden>Next line</button>
-        <p class="answer-hint" id="answerHint">Ctrl+Enter to send</p>
+        <button type="submit" class="btn" id="answerSubmit">Get feedback</button>
+        <button type="button" class="rec" id="speakBtn" aria-pressed="false" data-icon="mic"><span class="live-dot" aria-hidden="true"></span><span id="speakLabel">Speak</span></button>
+        <button type="button" class="btn ghost" id="retryBtn" hidden>Try again</button>
+        <button type="button" class="btn" id="nextLineBtn" hidden>Next line</button>
+        <p class="answer-hint" id="answerHint"><kbd>Ctrl</kbd> <kbd>Enter</kbd> to send</p>
       </div>
     </form>
   </section>
 
-  <section class="hero" id="hero" data-state="idle" aria-labelledby="stageName">
+  <section class="hero panel rim" id="hero" data-state="idle" aria-labelledby="stageName">
     <div class="hero-center">
       <p class="hero-kicker" id="stageKicker">Stage</p>
       <div class="gauge-wrap">
@@ -559,12 +483,13 @@ body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
           <circle class="gauge-bg" cx="100" cy="100" r="76"
             stroke-dasharray="318.35 159.17"
             transform="rotate(150 100 100)" />
+          <g class="gauge-ticks" id="gaugeTicks"></g>
           <circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="76"
             stroke-dasharray="0 477.52"
             transform="rotate(150 100 100)" />
         </svg>
         <div class="gauge-value">
-          <div class="score-num" id="scoreNum" aria-describedby="scoreHelp">&ndash;</div>
+          <div class="score-num num" id="scoreNum" aria-describedby="scoreHelp">&ndash;</div>
           <div class="score-sub" id="scoreHelp">of 100</div>
         </div>
       </div>
@@ -581,30 +506,33 @@ body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
     <p class="stage-count" id="stageCount"></p>
   </section>
 
-  <section class="next" id="next" data-status="idle" aria-labelledby="nextTitle">
+  <section class="next panel rim" id="next" data-status="idle" aria-labelledby="nextTitle">
+    <span class="next-accent" aria-hidden="true"></span>
     <div>
-      <p class="next-kicker" id="nextKicker">Suggested action</p>
+      <p class="next-kicker"><span id="nextKicker">Suggested action</span><span class="thinking-label" aria-hidden="true">Reading the conversation <i></i><i></i><i></i></span></p>
       <h2 class="next-title" id="nextTitle">Start the conversation</h2>
       <p class="next-note" id="nextNote" hidden></p>
     </div>
-    <div class="next-conf" id="nextConf" hidden><b id="nextPct">&ndash;</b>confidence<div class="bar-mini"><i id="nextBar"></i></div></div>
+    <div class="next-conf" id="nextConf" hidden><b class="num" id="nextPct">&ndash;</b>confidence<div class="bar-mini"><i id="nextBar"></i></div></div>
     <div class="next-body">
       <p class="tip-main" id="tipMain"></p>
       <details class="more" id="more" hidden><summary id="moreLabel">More tips</summary><ul id="moreList"></ul></details>
     </div>
+    <ol class="quick-start" id="quickStart" hidden></ol>
+    <div class="quick-actions" id="quickActions" hidden></div>
     <div class="next-actions" id="nextActions" hidden>
-      <button type="button" class="done" id="done">Mark done<kbd aria-hidden="true">D</kbd></button>
+      <button type="button" class="btn ghost small" id="done">Mark done <kbd aria-hidden="true">D</kbd></button>
       <p class="done-msg" id="doneMsg" aria-live="polite"></p>
     </div>
   </section>
   <p class="visually-hidden" id="announce" aria-live="polite"></p>
 </main>
 
-<footer class="strip">
+<footer class="strip glass rim">
   <p class="heard" id="heard"><span class="led" aria-hidden="true"></span><span class="who" id="heardWho">Heard</span><span class="text" id="heardText">Nothing yet</span></p>
   <form class="type-row" id="typeForm">
-    <input id="typeIn" autocomplete="off" aria-label="Add a line to the conversation" placeholder="Type what they said">
-    <button type="submit">Add</button>
+    <input class="field-input" id="typeIn" autocomplete="off" aria-label="Add a line to the conversation" placeholder="Type what they said">
+    <button type="submit" class="icon-btn" aria-label="Add line" data-icon="arrow"></button>
   </form>
   <p class="error" id="error" role="alert" hidden></p>
 </footer>
@@ -613,7 +541,8 @@ body[data-kind="rehearsal"] footer.strip:has(.error[hidden]) { display: none; }
 import { decide, trackStage, createMemory, markDone, DEFAULT_CONFIG } from "/decide.js";
 import { startSession, getCallAudio, getMicAudio } from "/capture.js";
 import { listCoaches, getCoach, buildCoach, onCoachesChanged } from "/coaches.js";
-import { apiHeaders, getKey, getAccessCode } from "/access.js";
+import { apiHeaders, getKey, getAccessCode, setKey } from "/access.js";
+import { icon, hydrateIcons, onTheme, getTheme, toggleTheme, transition, toast, enableSpotlight, segmented, menu, commandPalette, paletteShortcut } from "/ui.js";
 
 let pipWin = null;
 const $ = (id) => document.getElementById(id) || pipWin?.document.getElementById(id) || null;
@@ -634,60 +563,56 @@ const _qp = new URLSearchParams(location.search);
 const isOverlay = _qp.has("overlay");
 const overlayChannel = isOverlay ? new BroadcastChannel("call-coach-sync") : null;
 
-/* ---------- Theme ----------
-   Light is the default. The choice is shared across every window
-   (overlay cards, dashboard, pop-out) over its own channel, so the
-   two cards never end up disagreeing. */
-const THEME_KEY = "cc-theme";
-const themeChannel = new BroadcastChannel("call-coach-theme");
+hydrateIcons();
+enableSpotlight();
+$("paletteKbd").textContent = paletteShortcut;
 
-function getTheme() {
-  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-}
-function setTheme(t, broadcast = true) {
-  t = t === "dark" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", t);
-  try { localStorage.setItem(THEME_KEY, t); } catch {}
-  const btn = document.getElementById("themeBtn");
-  if (btn) btn.textContent = t === "dark" ? "Light mode" : "Dark mode";
+/* ---------- Theme ----------
+   Light is the default. The choice is shared across every window over a channel. */
+onTheme((t) => {
+  $("themeBtn").innerHTML = icon(t === "dark" ? "sun" : "moon");
+  $("themeBtn").setAttribute("aria-label", t === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  $("menuTheme").replaceChildren();
+  $("menuTheme").insertAdjacentHTML("afterbegin", icon(t === "dark" ? "sun" : "moon"));
+  $("menuTheme").append(t === "dark" ? "Light mode" : "Dark mode");
   if (pipWin) {
     try {
       pipWin.document.documentElement.setAttribute("data-theme", t);
       pipWin.document.documentElement.style.colorScheme = t;
     } catch {}
   }
-  if (broadcast) themeChannel.postMessage({ theme: t });
+});
+$("themeBtn").addEventListener("click", toggleTheme);
+
+// The gauge's color drives the ambient light, so it's set on the page and on the cards
+function setStage(value) {
+  document.documentElement.style.setProperty("--stage", value);
+  mainEl.style.setProperty("--stage", value);
 }
-themeChannel.onmessage = (e) => { if (e.data && e.data.theme) setTheme(e.data.theme, false); };
-setTheme(getTheme(), false);
-$("themeBtn").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
 
 function openSettings(hash = "") {
   if (window.overlay?.openSettings) window.overlay.openSettings(hash);
   else location.assign(`/settings.html${hash}`);
 }
 $("settingsBtn").addEventListener("click", () => openSettings());
+menu($("moreBtn"), $("moreMenu"));
+segmented(document.querySelector(".speaker"));
+
+/* ---------- Command palette (Ctrl+K) ----------
+   Its items depend on the mode, so they're filled in once a mode is chosen. */
+let paletteItems = () => [];
+const openPalette = commandPalette(() => paletteItems());
+$("paletteBtn").addEventListener("click", openPalette);
 
 /* ---------- Overlay window controls ----------
    Wired before a mode is picked, so the window can be moved and closed from the picker. */
 if (isOverlay) {
   document.body.classList.add("overlay");
+  if (_qp.get("glass") === "os") document.body.classList.add("os-glass"); // Windows 11 Acrylic behind the window
   mainEl.classList.add("pip");
   $("overlayBar").hidden = false;
-  const menu = $("overlayMenu"), more = $("overlayMore");
-  const showMenu = (open) => {
-    menu.hidden = !open;
-    more.setAttribute("aria-expanded", String(open));
-    if (open) {
-      $("menuTheme").textContent = getTheme() === "dark" ? "Light mode" : "Dark mode";
-      menu.querySelector("button:not([hidden])")?.focus();
-    }
-  };
-  more.addEventListener("click", () => showMenu(menu.hidden));
-  document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target) && e.target !== more) showMenu(false); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { showMenu(false); more.focus(); } });
-  menu.addEventListener("click", (e) => { if (e.target.closest("button")) showMenu(false); });
-  $("menuTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+  menu($("overlayMore"), $("overlayMenu"));
+  $("menuTheme").addEventListener("click", toggleTheme);
   $("menuSettings").addEventListener("click", () => openSettings());
   if (window.overlay) {
     $("overlayClose").addEventListener("click", () => window.overlay.close());
@@ -698,11 +623,76 @@ if (isOverlay) {
   }
 }
 
+/* ---------- Welcome (first visit in a browser) ----------
+   Three short steps, shown once. On a hosted site, step two takes the visitor's key. */
+const WELCOME_KEY = "cc-welcomed";
+async function showWelcome(force = false) {
+  let seen = false;
+  try { seen = !!localStorage.getItem(WELCOME_KEY); } catch {}
+  if ((seen && !force) || isOverlay) return;
+  const health = await fetch("/api/health").then((r) => r.json()).catch(() => ({}));
+  const needsKey = health.hosted && health.access !== "open" && !getKey() && !getAccessCode();
+  const steps = [
+    {
+      icon: "headset", title: "A coach for your conversations",
+      body: "Call Coach listens along and shows two things: where the conversation stands, on the gauge, and the one thing to do next.",
+    },
+    needsKey
+      ? { icon: "key", title: "Connect TypeSafe", body: "Paste your TypeSafe API key. It stays in this browser and goes only to TypeSafe, through this site.", key: true }
+      : { icon: "wave", title: "It hears the call, or you type", body: "Press Auto capture to hear both sides of a Zoom, Meet or Teams call, or type what was said. For practice, just reply to the scripted lines." },
+    {
+      icon: "sparkle", title: "Pick a coach and go",
+      body: `Choose sales, support, a practice run, or build your own in Settings. Press ${paletteShortcut} any time to find anything.`,
+    },
+  ];
+  let i = 0;
+  const scrim = document.createElement("div");
+  scrim.className = "scrim welcome";
+  scrim.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+      <div class="w-art" aria-hidden="true"><span class="w-icon"></span></div>
+      <div class="w-body"><div class="w-dots" aria-hidden="true"></div><h2 id="wTitle"></h2><p class="w-text"></p>
+        <form class="w-key" hidden><input class="field-input" type="password" autocomplete="off" placeholder="TypeSafe API key" aria-label="TypeSafe API key"></form>
+        <div class="w-actions"><button type="button" class="btn ghost w-skip">Skip</button><span style="flex:1"></span><button type="button" class="btn ghost w-back">Back</button><button type="button" class="btn w-next">Next</button></div>
+      </div></div>`;
+  document.body.append(scrim);
+  const q = (s) => scrim.querySelector(s);
+  const finish = () => { try { localStorage.setItem(WELCOME_KEY, "1"); } catch {} scrim.remove(); document.querySelector(".mode-opt")?.focus(); };
+  const render = () => {
+    const s = steps[i];
+    q(".w-icon").innerHTML = icon(s.icon);
+    q(".w-icon").style.animation = "none"; void q(".w-icon").offsetWidth; q(".w-icon").style.animation = "";
+    q("#wTitle").textContent = s.title;
+    q(".w-text").textContent = s.body;
+    q(".w-key").hidden = !s.key;
+    q(".w-back").hidden = i === 0;
+    q(".w-next").textContent = i === steps.length - 1 ? "Pick a coach" : s.key ? "Save key" : "Next";
+    q(".w-dots").replaceChildren(...steps.map((_, n) => Object.assign(document.createElement("i"), { className: n === i ? "on" : "" })));
+    (s.key ? q(".w-key input") : q(".w-next")).focus();
+  };
+  q(".w-next").addEventListener("click", () => {
+    if (steps[i].key) {
+      const v = q(".w-key input").value.trim();
+      if (!v) { q(".w-key input").focus(); return; }
+      setKey(v);
+      $("setup").hidden = true;
+    }
+    if (i === steps.length - 1) finish(); else { i++; render(); }
+  });
+  q(".w-key").addEventListener("submit", (e) => { e.preventDefault(); q(".w-next").click(); });
+  q(".w-back").addEventListener("click", () => { i = Math.max(0, i - 1); render(); });
+  q(".w-skip").addEventListener("click", finish);
+  scrim.addEventListener("keydown", (e) => { if (e.key === "Escape") finish(); });
+  render();
+}
+$("helpBtn").addEventListener("click", () => showWelcome(true));
+
 /* ---------- Mode ----------
    Built-in modes are folders in /modes (see server.mjs); custom coaches are built
    in Settings (see coaches.js). The picker is the entry point, and the chosen
    mode stays in the URL (?mode=) so a reload keeps it. */
 const MODE_KEY = "cc-mode";
+let pickerKeys = null;             // number-key shortcuts while the picker is up
+let whenCoachShown = () => {};     // ends the page transition into a coach
 const MODES = await loadModes();
 const MODE = await chooseMode();
 const { PLAYBOOK: MODE_PLAYBOOK, COACH } = await loadPlaybook(MODE);
@@ -747,6 +737,7 @@ async function chooseMode() {
   if (chosen) return chosen;
   return new Promise((resolve) => {
     showPicker(resolve);
+    showWelcome();
     onCoachesChanged(async () => {
       if (!document.body.classList.contains("picking")) return;
       const fresh = await loadModes();
@@ -772,36 +763,67 @@ function showPicker(resolve) {
   let last = null;
   try { last = localStorage.getItem(MODE_KEY); } catch {}
   const span = (className, textContent) => Object.assign(document.createElement("span"), { className, textContent });
-  const options = MODES.map((m) => {
-    const b = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt" + (m.id === last ? " last" : "") });
-    b.append(
-      span("mode-name", m.name),
-      span("mode-kind", (m.custom ? "Custom · " : "") + (m.kind === "rehearsal" ? "Practice" : "Live call")),
-      span("mode-desc", m.description || ""),
-    );
-    b.addEventListener("click", () => {
-      try { localStorage.setItem(MODE_KEY, m.id); } catch {}
-      // Practice doesn't need to float over a call, so the overlay opens it in a regular window
-      if (m.kind === "rehearsal" && isOverlay && window.overlay?.openPractice) {
-        window.overlay.openPractice(m.id);
-        $("pickerNote").textContent = `${m.name} opened in its own window.`;
-        return;
-      }
-      const url = new URL(location.href);
-      url.searchParams.set("mode", m.id);
-      history.replaceState(null, "", url);
-      overlayChannel?.postMessage({ type: "mode", id: m.id });
+
+  const pick = (m) => {
+    try { localStorage.setItem(MODE_KEY, m.id); } catch {}
+    // Practice doesn't need to float over a call, so the overlay opens it in a regular window
+    if (m.kind === "rehearsal" && isOverlay && window.overlay?.openPractice) {
+      window.overlay.openPractice(m.id);
+      $("pickerNote").textContent = `${m.name} opened in its own window.`;
+      return;
+    }
+    pickerKeys?.abort();
+    const url = new URL(location.href);
+    url.searchParams.set("mode", m.id);
+    history.replaceState(null, "", url);
+    overlayChannel?.postMessage({ type: "mode", id: m.id });
+    transition(() => new Promise((shown) => {
+      whenCoachShown = shown;
+      setTimeout(shown, 1500);
       document.body.classList.remove("picking");
       $("picker").hidden = true;
       resolve(m);
-    });
+    }));
+  };
+
+  const tile = (m, i) => {
+    const b = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt spot enter" + (m.id === last ? " last" : "") });
+    b.style.setProperty("--i", i);
+    b.dataset.kind = m.kind;
+    if (m.custom) b.dataset.custom = "";
+    const ic = span("mode-icon", "");
+    ic.innerHTML = icon(m.custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave");
+    const foot = span("mode-foot", "");
+    foot.append(span("chip mode-kind", (m.custom ? "Custom · " : "") + (m.kind === "rehearsal" ? "Practice" : "Live call")));
+    if (i < 9) foot.append(Object.assign(document.createElement("kbd"), { textContent: String(i + 1), title: `Press ${i + 1}` }));
+    b.append(ic, span("mode-name", m.name), span("mode-desc", m.description || ""), foot);
+    b.addEventListener("click", () => pick(m));
     return b;
-  });
-  const add = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt mode-new" });
-  add.append(span("mode-name", "+ Build your own coach"), span("mode-desc", "Set up a coach for another kind of call or practice in Settings."));
+  };
+
+  const add = Object.assign(document.createElement("button"), { type: "button", className: "mode-opt mode-new enter" });
+  add.style.setProperty("--i", MODES.length);
+  const addIcon = span("mode-icon", "");
+  addIcon.innerHTML = icon("plus");
+  add.append(addIcon, span("mode-name", "Build your own coach"), span("mode-desc", "Interviews, negotiations, a support desk, or practice for anything. No code."));
   add.addEventListener("click", () => openSettings("#new"));
-  $("pickerList").replaceChildren(...options, add);
+  $("pickerList").replaceChildren(...MODES.map(tile), add);
+  paletteItems = () => [
+    ...MODES.map((m) => ({ group: "Coaches", title: m.name, keywords: m.description, hint: m.kind === "rehearsal" ? "Practice" : "Live call", icon: m.custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave", run: () => pick(m) })),
+    { group: "App", title: "Settings and coaches", icon: "settings", run: () => openSettings() },
+    { group: "App", title: "Build a new coach", icon: "plus", keywords: "create custom", run: () => openSettings("#new") },
+    { group: "App", title: "How it works", icon: "help", run: () => showWelcome(true) },
+  ];
   ($("pickerList").querySelector(".last") || $("pickerList").firstElementChild)?.focus();
+
+  // Number keys pick a coach
+  pickerKeys?.abort();
+  pickerKeys = new AbortController();
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector(".scrim")) return;
+    const n = Number(e.key);
+    if (n >= 1 && n <= Math.min(9, MODES.length)) pick(MODES[n - 1]);
+  }, { signal: pickerKeys.signal });
 }
 
 /* ---------- Hero ---------- */
@@ -810,6 +832,17 @@ $("stageLabels").replaceChildren(...STAGES.map((s) => Object.assign(document.cre
 const MAX = N - 1;
 const RANGES = STAGES.map((_, i) => [Math.max(0, (i - 0.5) / MAX), Math.min(1, (i + 0.5) / MAX)]);
 mainEl.style.setProperty("--cols", RANGES.map(([a, b]) => `${(b - a) * 2 * MAX}fr`).join(" "));
+
+// Tick marks where one stage ends and the next begins
+{
+  const ticks = [];
+  for (let i = 0; i < MAX; i++) {
+    const a = (150 + 240 * ((i + 0.5) / MAX)) * Math.PI / 180;
+    const r1 = GAUGE_R + 11, r2 = GAUGE_R + 16;
+    ticks.push(`<line x1="${100 + r1 * Math.cos(a)}" y1="${100 + r1 * Math.sin(a)}" x2="${100 + r2 * Math.cos(a)}" y2="${100 + r2 * Math.sin(a)}"/>`);
+  }
+  $("gaugeTicks").innerHTML = ticks.join("");
+}
 
 function setGauge(score) {
   const fill = GAUGE_ARC * (score / 100);
@@ -822,12 +855,13 @@ function countTo(el, to) {
   const from = app.shownScore ?? 0;
   app.shownScore = to;
   if (reduceMotion || from === to) { el.textContent = to; setGauge(to); return; }
-  const start = performance.now(), dur = 500;
+  const start = performance.now(), dur = 700;
   const step = (t) => {
-    const k = Math.min(1, (t - start) / dur), eased = 1 - (1 - k) ** 3;
-    const v = from + (to - from) * eased;
-    el.textContent = Math.round(v);
-    setGauge(v);
+    const k = Math.min(1, (t - start) / dur);
+    const eased = 1 - (1 - k) ** 3;
+    const settle = 1 + 2.2 * (k - 1) ** 3 + 1.2 * (k - 1) ** 2; // the arc overshoots a touch, then settles
+    el.textContent = Math.round(from + (to - from) * eased);
+    setGauge(Math.max(0, Math.min(100, from + (to - from) * settle)));
     if (k < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
@@ -836,7 +870,7 @@ function countTo(el, to) {
 function renderStageIdle() {
   const hero = $("hero");
   hero.dataset.state = "idle";
-  mainEl.style.setProperty("--stage", "var(--s0)");
+  setStage("var(--s0)");
   $("stageName").textContent = COPY.idleStage;
   $("trend").textContent = ""; $("trend").className = "trend";
   $("scoreNum").textContent = "–"; app.shownScore = null;
@@ -852,7 +886,7 @@ function renderStageIdle() {
 function renderStage(st) {
   const hero = $("hero");
   hero.dataset.state = "live";
-  mainEl.style.setProperty("--stage", `var(--s${st.level})`);
+  setStage(`var(--s${st.level})`);
 
   $("stageName").textContent = st.label;
   countTo($("scoreNum"), st.buyingScore);
@@ -903,13 +937,46 @@ function renderNextIdle() {
   $("nextTitle").textContent = COPY.idleAction;
   $("nextNote").hidden = true;
   $("nextConf").hidden = true;
-  $("tipMain").textContent = COPY.idleTip;
   $("more").hidden = true;
   $("nextActions").hidden = true;
+  // Live coaches start with the three steps that get a call going; practice explains itself
+  const quick = !REHEARSAL;
+  $("tipMain").textContent = quick ? "" : COPY.idleTip;
+  $("quickStart").hidden = !quick;
+  $("quickActions").hidden = !quick || isOverlay;
+  if (!quick) return;
+  const them = COPY.other.toLowerCase();
+  const steps = [
+    ["Join your call", "Zoom, Meet, Teams, or a phone app. Headphones work best."],
+    [isOverlay ? "Press Auto above" : "Let it listen", isOverlay ? "It hears both sides and labels who's talking." : `Press Auto capture to hear both sides, or Start listening. You can also type what the ${them} says below.`],
+    ["Follow the gauge", `It shows where the ${them} stands, and this card suggests your next move.`],
+  ];
+  $("quickStart").replaceChildren(...steps.map(([title, text], i) => {
+    const li = document.createElement("li");
+    li.style.setProperty("--i", i);
+    li.append(Object.assign(document.createElement("div"), { innerHTML: "<b></b><span></span>" }));
+    li.querySelector("b").textContent = title;
+    li.querySelector("span").textContent = text;
+    return li;
+  }));
+  const actions = [];
+  if (PLAYBOOK.sample?.length) {
+    const b = Object.assign(document.createElement("button"), { type: "button", className: "btn small" });
+    b.innerHTML = icon("play") + "Try a sample call";
+    b.addEventListener("click", () => $("sample").click());
+    actions.push(b);
+  }
+  const build = Object.assign(document.createElement("button"), { type: "button", className: "btn ghost small" });
+  build.innerHTML = icon("sparkle") + "Build your own coach";
+  build.addEventListener("click", () => openSettings("#new"));
+  actions.push(build);
+  $("quickActions").replaceChildren(...actions);
 }
 
 function renderNext(r, animate) {
   const next = $("next");
+  $("quickStart").hidden = true;
+  $("quickActions").hidden = true;
   const acting = r.status === "act";
   next.dataset.status = r.status;
   $("nextTitle").textContent = acting ? r.title : COPY.listenTitle;
@@ -943,7 +1010,10 @@ function showHeard(text, speaker, interim = false) {
   $("heardText").textContent = text ? `"${text}"` : "Nothing yet";
   $("heardText").classList.toggle("interim", interim);
 }
-function setActivity() { $("heard").className = "heard" + (app.inFlight ? " busy" : app.listening ? " live" : ""); }
+function setActivity() {
+  $("heard").className = "heard" + (app.inFlight ? " busy" : app.listening ? " live" : "");
+  $("next").classList.toggle("thinking", app.inFlight);
+}
 function showError(msg) {
   $("error").textContent = msg || ""; $("error").hidden = !msg;
   const oe = document.getElementById("overlayErr");
@@ -1161,7 +1231,7 @@ function toggleCapture(kind) {
 function renderCapture() {
   const kind = capture?.kind || null;
   $("capture").setAttribute("aria-pressed", String(kind === "call"));
-  $("captureLabel").textContent = kind === "call" ? "Stop capture" : "Capture call";
+  $("captureLabel").textContent = kind === "call" ? "Stop capturing the call" : "Capture call audio";
   $("capture").disabled = kind === "auto";
   $("auto").setAttribute("aria-pressed", String(kind === "auto"));
   $("autoLabel").textContent = kind === "auto" ? "Stop auto capture" : "Auto capture";
@@ -1229,7 +1299,7 @@ $("sample").addEventListener("click", async () => {
 /* ---------- Rehearsal ----------
    The other person's lines come from the mode's scenarios. You reply to each one,
    typed or spoken (transcribed on this computer), and each reply is scored on its own. */
-const practice = { scenario: 0, line: 0, answered: false, speaking: null, starting: false, transcribing: false, canSpeak: !!navigator.mediaDevices?.getUserMedia };
+const practice = { revealed: true, sayToken: 0, scenario: 0, line: 0, answered: false, speaking: null, starting: false, transcribing: false, canSpeak: !!navigator.mediaDevices?.getUserMedia };
 
 function startScenario(i) {
   practice.scenario = i;
@@ -1243,8 +1313,13 @@ function sayLine() {
   const sc = PLAYBOOK.scenarios[practice.scenario];
   app.turns.push({ speaker: "customer", text: sc.lines[practice.line], at: Date.now() });
   practice.answered = false;
+  practice.revealed = reduceMotion;
   renderScenario();
   $("answerIn").focus();
+  if (!practice.revealed) {
+    const token = ++practice.sayToken;
+    setTimeout(() => { if (token === practice.sayToken) { practice.revealed = true; renderScenario(); } }, 750);
+  }
 }
 
 function renderScenario() {
@@ -1253,12 +1328,21 @@ function renderScenario() {
   $("scenarioSetup").textContent = sc.setup;
   $("scenarioStep").textContent = `Line ${practice.line + 1} of ${sc.lines.length}`;
   $("scenarioWho").textContent = COPY.other;
-  $("scenarioLine").textContent = sc.lines[practice.line];
+  const lineEl = $("scenarioLine"), lineKey = `${practice.scenario}:${practice.line}`;
+  if (!practice.revealed) {
+    lineEl.innerHTML = '<span class="typing-dots" role="img" aria-label="Typing"><i></i><i></i><i></i></span>';
+    lineEl.dataset.line = "";
+  } else if (lineEl.dataset.line !== lineKey) {
+    lineEl.textContent = sc.lines[practice.line];
+    lineEl.dataset.line = lineKey;
+    lineEl.classList.remove("said"); void lineEl.offsetWidth; lineEl.classList.add("said");
+  }
 
   // The conversation so far, up to the line being answered
   const current = app.turns.findLastIndex((t) => t.speaker === "customer");
   $("scenarioLog").replaceChildren(...app.turns.slice(0, current).map((t) => {
     const li = document.createElement("li");
+    if (t.speaker === "rep") li.className = "mine";
     li.append(Object.assign(document.createElement("b"), { textContent: t.speaker === "rep" ? COPY.rep : COPY.other }), t.text);
     return li;
   }));
@@ -1341,10 +1425,52 @@ async function toggleSpeak() {
   }
 }
 
+/* ---------- Command palette items ---------- */
+function appItems() {
+  return [
+    { group: "App", title: "Settings and coaches", icon: "settings", run: () => openSettings() },
+    { group: "App", title: "Build a new coach", icon: "plus", keywords: "create custom", run: () => openSettings("#new") },
+    { group: "App", title: getTheme() === "dark" ? "Switch to light mode" : "Switch to dark mode", icon: getTheme() === "dark" ? "sun" : "moon", keywords: "theme", run: toggleTheme },
+    { group: "App", title: "How it works", icon: "help", keywords: "help welcome tour", run: () => showWelcome(true) },
+  ];
+}
+function switchTo(m) {
+  if (m.id === MODE.id) return;
+  if (m.kind === "rehearsal" && isOverlay && window.overlay?.openPractice) { window.overlay.openPractice(m.id); return; }
+  if (!REHEARSAL && app.turns.length && !confirm("Switch coach? This clears the current conversation.")) return;
+  try { localStorage.setItem(MODE_KEY, m.id); } catch {}
+  const url = new URL(location.href);
+  url.searchParams.set("mode", m.id);
+  location.assign(url);
+}
+paletteItems = () => {
+  const items = (MODES || []).map((m) => ({
+    group: "Coaches", title: m.name, keywords: m.description,
+    hint: (m.id === MODE.id ? "Current coach · " : "") + (m.kind === "rehearsal" ? "Practice" : "Live call"),
+    icon: m.custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave",
+    run: () => switchTo(m),
+  }));
+  const act = (title, iconName, run, hint, keywords) => items.push({ group: "Actions", title, icon: iconName, run, hint, keywords });
+  if (REHEARSAL) {
+    PLAYBOOK.scenarios.forEach((sc, i) => act(`Practice: ${sc.title}`, "chat", () => { $("scenarioPick").value = String(i); startScenario(i); }, sc.setup, "scenario"));
+    if (practice.answered) { act("Try again", "refresh", retryAnswer); act("Next line", "arrow", nextLine); }
+    else if (practice.canSpeak) act(practice.speaking ? "Done speaking" : "Speak your reply", "mic", toggleSpeak);
+  } else {
+    act(app.listening ? "Stop listening" : "Start listening", "mic", () => $("mic").click(), "Browser speech recognition", "microphone");
+    if (!$("auto").hidden) act(capture?.kind === "auto" ? "Stop auto capture" : "Auto capture", "auto", () => $("auto").click(), "Hears both sides and labels who's talking", "record zoom meet teams");
+    if (!$("capture").hidden) act(capture?.kind === "call" ? "Stop capturing the call" : "Capture call audio", "capture", () => $("capture").click(), "Transcribes the call's audio", "record");
+    if (PLAYBOOK.sample?.length) act("Play sample call", "play", () => $("sample").click(), "A scripted conversation through the real coach", "demo");
+    act("Switch who's speaking", "swap", () => setSpeaker(app.speaker === "customer" ? "rep" : "customer"), "Shortcut: S");
+    if (app.result?.status === "act") act(`Mark "${app.result.title}" done`, "check", markCurrentDone, "Shortcut: D");
+    act("Clear conversation", "refresh", resetCall);
+  }
+  return [...items, ...appItems()];
+};
+
 /* ---------- Start ---------- */
 document.title = `${MODE.name} · Call Coach`;
-$("modeTag").textContent = ` · ${MODE.name}`;
-$("overlayMode").textContent = MODE.name;
+$("modeTag").textContent = MODE.name;
+$("overlayMode").querySelector(".name").textContent = MODE.name;
 $("stageKicker").textContent = COPY.stageKicker;
 $("otherBtn").textContent = COPY.otherSpeaking;
 $("typeIn").placeholder = COPY.typeOther;
@@ -1410,6 +1536,8 @@ fetch("/api/health").then((r) => r.json()).then((h) => {
     if (isOverlay) { $("overlayRec").hidden = false; $("overlayAuto").hidden = false; }
   }
 }).catch(() => showError("Open this page through the local server (node server.mjs)."));
+
+requestAnimationFrame(() => whenCoachShown());
 </script>
 </body>
 </html>

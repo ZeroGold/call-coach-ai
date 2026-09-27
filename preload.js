@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld("overlay", {
   openPractice: (mode) => ipcRenderer.send("open-practice", mode),
   openSettings: (hash) => ipcRenderer.send("open-settings", hash || ""),
   useCoach: (mode, kind) => ipcRenderer.send("use-coach", mode, kind),
+  openExternal: (url) => ipcRenderer.send("open-external", url),
   getSources: () => ipcRenderer.invoke("get-sources"),
   submitKey: (key, model) => ipcRenderer.send("submit-key", key, model),
 });

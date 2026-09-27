@@ -4,6 +4,14 @@ A live call coach. It listens to the conversation, sends it to TypeSafe Jev afte
 
 This is a work in progress and a demo of Jev capabilities. Feel free to fork it and modify it. Or just message me if you want to make any changes. I am also open to pull requests as well for making improvements. Shoot me a DM if you need anything
 
+## Quick start
+
+1. **Install.** Run `CallCoach-Setup-<version>.exe` (or the portable exe, no install needed).
+2. **Connect.** The welcome screen asks for your TypeSafe API key (get one at [typesafe.ai](https://typesafe.ai)) and which speech model to use. Base is the right pick for most computers.
+3. **Coach.** A small window floats over your call. Pick a coach, press **Auto** when the call starts, and follow the gauge and the suggested step.
+
+Press **Ctrl K** anywhere to search coaches and actions. **⋯ → How it works** replays the tour.
+
 ## Demo Screen
 <img width="2552" height="1348" alt="Screenshot 2026-09-20 165639" src="https://github.com/user-attachments/assets/b1d3768f-ae61-45a7-a68b-644367ef24ab" />
 
@@ -21,7 +29,7 @@ You need a TypeSafe API key. There are three ways to run Call Coach:
 | **Portable exe** | The same app with no install; runs from anywhere, like a USB stick | Run `CallCoach-<version>-portable.exe` |
 | **Website** | The full app in a browser, for you or your team | See [Host it on a website](#host-it-on-a-website) |
 
-The first time the desktop app starts, it asks for your key and keeps it in your user folder (`%APPDATA%\call-coach`). Speech models download there the first time you use speech.
+The first time the desktop app starts, a short welcome asks for your key and a speech model, and keeps both in your user folder (`%APPDATA%\call-coach`). Speech models download there the first time you use speech.
 
 Because the exe isn't code-signed yet, Windows SmartScreen may say it's from an unknown publisher. Choose **More info**, then **Run anyway**.
 
@@ -34,7 +42,7 @@ npm install
 npm run dist
 ```
 
-The installer and portable exe land in `dist/`. `npm run icon` redraws the app icon (`build/icon.png`).
+The installer and portable exe land in `dist/`. `npm run icon` redraws the app icon and the installer's sidebar art in `build/`.
 
 ## Run from source
 
@@ -71,11 +79,21 @@ Use **Change mode** (or click the mode name in the overlay's title bar) to switc
 
 The desktop app floats one small window over your call, with both cards in it. Drag it by its title bar; it remembers where you left it. The title bar holds what you need mid-call:
 
-- The **mode name**: click it to switch modes.
+- The **coach name**: click it to switch coaches.
 - **Auto** and **●**: auto capture and call capture.
-- **⋯**: clear the conversation, open the dashboard (transcript and signals), change mode, open Settings, or switch light and dark.
+- **⋯**: clear the conversation, open the dashboard (transcript and signals), change coach, open Settings, or switch light and dark.
 
-Everything sits on solid cards, so it stays readable over any window or wallpaper.
+Everything in the overlay sits on solid cards, so it stays readable over any window or wallpaper. On Windows 11 you can try real glass behind it instead by starting the app with `CALL_COACH_GLASS=1`; Windows only draws that glass while the window has focus, and shows flat gray otherwise, which is why it's off by default.
+
+## The look
+
+The app, Settings and the website share one design system (`public/theme.css` and `public/ui.js`):
+
+- **Glass for controls, frosted panels for content.** Toolbars, menus and the command palette are translucent; the cards you read are denser, so text keeps strong contrast over anything.
+- **Light that follows the conversation.** The glow behind the glass takes the gauge's stage color, so the whole screen shifts as a call moves from browsing to ready.
+- **Purposeful motion.** Things ease out as they arrive and ease in as they leave, in 120–360 ms. The gauge and cards settle with a gentle spring; screens cross-fade.
+- **Keyboard first.** Ctrl K opens a command palette; number keys pick a coach on the start screen; S and D switch speaker and mark a step done.
+- **Respects your settings.** Reduce motion turns animations off, reduce transparency and more contrast make every surface solid, and dark mode is one click away.
 
 ## Build your own coach
 
@@ -156,6 +174,9 @@ electron.js         Desktop app: the overlay, Settings, practice and dashboard w
 public/
   index.html        The main UI: mode picker, live coaching, practice
   settings.html     Coaches (build, duplicate, import, export), speech model, website key
+  theme.css, ui.js  The shared design system: colors, glass, motion, icons, menus, command palette
+  setup-key.html    The desktop app's first-run welcome
+  fonts/            Schibsted Grotesk, bundled so the app works offline
   dashboard.html    Transcript and signals (from the overlay)
   modes/<mode>/     One folder per built-in mode (see "Adding a mode")
   coaches.js        Custom coaches: storage, and turning the Settings form into a mode

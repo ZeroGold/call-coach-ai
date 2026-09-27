@@ -64,7 +64,10 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Call Coach",
-      "artifactName": "CallCoach-Setup-${version}.${ext}"
+      "artifactName": "CallCoach-Setup-${version}.${ext}",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "runAfterFinish": true
     },
     "portable": {
       "artifactName": "CallCoach-${version}-portable.${ext}"
