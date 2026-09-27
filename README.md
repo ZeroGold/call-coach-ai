@@ -44,6 +44,20 @@ To try it without talking, press **Play sample call**. It feeds a scripted conve
 4. The card below shows the suggested next step and coaching tips.
 5. Press **D** or the **Mark done** button to dismiss a suggestion for a few minutes.
 
+### Auto capture (experimental)
+
+**Auto capture** coaches hands-free. It records the call audio and your microphone as two separate streams, so it knows who said what without the speaker toggle:
+
+- Call audio (Zoom, Meet, Teams, a phone app) is the **customer**.
+- Your microphone is **you**.
+
+Both are transcribed on your computer by the local Whisper model; only the text goes to TypeSafe. In the overlay (`Call Coach.bat`), press **Auto** in the title bar. In the browser, press **Auto capture** and share the tab or screen the call is in, with **Share audio** checked.
+
+- **Only use it when everyone on the call knows and agrees.** Recording laws differ by place, and many require consent from every party.
+- **Headphones work best.** Through speakers, your mic also hears the customer. Auto capture recognizes those echo segments and drops them, and when you talk over the customer it keeps your words and trims the echo around them. On a real call it's a best effort, not a guarantee.
+- **Pick the speech model for your machine** in the dashboard. On a 16-core desktop CPU, a 6-second line takes about 1 s with Tiny, 2 s with Base, and 5 s with Small; laptops will be slower. If the app says transcription is falling behind, choose a smaller model.
+- Only the customer's lines trigger a new evaluation. Your lines are included with the next one, which keeps API calls down.
+
 ## Project structure
 
 ```
@@ -51,6 +65,8 @@ server.mjs          Node server: proxies API calls, serves public/
 schema.json         Questions sent to TypeSafe Jev
 public/
   index.html        The single-page UI
+  capture.js        Call audio capture and transcription (Capture call, Auto capture)
+  segmenter.worklet.js  Cuts audio into lines at natural pauses; detects mic echo
   decide.js         Local decision logic (smoothing, stability, tie-breaking)
   playbook.js       Action definitions, tips, stage labels, rules
 ```
@@ -72,10 +88,12 @@ The API key stays in `server.mjs` and never reaches the browser. Every question 
 - **Decision tuning:** edit the constants at the top of `public/decide.js` (minimum confidence, smoothing, hysteresis).
 - **Model:** set `TYPESAFE_MODEL`. The default is `jev-latest`. For anything beyond a demo, pin a specific version so behavior doesn't shift under you.
 - **Port:** set `PORT` (default 3000).
+- **Speech model threads:** set `ASR_THREADS` (default: half your CPU threads, at most 4). More threads is often slower, because the model's two parts compete for cores.
+- **Echo detection:** edit `ECHO` at the top of `public/capture.js`.
 
 ## Things to know
 
 - **Speech recognition runs through the browser.** In Chrome, audio goes to Google's speech service for transcription. Check that this is acceptable before using it on real customer calls.
 - **Conversation text goes to TypeSafe.** Don't use this on calls where card numbers, passwords, or similar details might be spoken.
-- **The microphone hears everyone.** On a speakerphone or video call, both sides end up in one transcript, so the speaker toggle matters. For production, use a call-transcription service that separates speakers automatically.
+- **The microphone hears everyone.** On a speakerphone or video call, both sides end up in one transcript, so the speaker toggle matters. Auto capture avoids this by keeping the call audio and your mic separate.
 - Only the last 40 turns of the conversation are sent, to keep each request small.

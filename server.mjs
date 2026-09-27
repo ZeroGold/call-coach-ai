@@ -2,6 +2,7 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import os from "node:os";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -17,6 +18,11 @@ const ASR_MODELS = [
   { id: "onnx-community/whisper-small.en", label: "Small",  size: "~500 MB", desc: "High accuracy, moderate speed" },
   { id: "onnx-community/whisper-medium.en",label: "Medium", size: "~1.5 GB", desc: "Best accuracy, slower" },
 ];
+
+// Whisper runs as two ONNX sessions (encoder and decoder). By default each one
+// starts a thread pool as wide as the machine, and they fight over the cores:
+// on a 32-thread CPU that made transcription 3-7x slower. A small pool is faster.
+const ASR_THREADS = Number(process.env.ASR_THREADS) || Math.min(4, Math.max(1, Math.floor((os.availableParallelism?.() ?? os.cpus().length) / 2)));
 
 const MAX_TURNS = 40;
 const MAX_TURN_CHARS = 1500;
@@ -114,6 +120,7 @@ async function getASR() {
     asrPipeline = await pipeline("automatic-speech-recognition", ASR_MODEL, {
       dtype: "q8",
       device: "cpu",
+      session_options: { intraOpNumThreads: ASR_THREADS },
       progress_callback: (p) => {
         if (p.status === "progress" && p.progress != null) {
           asrProgress = { model: ASR_MODEL, pct: Math.round(p.progress), status: "downloading" };
@@ -130,6 +137,15 @@ async function getASR() {
   } finally {
     asrLoading = false;
   }
+}
+
+// One transcription at a time. Whisper is CPU-bound, so running segments in
+// parallel only makes every one of them slower, and it keeps results in order.
+let asrQueue = Promise.resolve();
+function transcribe(samples) {
+  const run = asrQueue.then(async () => (await getASR())(samples));
+  asrQueue = run.catch(() => {});
+  return run;
 }
 
 function cleanTurns(input) {
@@ -212,8 +228,7 @@ const server = http.createServer(async (req, res) => {
       const aligned = new ArrayBuffer(usable);
       new Uint8Array(aligned).set(body.subarray(0, usable));
       const samples = new Float32Array(aligned);
-      const asr = await getASR();
-      const result = await asr(samples);
+      const result = await transcribe(samples);
       return sendJson(res, 200, { text: result.text || "" });
     }
 

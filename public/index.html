@@ -71,6 +71,7 @@ button, summary { cursor: pointer; }
 .mic .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; }
 .mic[aria-pressed="true"] { background: var(--stop); color: #fff; }
 .mic[aria-pressed="true"] .dot { animation: pulse 1.2s ease-in-out infinite; }
+.mic:disabled { opacity: 0.5; cursor: default; }
 @keyframes pulse { 50% { transform: scale(0.55); opacity: 0.6; } }
 .ghost { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 14px; font-weight: 500; }
 .ghost:hover { background: var(--paper); }
@@ -81,6 +82,10 @@ button, summary { cursor: pointer; }
 .capture[aria-pressed="true"] { border-color: var(--stop); }
 .capture[aria-pressed="true"] .cap-dot { background: var(--stop); animation: pulse 1.2s ease-in-out infinite; }
 .capture[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--stop) 8%, transparent); }
+.capture:disabled { opacity: 0.5; cursor: default; }
+.capture .exp { border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); }
+.speaker[aria-disabled="true"] button { cursor: default; }
+.speaker[aria-disabled="true"] button[aria-pressed="true"] { color: var(--muted); }
 
 /* ---------- Main ---------- */
 main {
@@ -371,6 +376,8 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
   transition: background 0.2s;
 }
 .overlay-rec[aria-pressed="true"] .rec-dot { background: #f07167; animation: pulse 1.2s infinite; }
+.overlay-auto { width: auto; gap: 4px; padding: 0 6px; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.overlay-auto[aria-pressed="true"] { color: var(--card-ink); }
 .overlay-err {
   padding: 0 10px 4px;
   color: #f07167; font-size: 0.72rem; font-weight: 500;
@@ -400,6 +407,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 
 <div class="overlay-bar" id="overlayBar" hidden>
   <span class="overlay-brand">Call Coach</span>
+  <button class="overlay-btn overlay-rec overlay-auto" id="overlayAuto" aria-pressed="false" title="Auto capture (experimental): hears both sides and labels who's speaking. Everyone on the call must agree to be recorded." hidden><span class="rec-dot"></span>Auto</button>
   <button class="overlay-btn overlay-rec" id="overlayRec" aria-pressed="false" title="Capture call audio" hidden><span class="rec-dot"></span></button>
   <button class="overlay-btn" id="overlayClear" title="Clear call">&#8635;</button>
   <button class="overlay-btn" id="overlayTheme" title="Light / dark">&#9681;</button>
@@ -417,6 +425,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
   </div>
   <button type="button" class="mic" id="mic" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span id="micLabel">Start listening</span></button>
   <button type="button" class="capture" id="capture" aria-pressed="false" hidden><span class="cap-dot" aria-hidden="true"></span><span id="captureLabel">Capture call</span></button>
+  <button type="button" class="capture" id="auto" aria-pressed="false" title="Hears both sides of the call and labels who's speaking" hidden><span class="cap-dot" aria-hidden="true"></span><span id="autoLabel">Auto capture</span><span class="exp">Experimental</span></button>
   <button type="button" class="ghost" id="sample">Play sample call</button>
   <button type="button" class="ghost" id="reset">Clear call</button>
   <button type="button" class="ghost" id="themeBtn" title="Light / dark">Dark mode</button>
@@ -425,6 +434,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 
 <main>
   <div class="notice" id="setup" hidden>The server has no API key yet. Stop it and restart with <code>TYPESAFE_API_KEY=your_key node server.mjs</code>.</div>
+  <div class="notice" id="autoNotice" hidden><strong>Auto capture is recording both sides of this call.</strong> Everyone on the call should know and agree. Audio is transcribed on this computer; the text goes to TypeSafe. Headphones work best: without them, the mic hears the customer too, and those lines are filtered out as echo.</div>
 
   <section class="hero" id="hero" data-state="idle" aria-labelledby="stageName">
     <div class="hero-center">
@@ -487,6 +497,7 @@ body.card-next main.pip summary { -webkit-app-region: no-drag; }
 <script type="module">
 import { decide, trackStage, createMemory, markDone, DEFAULT_CONFIG } from "/decide.js";
 import { PLAYBOOK } from "/playbook.js";
+import { startSession, getCallAudio, getMicAudio } from "/capture.js";
 
 let pipWin = null;
 const $ = (id) => document.getElementById(id) || pipWin?.document.getElementById(id) || null;
@@ -746,7 +757,7 @@ async function evaluate() {
   }
 }
 
-function addTurn(text, { speaker = app.speaker, merge = false } = {}) {
+function addTurn(text, { speaker = app.speaker, merge = false, evaluate = true } = {}) {
   text = text.trim();
   if (!text) return;
   const prev = app.turns[app.turns.length - 1];
@@ -754,7 +765,7 @@ function addTurn(text, { speaker = app.speaker, merge = false } = {}) {
   else app.turns.push({ speaker, text, at: Date.now(), merge });
   showHeard(text, speaker);
   if (overlayChannel) overlayChannel.postMessage({ type: "turn", speaker, text });
-  scheduleEvaluate();
+  if (evaluate) scheduleEvaluate();
 }
 
 function markCurrentDone() {
@@ -846,154 +857,90 @@ function closePiP() {
   try { win.close(); } catch {}
 }
 
-/* ---------- Zoom capture ---------- */
-let capturing = false;
-let captureStream = null;
-let captureCtx = null;
+/* ---------- Call audio capture ----------
+   "call": call audio only, every line labeled as the customer.
+   "auto": call audio is the customer and the microphone is the rep (experimental). */
+let capture = null;          // { kind, session } while running
+let captureStarting = false;
+const AUTO_ACK_KEY = "cc-auto-ack";
 
-const CHUNK_SEC = 3;
-const SAMPLE_RATE = 16000;
-const CHUNK_SAMPLES = SAMPLE_RATE * CHUNK_SEC;
-
-const HALLUCINATIONS = new Set([
-  "you", "thank you", "thanks for watching", "subscribe",
-  "bye", "the end", "thanks for listening",
-]);
-
-function isHallucination(text) {
-  const lower = text.toLowerCase().replace(/[.!?,\s]+/g, " ").trim();
-  if (HALLUCINATIONS.has(lower)) return true;
-  const words = lower.split(" ");
-  if (words.length <= 3 && words.every((w) => w === words[0])) return true;
-  return false;
+function confirmAutoCapture() {
+  try { if (localStorage.getItem(AUTO_ACK_KEY)) return true; } catch {}
+  const ok = confirm(
+    "Auto capture is experimental. It records both sides of the call: the call audio and your microphone.\n\n" +
+    "Only use it when everyone on the call knows and agrees. Headphones work best.\n\nStart auto capture?"
+  );
+  if (ok) { try { localStorage.setItem(AUTO_ACK_KEY, "1"); } catch {} }
+  return ok;
 }
 
-function rms(samples) {
-  let sum = 0;
-  for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
-  return Math.sqrt(sum / samples.length);
-}
-
-async function sendPCM(pcm) {
+async function startCapture(kind = "call") {
+  if (capture || captureStarting) return;
+  if (kind === "auto" && !confirmAutoCapture()) return;
+  captureStarting = true;
+  const streams = [];
   try {
-    const res = await fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: pcm.buffer });
-    const data = await res.json();
-    if (data.error) { showError(data.error); return; }
-    const text = data.text?.trim();
-    if (text && !isHallucination(text)) addTurn(text, { speaker: "customer", merge: true });
-  } catch (err) { console.error("Transcription error:", err); }
-}
-
-const WORKLET_CODE = `
-class ChunkProcessor extends AudioWorkletProcessor {
-  constructor() { super(); this.buf = []; this.len = 0; this.target = ${CHUNK_SAMPLES}; }
-  process(inputs) {
-    const ch = inputs[0]?.[0];
-    if (!ch) return true;
-    this.buf.push(new Float32Array(ch));
-    this.len += ch.length;
-    if (this.len >= this.target) {
-      const out = new Float32Array(this.len);
-      let off = 0;
-      for (const b of this.buf) { out.set(b, off); off += b.length; }
-      this.port.postMessage(out, [out.buffer]);
-      this.buf = []; this.len = 0;
+    const call = await getCallAudio();
+    streams.push(call);
+    const sources = [{ stream: call, speaker: "customer" }];
+    if (kind === "auto") {
+      const mic = await getMicAudio().catch((err) => {
+        throw new Error(err.name === "NotAllowedError" ? "Microphone access is blocked." : err.message);
+      });
+      streams.push(mic);
+      sources.push({ stream: mic, speaker: "rep", echoOf: 0 });
     }
-    return true;
-  }
-}
-registerProcessor("chunk-proc", ChunkProcessor);
-`;
-
-async function getElectronStream() {
-  const sources = await window.overlay.getSources();
-  const source = sources.find((s) => s.id.startsWith("screen:")) || sources[0];
-  if (!source) throw new Error("No capture sources found.");
-  return navigator.mediaDevices.getUserMedia({
-    audio: {
-      mandatory: {
-        chromeMediaSource: "desktop",
-        chromeMediaSourceId: source.id,
-      },
-      optional: [
-        { echoCancellation: false },
-        { noiseSuppression: false },
-        { autoGainControl: false },
-      ],
-    },
-    video: {
-      mandatory: {
-        chromeMediaSource: "desktop",
-        chromeMediaSourceId: source.id,
-        minWidth: 1,
-        maxWidth: 1,
-        minHeight: 1,
-        maxHeight: 1,
-      },
-    },
-  });
-}
-
-async function startCapture() {
-  try {
-    let stream;
-    if (window.overlay?.getSources) {
-      stream = await getElectronStream();
-    } else {
-      stream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
-    }
-    const audioTracks = stream.getAudioTracks();
-    if (audioTracks.length === 0) {
-      showError("No audio captured. Make sure to check \"Share audio\" when selecting the tab or screen.");
-      stream.getTracks().forEach((t) => t.stop());
-      return;
-    }
-    captureStream = stream;
-    capturing = true;
-    const videoTrack = stream.getVideoTracks()[0];
-    if (videoTrack) videoTrack.onended = () => stopCapture();
-
-    const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
-    captureCtx = ctx;
-    const src = ctx.createMediaStreamSource(new MediaStream(audioTracks));
-    const blob = new Blob([WORKLET_CODE], { type: "application/javascript" });
-    const url = URL.createObjectURL(blob);
-    await ctx.audioWorklet.addModule(url);
-    URL.revokeObjectURL(url);
-    const node = new AudioWorkletNode(ctx, "chunk-proc");
-    node.port.onmessage = (e) => {
-      if (!capturing) return;
-      const pcm = e.data;
-      if (rms(pcm) >= 0.005) sendPCM(pcm);
-    };
-    src.connect(node).connect(ctx.destination);
-
-    $("capture").setAttribute("aria-pressed", "true");
-    $("captureLabel").textContent = "Stop capture";
+    const session = await startSession(sources, {
+      // In auto mode only the customer's lines trigger scoring; the rep's lines go along with the next one
+      onText: (speaker, text) => addTurn(text, { speaker, merge: true, evaluate: kind !== "auto" || speaker === "customer" }),
+      onDrop: (speaker, reason, echo) => { if (reason === "echo") console.debug("Dropped mic segment as echo", echo); },
+      onBehind: (n) => showError(n ? "Transcription is falling behind. Pick a smaller speech model in the dashboard." : ""),
+      onError: showError,
+      onEnded: () => stopCapture(),
+    });
+    capture = { kind, session };
     if (app.listening) stopListening();
-    $("mic").disabled = true;
-    const orec = document.getElementById("overlayRec");
-    if (orec) orec.setAttribute("aria-pressed", "true");
     showError("");
   } catch (err) {
+    streams.forEach((s) => s.getTracks().forEach((t) => t.stop()));
     if (err.name !== "NotAllowedError") showError("Capture failed: " + err.message);
-    stopCapture();
+  } finally {
+    captureStarting = false;
+    renderCapture();
   }
 }
 
-function stopCapture() {
-  capturing = false;
-  if (captureCtx) { captureCtx.close().catch(() => {}); captureCtx = null; }
-  if (captureStream) { captureStream.getTracks().forEach((t) => t.stop()); captureStream = null; }
-  $("capture").setAttribute("aria-pressed", "false");
-  $("captureLabel").textContent = "Capture call";
-  $("mic").disabled = false;
-  const orec = document.getElementById("overlayRec");
-  if (orec) orec.setAttribute("aria-pressed", "false");
+async function stopCapture() {
+  const c = capture;
+  capture = null;
+  renderCapture();
+  if (c) await c.session.stop();
+}
+
+function toggleCapture(kind) {
+  return capture ? stopCapture() : startCapture(kind);
+}
+
+function renderCapture() {
+  const kind = capture?.kind || null;
+  $("capture").setAttribute("aria-pressed", String(kind === "call"));
+  $("captureLabel").textContent = kind === "call" ? "Stop capture" : "Capture call";
+  $("capture").disabled = kind === "auto";
+  $("auto").setAttribute("aria-pressed", String(kind === "auto"));
+  $("autoLabel").textContent = kind === "auto" ? "Stop auto capture" : "Auto capture";
+  $("auto").disabled = kind === "call";
+  $("mic").disabled = !!kind;
+  $("autoNotice").hidden = kind !== "auto";
+  document.getElementById("overlayRec")?.setAttribute("aria-pressed", String(kind === "call"));
+  document.getElementById("overlayAuto")?.setAttribute("aria-pressed", String(kind === "auto"));
+  const group = document.querySelector(".speaker");
+  group.setAttribute("aria-disabled", String(kind === "auto"));
+  group.title = kind === "auto" ? "Auto capture labels who's speaking" : "";
 }
 
 /* ---------- Controls ---------- */
 function setSpeaker(s) {
+  if (capture?.kind === "auto") return; // speakers are labeled automatically
   app.speaker = s;
   document.querySelectorAll(".speaker button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.speaker === s)));
   $("typeIn").placeholder = s === "rep" ? "Type what you said" : "Type what the customer said";
@@ -1006,7 +953,8 @@ document.addEventListener("keydown", (e) => {
   if (k === "d") markCurrentDone();
 });
 $("mic").addEventListener("click", () => (app.listening ? stopListening() : startListening()));
-$("capture").addEventListener("click", () => (capturing ? stopCapture() : startCapture()));
+$("capture").addEventListener("click", () => toggleCapture("call"));
+$("auto").addEventListener("click", () => toggleCapture("auto"));
 $("pipBtn").addEventListener("click", () => (pipWin ? closePiP() : openPiP()));
 $("done").addEventListener("click", markCurrentDone);
 $("typeForm").addEventListener("submit", (e) => { e.preventDefault(); addTurn($("typeIn").value); $("typeIn").value = ""; });
@@ -1066,8 +1014,8 @@ if (isOverlay) {
       $("overlayClose").addEventListener("click", () => window.overlay.close());
       $("overlayMin").addEventListener("click", () => window.overlay.minimize());
     }
-    const oRec = $("overlayRec");
-    if (oRec) oRec.addEventListener("click", () => (capturing ? stopCapture() : startCapture()));
+    $("overlayRec").addEventListener("click", () => toggleCapture("call"));
+    $("overlayAuto").addEventListener("click", () => toggleCapture("auto"));
     $("overlayClear").addEventListener("click", resetCall);
     $("overlayTheme").addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
     if (window.overlay) {
@@ -1115,7 +1063,8 @@ fetch("/api/health").then((r) => r.json()).then((h) => {
   const canCapture = navigator.mediaDevices?.getDisplayMedia || window.overlay?.getSources;
   if (h.canTranscribe && canCapture) {
     $("capture").hidden = false;
-    if (isOverlay && overlayCard !== "next") $("overlayRec").hidden = false;
+    $("auto").hidden = false;
+    if (isOverlay && overlayCard !== "next") { $("overlayRec").hidden = false; $("overlayAuto").hidden = false; }
   }
 }).catch(() => showError("Open this page through the local server (node server.mjs)."));
 </script>
