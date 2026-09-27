@@ -70,6 +70,8 @@ To try a live mode without talking, press **Play sample call**. It feeds a scrip
 |---|---|---|
 | Sales call | Live call | How close the customer is to buying |
 | Customer service call | Live call | How the caller is feeling |
+| Job interview | Live call | How interested the interviewer is, and how to handle the next question |
+| Interview practice | Practice | How strong your answer is, from "Hurts you" to "Standout" |
 | Dating practice | Practice | How well your reply lands |
 | Your own | Either | Whatever you set up in Settings |
 

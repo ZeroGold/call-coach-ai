@@ -28,6 +28,9 @@ const P = {
   auto: '<path d="M4 12a8 8 0 0 1 14.5-4.6M20 12a8 8 0 0 1-14.5 4.6"/><path d="M18.5 3v4.4h-4.4M5.5 21v-4.4h4.4"/>',
   key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 6l2.5 2.5M14 8l2 2"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  briefcase: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2V7M3 12.5h18M10.5 12.5v1.5h3v-1.5"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20Z"/>',
+  trend: '<path d="M3.5 17 9 11.5l3.5 3.5L20.5 7"/><path d="M15 7h5.5v5.5"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.8M12 17.2h.01"/>',
 };
 export function icon(name, cls = "") {

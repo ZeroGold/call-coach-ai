@@ -1,0 +1,9 @@
+{
+  "name": "Interview practice",
+  "description": "Rehearse answers to common interview questions, from \"tell me about yourself\" to the tough ones, and get feedback on each.",
+  "kind": "rehearsal",
+  "order": 4,
+  "icon": "briefcase",
+  "transcript": { "key": "interview_practice", "rep": "candidate", "other": "interviewer" },
+  "questions": { "action": "coaching_focus", "stage": "answer_strength" }
+}

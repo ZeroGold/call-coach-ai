@@ -378,7 +378,7 @@ function renderList() {
       btn("Delete", "danger", () => remove(m), `Delete ${m.name}`);
     }
     const li = el("li", { className: "coach panel rim spot enter" },
-      el("span", { className: "coach-icon" }, svg(custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave")),
+      el("span", { className: "coach-icon" }, svg(custom ? "sparkle" : m.icon || (m.kind === "rehearsal" ? "chat" : "wave"))),
       el("span", { className: "coach-name" }, m.name,
         el("span", { className: "chip", textContent: m.kind === "rehearsal" ? "Practice" : "Live call" }),
         custom ? el("span", { className: "chip custom", textContent: "Custom" }) : null),

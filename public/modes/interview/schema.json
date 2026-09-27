@@ -1,0 +1,87 @@
+{
+  "next_best_action": {
+    "type": "choice",
+    "instructions": "Given the interviewer's most recent statements in `interview_transcript`, what should the candidate do next to come across as a strong hire?",
+    "criteria": {
+      "tell_a_story": "The interviewer asked about a past experience or how the candidate handled a situation (a behavioral question)",
+      "show_your_thinking": "The interviewer posed a problem, case, or technical question to work through",
+      "ask_clarifying_question": "The interviewer's question is broad, ambiguous, or could be read more than one way",
+      "connect_to_role": "The interviewer asked why the candidate wants this job or company, or about their goals",
+      "address_concern": "The interviewer raised a doubt about the candidate's experience, a gap, their fit, or a weakness",
+      "discuss_compensation": "The interviewer brought up salary, pay expectations, or benefits",
+      "ask_your_questions": "The interviewer invited the candidate's questions or is wrapping up the interview",
+      "wrap_up_answer": "The interviewer signaled they want to move on, or that the answer is running long",
+      "no_action": "Small talk, or nothing needs an answer yet"
+    }
+  },
+  "interviewer_interest": {
+    "type": "score",
+    "instructions": "Based on the interviewer's most recent statements in `interview_transcript`, how interested does the interviewer seem in the candidate right now?",
+    "criteria": [
+      {
+        "what": "Skeptical: doubts, pushback, short replies, or cutting answers off",
+        "examples": ["I'm not sure that's what we need.", "Let's move on.", "That doesn't really answer my question."]
+      },
+      {
+        "what": "Neutral: working through standard questions",
+        "examples": ["Tell me about yourself.", "What's your biggest weakness?", "Walk me through your resume."]
+      },
+      {
+        "what": "Engaged: follow-up questions that dig into the candidate's answers",
+        "examples": ["Interesting, how did you handle that?", "Say more about the team you led.", "What would you do differently next time?"]
+      },
+      {
+        "what": "Selling the role: talking about next steps, the team, or why the candidate would like the job",
+        "examples": ["I think you'd really like our team.", "When could you start?", "Let me tell you what the next round looks like."]
+      }
+    ]
+  },
+  "behavioral_question": {
+    "type": "noul",
+    "instructions": "Is the interviewer asking about a specific past experience or situation?",
+    "criteria": {
+      "true": "Asks the candidate to describe a time, situation, project, or example from their past",
+      "false": "Asks something else, or isn't asking a question"
+    }
+  },
+  "technical_question": {
+    "type": "noul",
+    "instructions": "Is the interviewer asking a technical, case, or problem-solving question?",
+    "criteria": {
+      "true": "Poses a problem, scenario, estimate, or skills question for the candidate to work through",
+      "false": "No problem to solve"
+    }
+  },
+  "raised_concern": {
+    "type": "noul",
+    "instructions": "Has the interviewer raised a doubt or concern about the candidate?",
+    "criteria": {
+      "true": "Questions the candidate's experience, a resume gap, their fit, seniority, or a weakness",
+      "false": "No doubts raised"
+    }
+  },
+  "mentions_next_steps": {
+    "type": "noul",
+    "instructions": "Did the interviewer mention next steps, timelines, or later rounds?",
+    "criteria": {
+      "true": "Talks about what happens after this interview, when they'll decide, or further interviews",
+      "false": "No mention of next steps"
+    }
+  },
+  "compensation_topic": {
+    "type": "noul",
+    "instructions": "Did the interviewer bring up salary, pay, or benefits?",
+    "criteria": {
+      "true": "Asks about or mentions salary expectations, pay range, equity, or benefits",
+      "false": "Compensation hasn't come up"
+    }
+  },
+  "invites_questions": {
+    "type": "noul",
+    "instructions": "Has the interviewer invited the candidate to ask questions?",
+    "criteria": {
+      "true": "Asks if the candidate has any questions for them",
+      "false": "Hasn't invited questions"
+    }
+  }
+}

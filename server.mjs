@@ -79,7 +79,7 @@ async function loadModes() {
 function publicModes() {
   return Object.values(MODES)
     .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
-    .map(({ id, name, description, kind, questions }) => ({ id, name, description, kind, questions }));
+    .map(({ id, name, description, kind, icon, questions }) => ({ id, name, description, kind, icon, questions }));
 }
 
 const MIME = {

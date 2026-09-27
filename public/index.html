@@ -642,7 +642,7 @@ async function showWelcome(force = false) {
       : { icon: "wave", title: "It hears the call, or you type", body: "Press Auto capture to hear both sides of a Zoom, Meet or Teams call, or type what was said. For practice, just reply to the scripted lines." },
     {
       icon: "sparkle", title: "Pick a coach and go",
-      body: `Choose sales, support, a practice run, or build your own in Settings. Press ${paletteShortcut} any time to find anything.`,
+      body: `Choose sales, support, a job interview, a practice run, or build your own in Settings. Press ${paletteShortcut} any time to find anything.`,
     },
   ];
   let i = 0;
@@ -792,7 +792,7 @@ function showPicker(resolve) {
     b.dataset.kind = m.kind;
     if (m.custom) b.dataset.custom = "";
     const ic = span("mode-icon", "");
-    ic.innerHTML = icon(m.custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave");
+    ic.innerHTML = icon(m.custom ? "sparkle" : m.icon || (m.kind === "rehearsal" ? "chat" : "wave"));
     const foot = span("mode-foot", "");
     foot.append(span("chip mode-kind", (m.custom ? "Custom · " : "") + (m.kind === "rehearsal" ? "Practice" : "Live call")));
     if (i < 9) foot.append(Object.assign(document.createElement("kbd"), { textContent: String(i + 1), title: `Press ${i + 1}` }));
@@ -809,7 +809,7 @@ function showPicker(resolve) {
   add.addEventListener("click", () => openSettings("#new"));
   $("pickerList").replaceChildren(...MODES.map(tile), add);
   paletteItems = () => [
-    ...MODES.map((m) => ({ group: "Coaches", title: m.name, keywords: m.description, hint: m.kind === "rehearsal" ? "Practice" : "Live call", icon: m.custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave", run: () => pick(m) })),
+    ...MODES.map((m) => ({ group: "Coaches", title: m.name, keywords: m.description, hint: m.kind === "rehearsal" ? "Practice" : "Live call", icon: m.custom ? "sparkle" : m.icon || (m.kind === "rehearsal" ? "chat" : "wave"), run: () => pick(m) })),
     { group: "App", title: "Settings and coaches", icon: "settings", run: () => openSettings() },
     { group: "App", title: "Build a new coach", icon: "plus", keywords: "create custom", run: () => openSettings("#new") },
     { group: "App", title: "How it works", icon: "help", run: () => showWelcome(true) },
@@ -1447,7 +1447,7 @@ paletteItems = () => {
   const items = (MODES || []).map((m) => ({
     group: "Coaches", title: m.name, keywords: m.description,
     hint: (m.id === MODE.id ? "Current coach · " : "") + (m.kind === "rehearsal" ? "Practice" : "Live call"),
-    icon: m.custom ? "sparkle" : m.kind === "rehearsal" ? "chat" : "wave",
+    icon: m.custom ? "sparkle" : m.icon || (m.kind === "rehearsal" ? "chat" : "wave"),
     run: () => switchTo(m),
   }));
   const act = (title, iconName, run, hint, keywords) => items.push({ group: "Actions", title, icon: iconName, run, hint, keywords });
