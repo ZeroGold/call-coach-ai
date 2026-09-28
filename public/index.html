@@ -243,6 +243,23 @@ main.pip .picker-group { margin: 6px 0 0; font-size: 0.66rem; }
 .answer textarea:read-only { background: transparent; resize: none; }
 .answer-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .answer-hint { margin: 0 0 0 auto; color: var(--ink-3); font-size: 0.8rem; }
+/* Speaking a reply: a live level meter, and a countdown bar before it sends */
+#speakBtn { position: relative; overflow: hidden; --level: 0; }
+#speakBtn .meter { display: none; align-items: center; gap: 2px; height: 16px; }
+#speakBtn[aria-pressed="true"] .meter { display: inline-flex; }
+#speakBtn .meter i { width: 3px; height: 16px; border-radius: 2px; background: var(--danger); transform-origin: center; transform: scaleY(calc(0.2 + var(--level) * var(--k, 1))); transition: transform 90ms linear; }
+#speakBtn .meter i:nth-child(1) { --k: 0.55; } #speakBtn .meter i:nth-child(2) { --k: 0.95; } #speakBtn .meter i:nth-child(3) { --k: 0.75; } #speakBtn .meter i:nth-child(4) { --k: 0.45; }
+#speakBtn .countdown { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+#speakBtn.counting .countdown { animation: countdown var(--countdown, 1000ms) linear forwards; }
+@keyframes countdown { to { width: 100%; } }
+.answer textarea.listening { border-color: color-mix(in oklab, var(--danger) 55%, var(--glass-edge)); box-shadow: 0 0 0 4px color-mix(in oklab, var(--danger) 12%, transparent); }
+.toggle { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; color: var(--ink-2); cursor: pointer; user-select: none; }
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.toggle .track { position: relative; width: 34px; height: 20px; border-radius: 99px; background: var(--well-2); border: 1px solid var(--glass-edge); transition: background var(--t-med) var(--ease-out); }
+.toggle .track i { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--film); box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform var(--t-slow) var(--ease-spring); }
+.toggle input:checked + .track { background: var(--accent); }
+.toggle input:checked + .track i { transform: translateX(14px); }
+.toggle input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
 main[data-kind="rehearsal"] .next-actions { display: none !important; }
 main[data-kind="rehearsal"] > .scenario { grid-column: 1; grid-row: span 2; }
 main[data-kind="rehearsal"] > .hero, main[data-kind="rehearsal"] > .next { grid-column: 2; }
@@ -472,10 +489,11 @@ main.pip .picker-note { font-size: 0.8rem; margin-top: 4px; }
       <textarea class="field-input" id="answerIn" aria-label="Your reply" placeholder="Type your reply, or press Speak and say it"></textarea>
       <div class="answer-actions">
         <button type="submit" class="btn" id="answerSubmit">Get feedback</button>
-        <button type="button" class="rec" id="speakBtn" aria-pressed="false" data-icon="mic"><span class="live-dot" aria-hidden="true"></span><span id="speakLabel">Speak</span></button>
+        <button type="button" class="rec" id="speakBtn" aria-pressed="false" data-icon="mic"><span class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="speakLabel">Speak</span><span class="countdown" aria-hidden="true"></span></button>
+        <label class="toggle" id="handsFreeWrap" title="Listen automatically when each line appears, and send when you stop talking"><input type="checkbox" id="handsFree"><span class="track" aria-hidden="true"><i></i></span>Hands-free</label>
         <button type="button" class="btn ghost" id="retryBtn" hidden>Try again</button>
         <button type="button" class="btn" id="nextLineBtn" hidden>Next line</button>
-        <p class="answer-hint" id="answerHint"><kbd>Ctrl</kbd> <kbd>Enter</kbd> to send</p>
+        <p class="answer-hint" id="answerHint" aria-live="polite"><kbd>Ctrl</kbd> <kbd>Enter</kbd> to send</p>
       </div>
     </form>
   </section>
@@ -1320,7 +1338,15 @@ $("sample").addEventListener("click", async () => {
 /* ---------- Rehearsal ----------
    The other person's lines come from the mode's scenarios. You reply to each one,
    typed or spoken (transcribed on this computer), and each reply is scored on its own. */
-const practice = { revealed: true, sayToken: 0, scenario: 0, line: 0, answered: false, speaking: null, starting: false, transcribing: false, canSpeak: !!navigator.mediaDevices?.getUserMedia };
+const HANDS_FREE_KEY = "cc-hands-free";
+const practice = {
+  revealed: true, sayToken: 0, scenario: 0, line: 0, answered: false,
+  canSpeak: !!navigator.mediaDevices?.getUserMedia,
+  // Speaking a reply: the mic session, what's been transcribed, and turn detection
+  speaking: null, starting: false, finishing: false, voice: false,
+  committed: "", partial: "", turnTimer: null, countdown: 0, extended: false,
+  handsFree: (() => { try { return localStorage.getItem(HANDS_FREE_KEY) === "1"; } catch { return false; } })(),
+};
 
 function startScenario(i) {
   practice.scenario = i;
@@ -1337,10 +1363,15 @@ function sayLine() {
   practice.revealed = reduceMotion;
   renderScenario();
   $("answerIn").focus();
-  if (!practice.revealed) {
-    const token = ++practice.sayToken;
-    setTimeout(() => { if (token === practice.sayToken) { practice.revealed = true; renderScenario(); } }, 750);
-  }
+  const revealed = () => { if (practice.handsFree) startSpeaking(); };
+  if (practice.revealed) { revealed(); return; }
+  const token = ++practice.sayToken;
+  setTimeout(() => {
+    if (token !== practice.sayToken) return;
+    practice.revealed = true;
+    renderScenario();
+    revealed();
+  }, 750);
 }
 
 function renderScenario() {
@@ -1369,23 +1400,170 @@ function renderScenario() {
   }));
   $("scenarioLog").hidden = current <= 0;
 
-  const busy = !!(practice.speaking || practice.starting || practice.transcribing);
-  $("answerIn").readOnly = practice.answered;
+  const speaking = !!practice.speaking;
+  $("answerIn").readOnly = practice.answered || speaking;
   $("answerSubmit").hidden = practice.answered;
-  $("answerSubmit").disabled = busy;
+  $("answerSubmit").disabled = practice.starting || practice.finishing;
+  $("answerSubmit").textContent = speaking ? "Send now" : "Get feedback";
   $("speakBtn").hidden = practice.answered || !practice.canSpeak;
-  $("speakBtn").disabled = practice.starting || practice.transcribing;
-  $("speakBtn").setAttribute("aria-pressed", String(!!practice.speaking));
-  $("speakLabel").textContent = practice.transcribing ? "Transcribing…" : practice.speaking ? "Done speaking" : "Speak";
-  $("answerHint").hidden = practice.answered;
+  $("speakBtn").disabled = practice.starting || practice.finishing;
+  $("speakBtn").setAttribute("aria-pressed", String(speaking));
+  $("speakLabel").textContent = speaking ? "Stop" : "Speak";
+  $("handsFreeWrap").hidden = !practice.canSpeak;
+  $("handsFree").checked = practice.handsFree;
   $("retryBtn").hidden = !practice.answered;
   $("nextLineBtn").hidden = !practice.answered;
   $("nextLineBtn").textContent = lastLine ? "Start over" : "Next line";
+  renderSpeakState();
+}
+
+// The small status line and the countdown on the Speak button
+function renderSpeakState() {
+  const btn = $("speakBtn"), hint = $("answerHint");
+  btn.classList.toggle("counting", !!practice.turnTimer);
+  btn.style.setProperty("--countdown", `${practice.countdown}ms`);
+  $("answerIn").classList.toggle("listening", !!practice.speaking);
+  hint.hidden = practice.answered;
+  if (practice.finishing) hint.textContent = "Finishing your reply…";
+  else if (practice.turnTimer) hint.textContent = "Sending… keep talking to add more";
+  else if (practice.speaking) hint.textContent = practice.voice ? "Listening…" : "Listening. Pause when you're done and it sends.";
+  else hint.innerHTML = "<kbd>Ctrl</kbd> <kbd>Enter</kbd> to send";
+}
+
+function setMeter(level) {
+  // Speech sits around 0.01-0.1 RMS; show it on a log scale
+  const v = Math.max(0, Math.min(1, (Math.log10(level + 1e-4) + 3.2) / 2.2));
+  $("speakBtn").style.setProperty("--level", v.toFixed(2));
+}
+
+/* ---------- Speaking a reply ----------
+   Words appear as you talk. When you stop, a short countdown runs and the reply
+   sends; talking again cancels it. If what you said so far sounds unfinished
+   ("...and", "because", "um"), it waits longer before sending. */
+const joinText = (a, b) => [a, b].map((x) => (x || "").trim()).filter(Boolean).join(" ");
+const liveText = () => joinText(practice.committed, practice.partial);
+const wordCount = (t) => t.split(/\s+/).filter(Boolean).length;
+
+function midThought(text) {
+  const t = text.trim().toLowerCase();
+  if (!t) return true;
+  if (/\b(and|but|so|because|or|um+|uh+|like|then|the|a|an|to|of|with|my|if|when|that)[\s.,…-]*$/.test(t)) return true;
+  return !/[.!?]["')\]]?$/.test(t);
+}
+
+function showLiveText() {
+  const box = $("answerIn");
+  box.value = liveText();
+  box.scrollTop = box.scrollHeight;
+}
+
+async function startSpeaking() {
+  if (practice.speaking || practice.starting || practice.answered || !practice.canSpeak || !practice.revealed) return;
+  practice.starting = true;
+  practice.committed = $("answerIn").value.trim();
+  practice.partial = "";
+  practice.extended = false;
+  renderScenario();
+  let mic = null;
+  try {
+    mic = await getMicAudio();
+    practice.speaking = await startSession([{ stream: mic, speaker: "rep", watch: true }], {
+      onText: (_, text) => { practice.committed = joinText(practice.committed, text); practice.partial = ""; showLiveText(); heardWhileQuiet(); },
+      onPartial: (_, text) => { practice.partial = text; showLiveText(); heardWhileQuiet(); },
+      onVoice: (_, on) => {
+        practice.voice = on;
+        if (on) { practice.extended = false; cancelTurnEnd(); } else scheduleTurnEnd();
+        renderSpeakState();
+      },
+      onLevel: (_, level) => setMeter(level),
+      onError: showError,
+      onEnded: () => stopSpeaking({ send: false }),
+    });
+    showError("");
+  } catch (err) {
+    mic?.getTracks().forEach((t) => t.stop());
+    showError(err.name === "NotAllowedError" ? "Microphone access is blocked. Allow it and try again, or type your reply." : "Couldn't start the microphone: " + err.message);
+    if (practice.handsFree) setHandsFree(false);
+  } finally {
+    practice.starting = false;
+    renderScenario();
+  }
+}
+
+// Words can arrive after they stopped talking (transcription takes a moment), so the
+// countdown may need to start then
+function heardWhileQuiet() {
+  if (practice.speaking && !practice.voice && !practice.turnTimer && !practice.finishing) scheduleTurnEnd();
+}
+
+function scheduleTurnEnd(ms) {
+  cancelTurnEnd();
+  if (!practice.speaking) return;
+  const text = liveText();
+  if (ms == null && wordCount(text) < 2) return; // nothing said yet: keep listening
+  practice.countdown = ms ?? (midThought(text) ? 2000 : 1000);
+  practice.turnTimer = setTimeout(turnEnded, practice.countdown);
+  const btn = $("speakBtn");
+  btn.classList.remove("counting"); void btn.offsetWidth; // restart the countdown animation
+  renderSpeakState();
+}
+
+function cancelTurnEnd() {
+  clearTimeout(practice.turnTimer);
+  practice.turnTimer = null;
+  practice.countdown = 0;
+  renderSpeakState();
+}
+
+async function turnEnded() {
+  practice.turnTimer = null;
+  const session = practice.speaking;
+  if (!session || practice.voice) return;
+  practice.finishing = true;
+  renderScenario();
+  await session.settled(); // the last phrase is still being transcribed
+  practice.finishing = false;
+  if (practice.speaking !== session || practice.voice) { renderScenario(); return; } // they started talking again
+  if (!practice.committed.trim()) { renderScenario(); return; }
+  // The finished transcript still sounds unfinished: give them one more moment
+  if (!practice.extended && midThought(practice.committed)) {
+    practice.extended = true;
+    renderScenario();
+    scheduleTurnEnd(1500);
+    return;
+  }
+  await stopSpeaking({ send: true });
+}
+
+async function stopSpeaking({ send }) {
+  const session = practice.speaking;
+  if (!session) return;
+  cancelTurnEnd();
+  practice.speaking = null;
+  practice.voice = false;
+  practice.finishing = true;
+  renderScenario();
+  await session.stop();
+  await session.settled();
+  practice.finishing = false;
+  practice.partial = "";
+  $("answerIn").value = practice.committed;
+  setMeter(0);
+  renderScenario();
+  if (send && practice.committed.trim()) submitAnswer();
+  else $("answerIn").focus();
+}
+
+function setHandsFree(on) {
+  practice.handsFree = on;
+  try { localStorage.setItem(HANDS_FREE_KEY, on ? "1" : "0"); } catch {}
+  renderScenario();
+  if (on && !practice.answered) startSpeaking();
 }
 
 function submitAnswer() {
   const text = $("answerIn").value.trim();
-  if (!text || practice.answered || practice.speaking || practice.starting || practice.transcribing) return;
+  if (!text || practice.answered || practice.speaking || practice.starting || practice.finishing) return;
   app.turns.push({ speaker: "rep", text, at: Date.now() });
   practice.answered = true;
   renderScenario();
@@ -1396,9 +1574,11 @@ function submitAnswer() {
 function retryAnswer() {
   if (app.turns.at(-1)?.speaker === "rep") app.turns.pop();
   practice.answered = false;
+  if (practice.handsFree) $("answerIn").value = "";
   renderScenario();
   $("answerIn").focus();
   $("answerIn").select();
+  if (practice.handsFree) startSpeaking();
 }
 
 function nextLine() {
@@ -1412,39 +1592,6 @@ function nextLine() {
   sayLine();
 }
 
-async function toggleSpeak() {
-  if (practice.starting || practice.transcribing) return;
-  if (practice.speaking) {
-    const session = practice.speaking;
-    practice.speaking = null;
-    practice.transcribing = true;
-    renderScenario();
-    await session.stop();
-    await session.settled(); // the last words are still being transcribed
-    practice.transcribing = false;
-    renderScenario();
-    $("answerIn").focus();
-    return;
-  }
-  practice.starting = true;
-  renderScenario();
-  let mic = null;
-  try {
-    mic = await getMicAudio();
-    practice.speaking = await startSession([{ stream: mic, speaker: "rep" }], {
-      onText: (_, text) => { const box = $("answerIn"); box.value = `${box.value.trim()} ${text}`.trim(); },
-      onError: showError,
-      onEnded: () => { if (practice.speaking) toggleSpeak(); },
-    });
-    showError("");
-  } catch (err) {
-    mic?.getTracks().forEach((t) => t.stop());
-    showError(err.name === "NotAllowedError" ? "Microphone access is blocked. Allow it and try again, or type your reply." : "Couldn't start the microphone: " + err.message);
-  } finally {
-    practice.starting = false;
-    renderScenario();
-  }
-}
 
 /* ---------- Command palette items ---------- */
 function appItems() {
@@ -1475,7 +1622,11 @@ paletteItems = () => {
   if (REHEARSAL) {
     PLAYBOOK.scenarios.forEach((sc, i) => act(`Practice: ${sc.title}`, "chat", () => { $("scenarioPick").value = String(i); startScenario(i); }, sc.setup, "scenario"));
     if (practice.answered) { act("Try again", "refresh", retryAnswer); act("Next line", "arrow", nextLine); }
-    else if (practice.canSpeak) act(practice.speaking ? "Done speaking" : "Speak your reply", "mic", toggleSpeak);
+    else if (practice.canSpeak) {
+      if (practice.speaking) { act("Send my reply now", "check", () => stopSpeaking({ send: true })); act("Stop listening", "mic", () => stopSpeaking({ send: false })); }
+      else act("Speak your reply", "mic", startSpeaking, "Sends when you stop talking");
+    }
+    if (practice.canSpeak) act(practice.handsFree ? "Turn hands-free off" : "Turn hands-free on", "wave", () => setHandsFree(!practice.handsFree), "Listen on every line, send when you stop talking");
   } else {
     act(app.listening ? "Stop listening" : "Start listening", "mic", () => $("mic").click(), "Browser speech recognition", "microphone");
     if (!$("auto").hidden) act(capture?.kind === "auto" ? "Stop auto capture" : "Auto capture", "auto", () => $("auto").click(), "Hears both sides and labels who's talking", "record zoom meet teams");
@@ -1504,9 +1655,14 @@ if (REHEARSAL) {
   $("scenario").hidden = false;
   $("scenarioPick").replaceChildren(...PLAYBOOK.scenarios.map((s, i) => new Option(s.title, i)));
   $("scenarioPick").addEventListener("change", (e) => startScenario(Number(e.target.value)));
-  $("answerForm").addEventListener("submit", (e) => { e.preventDefault(); submitAnswer(); });
-  $("answerIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAnswer(); } });
-  $("speakBtn").addEventListener("click", toggleSpeak);
+  // While speaking, the submit button sends right away instead of waiting for the countdown
+  const send = () => (practice.speaking ? stopSpeaking({ send: true }) : submitAnswer());
+  $("answerForm").addEventListener("submit", (e) => { e.preventDefault(); send(); });
+  $("answerIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); } });
+  $("speakBtn").addEventListener("click", () => (practice.speaking ? stopSpeaking({ send: false }) : startSpeaking()));
+  $("handsFree").addEventListener("change", (e) => setHandsFree(e.target.checked));
+  // Esc stops listening and keeps what was said, to edit or send by hand
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && practice.speaking && !document.querySelector(".scrim")) stopSpeaking({ send: false }); });
   $("retryBtn").addEventListener("click", retryAnswer);
   $("nextLineBtn").addEventListener("click", nextLine);
   startScenario(0);

@@ -5,9 +5,14 @@
 // segment be compared against the call audio playing at the same time, to spot
 // the mic picking up the customer through the speakers (echo).
 //
-// Posts { input, pcm, startFrame, endFrame, echo } for each finished segment.
-// `echo` is null unless the input was given a reference via `echoRefs`; when the
-// segment is judged to be echo, `echo.dropped` is true and there is no `pcm`.
+// Posts { type: "segment", input, pcm, startFrame, endFrame, echo } for each finished
+// segment. `echo` is null unless the input was given a reference via `echoRefs`; when
+// the segment is judged to be echo, `echo.dropped` is true and there is no `pcm`.
+//
+// Inputs listed in `watch` also report, for live feedback while someone talks:
+//   { type: "level", input, level }    loudness, about 11 times a second (for a meter)
+//   { type: "vad", input, on }         started or stopped talking (300 ms of quiet = stopped)
+//   { type: "partial", input, pcm }    the phrase so far, about once a second, for a live transcript
 
 const FRAME = 480;               // 30 ms at 16 kHz
 const START_FRAMES = 3;          // ~90 ms above threshold opens a segment
@@ -24,6 +29,10 @@ const REVERB_FRAMES = 8;         // the room keeps ringing ~240 ms after the cal
 const OWN_MARGIN = 2.5;          // ~8 dB louder than the echo explains = someone at the mic is talking
 const ECHO_GAIN_PCT = 0.2;       // echo gain is read from the quietest 20% of mic/call ratios
 
+const LEVEL_EVERY = 3;           // a level reading every ~90 ms
+const VAD_OFF_FRAMES = 10;       // ~300 ms of quiet counts as having stopped talking
+const PARTIAL_EVERY = 30;        // a live transcript snapshot every ~900 ms
+
 const DEFAULT_ECHO = { minCorr: 0.6, minOverlap: 0.6, minOwnFrames: 10 };
 
 class Segmenter extends AudioWorkletProcessor {
@@ -32,6 +41,7 @@ class Segmenter extends AudioWorkletProcessor {
     const n = options.numberOfInputs;
     this.echoRefs = options.processorOptions?.echoRefs || {};
     this.echoCfg = { ...DEFAULT_ECHO, ...options.processorOptions?.echo };
+    this.watch = new Set(options.processorOptions?.watch || []);
     this.fill = 0;
     this.frame = 0;
     this.inputs = Array.from({ length: n }, () => ({
@@ -41,6 +51,7 @@ class Segmenter extends AudioWorkletProcessor {
       open: false,
       chunks: [], levels: [], active: [],
       start: 0, above: 0, silence: 0, speech: 0,
+      talking: false, sinceSnapshot: 0,
       level: new Float32Array(HISTORY),
       speaking: new Uint8Array(HISTORY),
     }));
@@ -97,16 +108,34 @@ class Segmenter extends AudioWorkletProcessor {
         s.speech = START_FRAMES;
         s.silence = 0;
       }
-      return;
+    } else {
+      s.chunks.push(frame);
+      s.levels.push(rms);
+      s.active.push(loud);
+      if (loud) { s.speech++; s.silence = 0; } else s.silence++;
+
+      if (s.silence >= END_SILENCE_FRAMES) this.close(i);
+      else if (s.chunks.length >= MAX_FRAMES) { this.close(i); s.open = true; s.start = this.frame + 1; s.speech = 0; s.silence = 0; }
     }
 
-    s.chunks.push(frame);
-    s.levels.push(rms);
-    s.active.push(loud);
-    if (loud) { s.speech++; s.silence = 0; } else s.silence++;
+    if (this.watch.has(i)) this.report(i, s, rms);
+  }
 
-    if (s.silence >= END_SILENCE_FRAMES) this.close(i);
-    else if (s.chunks.length >= MAX_FRAMES) { this.close(i); s.open = true; s.start = this.frame + 1; s.speech = 0; s.silence = 0; }
+  // Live feedback for a watched input: a level meter, talking on/off, and the phrase so far
+  report(i, s, rms) {
+    if (this.frame % LEVEL_EVERY === 0) this.port.postMessage({ type: "level", input: i, level: rms });
+    const talking = s.open && s.silence < VAD_OFF_FRAMES;
+    if (talking !== s.talking) {
+      s.talking = talking;
+      s.sinceSnapshot = 0;
+      this.port.postMessage({ type: "vad", input: i, on: talking });
+    }
+    if (talking && ++s.sinceSnapshot >= PARTIAL_EVERY && s.speech >= MIN_SPEECH_FRAMES) {
+      s.sinceSnapshot = 0;
+      const pcm = new Float32Array(s.chunks.length * FRAME);
+      s.chunks.forEach((c, k) => pcm.set(c, k * FRAME));
+      this.port.postMessage({ type: "partial", input: i, pcm }, [pcm.buffer]);
+    }
   }
 
   close(i) {
@@ -122,12 +151,12 @@ class Segmenter extends AudioWorkletProcessor {
     const chunks = s.chunks;
     s.chunks = []; s.levels = []; s.active = []; s.speech = 0; s.silence = 0;
     if (speech < MIN_SPEECH_FRAMES) return;
-    if (echo?.dropped) { this.port.postMessage({ input: i, startFrame: s.start, endFrame, echo }); return; }
+    if (echo?.dropped) { this.port.postMessage({ type: "segment", input: i, startFrame: s.start, endFrame, echo }); return; }
     if (echo?.crop) { from = Math.max(0, echo.first - PREROLL_FRAMES); to = Math.min(to, echo.last + PREROLL_FRAMES + 1); }
 
     const pcm = new Float32Array((to - from) * FRAME);
     for (let k = from; k < to; k++) pcm.set(chunks[k], (k - from) * FRAME);
-    this.port.postMessage({ input: i, pcm, startFrame: s.start + from, endFrame, echo }, [pcm.buffer]);
+    this.port.postMessage({ type: "segment", input: i, pcm, startFrame: s.start + from, endFrame, echo }, [pcm.buffer]);
   }
 
   // Does this segment contain anything besides the reference input played back

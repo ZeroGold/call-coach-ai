@@ -139,7 +139,14 @@ Both are transcribed on your computer by the local Whisper model; only the text 
 
 ## Practice mode
 
-Practice modes need no call and no one else. Pick a scenario, and your date says a line. Type your reply, or press **Speak** and say it (transcribed on your computer), then press **Get feedback**. The gauge scores your reply and the card below names one thing to work on. Press **Try again** to redo a reply and see whether the score moves up, or **Next line** to continue the conversation.
+Practice modes need no call and no one else. Pick a scenario, and the other person says a line. Type your reply and press **Get feedback**, or talk:
+
+- Press **Speak** and your words appear as you say them.
+- **Stop talking and it sends.** A short countdown runs on the button first; keep talking to add more. If you trail off mid-thought ("…and", "because", "um"), it waits longer, so pausing to think won't cut you off.
+- **Send now** skips the countdown; **Stop** or **Esc** stops listening and keeps what you said, to edit or send yourself.
+- Turn on **Hands-free** and the mic starts by itself on every new line and after **Try again**, so you can practice a whole scenario by voice.
+
+The gauge scores your reply and the card below names one thing to work on. Press **Try again** to redo a reply and see whether the score moves up, or **Next line** to continue the conversation.
 
 In the overlay, picking a practice mode opens it in its own window, since it doesn't need to float over a call.
 
@@ -225,6 +232,7 @@ Copy an existing mode folder as a starting point, then run `npm run check-modes`
 - **Decision tuning:** edit the constants at the top of `public/decide.js` (minimum confidence, smoothing, hysteresis). A playbook can override them for its mode with `config`.
 - **Model:** set `TYPESAFE_MODEL`. The default is `jev-latest`. For anything beyond a demo, pin a specific version so behavior doesn't shift under you.
 - **Port:** set `PORT` (default 3000).
+- **Live transcript model:** the words shown while you talk come from a small, fast model (`ASR_QUICK_MODEL`, default Tiny); the final text uses the model picked in Settings.
 - **Speech model threads:** set `ASR_THREADS` (default: half your CPU threads, at most 4). More threads is often slower, because the model's two parts compete for cores.
 - **Echo detection:** edit `ECHO` at the top of `public/capture.js`.
 

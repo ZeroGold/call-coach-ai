@@ -198,10 +198,30 @@ async function getASR() {
 // One transcription at a time. Whisper is CPU-bound, so running segments in
 // parallel only makes every one of them slower, and it keeps results in order.
 let asrQueue = Promise.resolve();
-function transcribe(samples) {
-  const run = asrQueue.then(async () => (await getASR())(samples));
+function transcribe(samples, quick = false) {
+  const run = asrQueue.then(async () => (quick ? quickASR : await getASR())(samples));
   asrQueue = run.catch(() => {});
   return run;
+}
+
+// Live transcripts (the phrase so far, re-read about once a second) use a small, fast
+// model so they keep up and don't hold up the final text, which uses the chosen model.
+const QUICK_MODEL = process.env.ASR_QUICK_MODEL || "onnx-community/whisper-tiny.en";
+let quickASR = null;
+let quickLoading = null;
+function quickReady() {
+  if (QUICK_MODEL === ASR_MODEL && asrPipeline && asrLoadedModel === ASR_MODEL) { quickASR = asrPipeline; return true; }
+  if (quickASR) return true;
+  // Load it in the background; until then, live transcripts are skipped rather than waited for
+  quickLoading ??= (async () => {
+    const { pipeline, env } = await import("@huggingface/transformers");
+    if (DATA_DIR) env.cacheDir = path.join(DATA_DIR, "models");
+    quickASR = await pipeline("automatic-speech-recognition", QUICK_MODEL, {
+      dtype: "q8", device: "cpu", session_options: { intraOpNumThreads: ASR_THREADS },
+    });
+    console.log(`Quick speech model ready: ${QUICK_MODEL}`);
+  })().catch((err) => { console.warn("Quick speech model failed to load:", err.message); quickLoading = null; });
+  return false;
 }
 
 // A custom coach from Settings arrives with its questions. Check the shape and
@@ -370,7 +390,10 @@ const server = http.createServer(async (req, res) => {
       const aligned = new ArrayBuffer(usable);
       new Uint8Array(aligned).set(body.subarray(0, usable));
       const samples = new Float32Array(aligned);
-      const result = await transcribe(samples);
+      // A live-transcript request uses the quick model, and is skipped while it's still loading
+      const quick = url.searchParams.get("quick") === "1";
+      if (quick && !quickReady()) return sendJson(res, 200, { text: "", skipped: true });
+      const result = await transcribe(samples, quick);
       return sendJson(res, 200, { text: result.text || "" });
     }
 

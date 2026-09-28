@@ -55,8 +55,8 @@ function getWorker() {
   return worker;
 }
 
-/** Returns { text }, or throws. */
-export async function transcribe(pcm) {
+/** Returns { text }, or throws. `quick` asks for the fast model, for live transcripts. */
+export async function transcribe(pcm, { quick = false } = {}) {
   const place = await speechLocation();
   if (place === "off") throw new Error("Speech recognition is turned off on this server.");
   if (place === "browser") {
@@ -66,7 +66,7 @@ export async function transcribe(pcm) {
       getWorker().postMessage({ id, pcm, model: browserModel() }, [pcm.buffer]);
     });
   }
-  const res = await fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: pcm.buffer });
+  const res = await fetch(`/api/transcribe${quick ? "?quick=1" : ""}`, { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: pcm.buffer });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
   return { text: data.text || "" };

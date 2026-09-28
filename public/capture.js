@@ -64,10 +64,14 @@ export function getMicAudio() {
 }
 
 /**
- * Start transcribing. `sources` is [{ stream, speaker, echoOf? }], where
- * `echoOf` is the index of the source this one might hear through the speakers.
+ * Start transcribing. `sources` is [{ stream, speaker, echoOf?, watch? }], where
+ * `echoOf` is the index of the source this one might hear through the speakers, and
+ * `watch` asks for live feedback while that source is talking.
  * Handlers:
  *   onText(speaker, text)     a finished line, in order
+ *   onPartial(speaker, text)  the phrase being spoken so far (watched sources only)
+ *   onVoice(speaker, on)      started or stopped talking (watched sources only)
+ *   onLevel(speaker, level)   loudness for a meter, ~11 times a second (watched sources only)
  *   onDrop(speaker, reason)   a segment was discarded ("echo" or "noise")
  *   onBehind(waiting)         transcription is falling behind (0 once caught up)
  *   onError(message)
@@ -76,6 +80,7 @@ export function getMicAudio() {
  */
 export async function startSession(sources, handlers = {}) {
   const { onText = () => {}, onDrop = () => {}, onBehind = () => {}, onError = () => {}, onEnded = () => {} } = handlers;
+  const { onPartial = () => {}, onVoice = () => {}, onLevel = () => {} } = handlers;
   const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
   let running = true;
 
@@ -86,7 +91,7 @@ export async function startSession(sources, handlers = {}) {
     const node = new AudioWorkletNode(ctx, "segmenter", {
       numberOfInputs: sources.length,
       numberOfOutputs: 1,
-      processorOptions: { echoRefs, echo: ECHO },
+      processorOptions: { echoRefs, echo: ECHO, watch: sources.flatMap((s, i) => (s.watch ? [i] : [])) },
     });
     sources.forEach((s, i) => ctx.createMediaStreamSource(new MediaStream(s.stream.getAudioTracks())).connect(node, 0, i));
     node.connect(ctx.destination); // outputs silence; keeps the graph pulling audio
@@ -128,11 +133,29 @@ export async function startSession(sources, handlers = {}) {
       settle();
     };
 
+    // Live transcript: re-transcribe the phrase so far, but only when nothing final is
+    // waiting (finals come first), and drop a result if its phrase was finished meanwhile
+    let partialBusy = false, finals = 0;
+    const partial = async (speaker, pcm) => {
+      if (partialBusy || busy || queue.length) return;
+      partialBusy = true;
+      const asked = finals;
+      try {
+        const text = (await transcribe(pcm, { quick: true })).text.trim();
+        if (running && asked === finals && text && !isHallucination(text)) onPartial(speaker, text);
+      } catch {}
+      partialBusy = false;
+    };
+
     node.port.onmessage = (e) => {
       if (!running) return;
-      const { input, pcm, echo } = e.data;
+      const { type, input, pcm, echo } = e.data;
       const speaker = sources[input].speaker;
+      if (type === "level") { onLevel(speaker, e.data.level); return; }
+      if (type === "vad") { onVoice(speaker, e.data.on); return; }
+      if (type === "partial") { partial(speaker, pcm); return; }
       if (echo?.dropped) { onDrop(speaker, "echo", echo); return; }
+      finals++;
       queue.push({ speaker, pcm });
       if (queue.length >= BEHIND_AT && !warned) { warned = true; onBehind(queue.length); }
       pump();
