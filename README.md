@@ -1,8 +1,12 @@
 # Call Coach 
 
-A live call coach. It listens to the conversation, sends it to TypeSafe Jev after every sentence, and shows you what to do next with a confidence score. It comes with modes for sales calls and customer-service calls, plus a practice mode for rehearsing conversations on your own.
+A live call coach. It listens to the conversation, sends it to TypeSafe Jev after every sentence, and shows you what to do next with a confidence score. It comes with nine coaches: five for live calls (sales, customer service, job interviews, social cues, and anxiety) and four for practicing on your own, dating included. You can also build your own in Settings.
 
 This is a work in progress and a demo of Jev capabilities. Feel free to fork it and modify it. Or just message me if you want to make any changes. I am also open to pull requests as well for making improvements. Shoot me a DM if you need anything
+
+Free and open source under the [MIT license](LICENSE). See [CHANGELOG.md](CHANGELOG.md) for what's new in 1.1.
+
+![Live coaching on a sales call. The gauge reads 67, "Evaluating us", and the suggested action is "Address the concern".](docs/screenshots/live-call.webp)
 
 ## Quick start
 
@@ -12,11 +16,18 @@ This is a work in progress and a demo of Jev capabilities. Feel free to fork it 
 
 Press **Ctrl K** anywhere to search coaches and actions. **⋯ → How it works** replays the tour.
 
-## Demo Screen
-<img width="2552" height="1348" alt="Screenshot 2026-09-20 165639" src="https://github.com/user-attachments/assets/b1d3768f-ae61-45a7-a68b-644367ef24ab" />
+## Screenshots
 
-## Pop-Up Windows from Call Coach.bat
-<img width="300" height="450" alt="image" src="https://github.com/user-attachments/assets/c40f18ea-9617-4546-b1bb-f3d4d23fb62d" />
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/practice.webp" alt="Interview practice: the reply scores 76, Solid, with one thing to work on"><br><sub><b>Practice by voice.</b> Say your answer; the gauge scores it and names one thing to work on.</sub></td>
+<td width="50%"><img src="docs/screenshots/build-a-coach.webp" alt="The New coach form in Settings with a live preview of the gauge and next step"><br><sub><b>Build your own coach</b> in Settings, with a live preview as you type.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/anxiety-care.webp" alt="Anxiety coach showing Take care of yourself first, with a pointer to 988 or a local crisis line"><br><sub><b>Anxiety coach.</b> If you say you don't feel safe, it puts you first.</sub></td>
+<td width="50%"><img src="docs/screenshots/live-call-dark.webp" alt="The sales call coach in dark mode"><br><sub><b>Light and dark</b>, on one glass design.</sub></td>
+</tr>
+</table>
 
 
 ## Get it
@@ -66,6 +77,8 @@ To try a live mode without talking, press **Play sample call**. It feeds a scrip
 
 ## Modes
 
+![The start screen: pick a live coach or a practice coach](docs/screenshots/coaches.webp)
+
 | Mode | Kind | The gauge shows |
 |---|---|---|
 | Sales call | Live call | How close the customer is to buying |
@@ -85,6 +98,8 @@ The social cue coaches explain the cue behind each suggestion ("short replies an
 
 ## The overlay
 
+<img src="docs/screenshots/floating-window.webp" width="300" alt="The floating window on a sales call: the gauge at 67 and the suggested action Address the concern">
+
 The desktop app floats one small window over your call, with both cards in it. Drag it by its title bar; it remembers where you left it. The title bar holds what you need mid-call:
 
 - The **coach name**: click it to switch coaches.
@@ -102,6 +117,8 @@ The app, Settings and the website share one design system (`public/theme.css` an
 - **Purposeful motion.** Things ease out as they arrive and ease in as they leave, in 120–360 ms. The gauge and cards settle with a gentle spring; screens cross-fade.
 - **Keyboard first.** Ctrl K opens a command palette; number keys pick a coach on the start screen; S and D switch speaker and mark a step done.
 - **Respects your settings.** Reduce motion turns animations off, reduce transparency and more contrast make every surface solid, and dark mode is one click away.
+
+![The Ctrl K command palette listing coaches](docs/screenshots/command-palette.webp)
 
 ## Build your own coach
 
