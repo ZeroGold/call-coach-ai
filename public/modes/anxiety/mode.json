@@ -1,0 +1,9 @@
+{
+  "name": "Anxiety coach",
+  "description": "Gentle support during conversations that make you anxious: how it's really going on their side, and one small thing to do next.",
+  "kind": "live",
+  "order": 7,
+  "icon": "leaf",
+  "transcript": { "key": "conversation", "rep": "user", "other": "other_person" },
+  "questions": { "action": "next_step", "stage": "how_its_going" }
+}

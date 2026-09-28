@@ -1,0 +1,9 @@
+{
+  "name": "Anxiety practice",
+  "description": "Rehearse the everyday conversations that make you anxious, like phone calls and saying no, at your own pace, with kind, specific feedback.",
+  "kind": "rehearsal",
+  "order": 8,
+  "icon": "leaf",
+  "transcript": { "key": "anxiety_practice", "rep": "user", "other": "other_person" },
+  "questions": { "action": "coaching_focus", "stage": "confidence" }
+}

@@ -1,0 +1,78 @@
+{
+  "next_step": {
+    "type": "choice",
+    "instructions": "In `conversation`, the user feels anxious about talking to the other person. Looking at how the conversation is going, especially the other person's most recent statements, what one small thing would most help the user right now?",
+    "criteria": {
+      "you_are_doing_fine": "The other person is responding patiently, kindly, or neutrally, so nothing needs fixing and the user can keep going",
+      "pause_and_breathe": "The other person asked something hard or the moment feels tense, so the user can take a breath before answering",
+      "say_what_you_need": "The user hasn't yet clearly said what they called or came to ask for",
+      "ask_them_to_repeat": "The other person said something unclear, fast, or confusing",
+      "take_a_moment": "The user needs time to think, find information, or collect themselves, and can ask for it",
+      "skip_the_apology": "The user keeps apologizing or putting themselves down when they haven't done anything wrong",
+      "close_politely": "What the user needed is done or the conversation is winding down, so they can end it",
+      "no_action": "Nothing to do yet; the conversation is just getting started"
+    }
+  },
+  "how_its_going": {
+    "type": "score",
+    "instructions": "Based on the other person's most recent statements in `conversation`, how is the conversation actually going from their side?",
+    "criteria": [
+      {
+        "what": "Tense: the other person sounds annoyed, rushed, or unhappy",
+        "examples": ["I don't have time for this.", "We already went over that.", "That's not acceptable."]
+      },
+      {
+        "what": "Neutral: businesslike and matter-of-fact",
+        "examples": ["Okay. What's the account number?", "Can you spell that?", "One moment."]
+      },
+      {
+        "what": "Friendly: patient and helpful",
+        "examples": ["No problem at all.", "Sure, let me check that for you.", "Take your time."]
+      },
+      {
+        "what": "Going well: warm, positive, or glad to help",
+        "examples": ["Great, you're all set!", "It was lovely talking with you.", "That's a really good question."]
+      }
+    ]
+  },
+  "other_is_patient": {
+    "type": "noul",
+    "instructions": "Is the other person being patient or kind with the user?",
+    "criteria": {
+      "true": "Reassures, offers help, says there's no rush, or responds warmly",
+      "false": "Not especially patient or kind"
+    }
+  },
+  "user_apologizing": {
+    "type": "noul",
+    "instructions": "Is the user apologizing or putting themselves down more than the situation calls for?",
+    "criteria": {
+      "true": "Says sorry repeatedly, calls themselves silly or a bother, or apologizes for ordinary requests",
+      "false": "Apologizes only when it fits, or not at all"
+    }
+  },
+  "need_is_met": {
+    "type": "noul",
+    "instructions": "Has the user gotten what they needed from the conversation?",
+    "criteria": {
+      "true": "The request is handled, the question answered, or the plan agreed",
+      "false": "Still in progress"
+    }
+  },
+  "other_is_frustrated": {
+    "type": "noul",
+    "instructions": "Does the other person sound frustrated or short with the user?",
+    "criteria": {
+      "true": "Sounds impatient, annoyed, curt, or irritated",
+      "false": "Calm or friendly"
+    }
+  },
+  "in_distress": {
+    "type": "noul",
+    "instructions": "Does the user say they feel unsafe, hopeless, or like they might hurt themselves?",
+    "criteria": {
+      "true": "The user says they feel unsafe, hopeless, or at risk of harming themselves",
+      "false": "Nervous, stressed, or embarrassed, which is normal, or no sign of distress"
+    }
+  }
+}

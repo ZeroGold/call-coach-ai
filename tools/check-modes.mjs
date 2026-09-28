@@ -38,6 +38,7 @@ for (const id of (await readdir(MODES_DIR)).sort()) {
       for (const t of def.tips?.when || []) if (!isSignal(t.signal)) problems.push(`tip in "${a}" uses "${t.signal}", which is not a yes/no question`);
     }
     for (const k of Object.keys(p.signals || {})) if (!isSignal(k)) problems.push(`signal "${k}" is not a yes/no question`);
+    if (p.alert && !isSignal(p.alert.signal)) problems.push(`alert uses "${p.alert.signal}", which is not a yes/no question`);
     if (p.stages?.length !== stage?.criteria?.length) problems.push(`${p.stages?.length} stage names but ${stage?.criteria?.length} score levels`);
     if (p.stages?.length !== 4) problems.push(`the gauge is drawn for 4 stages, not ${p.stages?.length}`);
     if (meta.kind === "rehearsal" && !p.scenarios?.length) problems.push(`a rehearsal mode needs scenarios`);

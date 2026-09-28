@@ -1,0 +1,76 @@
+{
+  "coaching_focus": {
+    "type": "choice",
+    "instructions": "`anxiety_practice` is an everyday conversation the user is practicing because it makes them anxious. Looking at the user's most recent reply, what is the single most useful and encouraging thing for them to work on next?",
+    "criteria": {
+      "say_it_plainly": "The reply hints or hedges instead of clearly saying what the user needs or wants",
+      "skip_the_apology": "The reply apologizes or puts the user down when they haven't done anything wrong",
+      "keep_it_short": "The reply over-explains or gives more reasons than the situation needs",
+      "hold_your_ground": "The other person pushed back and the user gave in or dropped what they needed",
+      "ask_a_question": "The user seems unsure and could simply ask for clarification or help",
+      "you_did_it": "The reply is clear and polite, and says what the user needs"
+    }
+  },
+  "confidence": {
+    "type": "score",
+    "instructions": "How clear and self-assured is the user's most recent reply in `anxiety_practice`?",
+    "criteria": [
+      {
+        "what": "Stuck: avoids the point, gives up, or is mostly apology",
+        "examples": ["Sorry, sorry, never mind, it's fine.", "Oh, um, forget it.", "I'm so sorry to bother you, it's probably nothing."]
+      },
+      {
+        "what": "Hesitant: gets there, but buried in hedges and apologies",
+        "examples": ["Sorry, I was just wondering if maybe, if it's not too much trouble, I could possibly book something?", "I don't know, I guess I kind of need help?"]
+      },
+      {
+        "what": "Clear: says what they need, politely",
+        "examples": ["Hi, I'd like to book an appointment for next week.", "I can't take that on this week."]
+      },
+      {
+        "what": "Confident: clear, warm, and at ease",
+        "examples": ["Hi! I'd like to book a check-up next week. Do you have anything Tuesday morning?", "Thanks for thinking of me, but I'll pass this time. Good luck with it!"]
+      }
+    ]
+  },
+  "clear_request": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply clearly say what they need or want?",
+    "criteria": {
+      "true": "States the request, answer, or decision plainly",
+      "false": "Only hints at it, or doesn't say it"
+    }
+  },
+  "apologizes": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply apologize or put the user down without a real reason?",
+    "criteria": {
+      "true": "Says sorry for an ordinary request, or calls themselves a bother, silly, or annoying",
+      "false": "No unneeded apology"
+    }
+  },
+  "over_explains": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply give more explanation or reasons than needed?",
+    "criteria": {
+      "true": "Justifies at length, lists several reasons, or explains things no one asked about",
+      "false": "About the right amount"
+    }
+  },
+  "friendly": {
+    "type": "noul",
+    "instructions": "Is the user's most recent reply friendly or warm?",
+    "criteria": {
+      "true": "Includes a greeting, thanks, or a warm touch",
+      "false": "Plain, or not warm"
+    }
+  },
+  "in_distress": {
+    "type": "noul",
+    "instructions": "Does the user say they feel unsafe, hopeless, or like they might hurt themselves?",
+    "criteria": {
+      "true": "The user says they feel unsafe, hopeless, or at risk of harming themselves",
+      "false": "Nervous, stressed, or embarrassed, which is normal, or no sign of distress"
+    }
+  }
+}

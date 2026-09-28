@@ -72,10 +72,16 @@ To try a live mode without talking, press **Play sample call**. It feeds a scrip
 | Customer service call | Live call | How the caller is feeling |
 | Job interview | Live call | How interested the interviewer is, and how to handle the next question |
 | Interview practice | Practice | How strong your answer is, from "Hurts you" to "Standout" |
+| Social cues | Live call | How engaged the other person is, and how to respond to their cues |
+| Social cues practice | Practice | Whether your reply caught the cue in their last line |
+| Anxiety coach | Live call | How the conversation is really going on their side, and one small next step |
+| Anxiety practice | Practice | How clearly you came across, from "Stuck" to "Confident" |
 | Dating practice | Practice | How well your reply lands |
 | Your own | Either | Whatever you set up in Settings |
 
 Use **Change mode** (or click the mode name in the overlay's title bar) to switch.
+
+The social cue coaches explain the cue behind each suggestion ("short replies and "anyway" usually mean they need to go"), so the skill builds over time. The anxiety coaches are deliberately gentle: small steps, encouraging feedback, and a gauge that shows how the other person is actually responding. They're a supportive tool, not a substitute for professional care. If someone says they feel unsafe, the coach sets its suggestions aside and points them to people they trust or a crisis line.
 
 ## The overlay
 

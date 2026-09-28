@@ -147,6 +147,8 @@ main > .notice, main > .picker { grid-column: 1 / -1; }
 .next[data-status="listen"] .next-title, .next[data-status="idle"] .next-title { color: var(--ink-2); }
 .next.changed .next-title { animation: swap-in 480ms var(--ease-out); }
 .next-note { margin: 6px 0 0; color: var(--ink-2); font-size: 0.9rem; }
+.next-note.alert { color: var(--ink); font-weight: 600; padding: 10px 12px; border-radius: 12px; background: color-mix(in oklab, var(--warn) 14%, transparent); border-left: 3px solid var(--warn); }
+.care-note { font-size: 0.84rem !important; background: transparent !important; padding: 0 !important; color: var(--ink-3) !important; }
 .next-conf { text-align: right; color: var(--ink-3); font-size: 0.78rem; padding-top: 2px; }
 .next-conf b { display: block; font-size: 1.35rem; color: var(--ink); line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
 .next-conf .bar-mini { width: 84px; height: 5px; border-radius: 99px; background: var(--well-2); margin: 6px 0 0 auto; overflow: hidden; }
@@ -214,6 +216,9 @@ main > .notice, main > .picker { grid-column: 1 / -1; }
 .mode-opt.mode-new { border-style: dashed; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .mode-opt.mode-new .mode-icon { background: var(--well-2); color: var(--accent); box-shadow: none; }
 .mode-opt.mode-new .mode-name { color: var(--accent); }
+.picker-group { grid-column: 1 / -1; margin: 10px 0 -2px; font-size: 0.74rem; font-weight: 750; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.picker-group:first-child { margin-top: 0; }
+main.pip .picker-group { margin: 6px 0 0; font-size: 0.66rem; }
 .picker-note { margin: 12px 0 0; color: var(--ink-2); font-size: 0.92rem; }
 
 /* ================= Practice ================= */
@@ -642,7 +647,7 @@ async function showWelcome(force = false) {
       : { icon: "wave", title: "It hears the call, or you type", body: "Press Auto capture to hear both sides of a Zoom, Meet or Teams call, or type what was said. For practice, just reply to the scripted lines." },
     {
       icon: "sparkle", title: "Pick a coach and go",
-      body: `Choose sales, support, a job interview, a practice run, or build your own in Settings. Press ${paletteShortcut} any time to find anything.`,
+      body: `Choose a coach for sales, support, interviews, social situations or anxiety, or build your own in Settings. Press ${paletteShortcut} any time to find anything.`,
     },
   ];
   let i = 0;
@@ -807,7 +812,14 @@ function showPicker(resolve) {
   addIcon.innerHTML = icon("plus");
   add.append(addIcon, span("mode-name", "Build your own coach"), span("mode-desc", "Interviews, negotiations, a support desk, or practice for anything. No code."));
   add.addEventListener("click", () => openSettings("#new"));
-  $("pickerList").replaceChildren(...MODES.map(tile), add);
+  const groups = [
+    ["Live coaching", MODES.filter((m) => !m.custom && m.kind !== "rehearsal")],
+    ["Practice", MODES.filter((m) => !m.custom && m.kind === "rehearsal")],
+    ["Your coaches", MODES.filter((m) => m.custom)],
+  ].filter(([, list]) => list.length);
+  const ordered = groups.flatMap(([, list]) => list);
+  const heading = (text) => Object.assign(document.createElement("h2"), { className: "picker-group", textContent: text });
+  $("pickerList").replaceChildren(...groups.flatMap(([title, list]) => [heading(title), ...list.map((m) => tile(m, ordered.indexOf(m)))]), add);
   paletteItems = () => [
     ...MODES.map((m) => ({ group: "Coaches", title: m.name, keywords: m.description, hint: m.kind === "rehearsal" ? "Practice" : "Live call", icon: m.custom ? "sparkle" : m.icon || (m.kind === "rehearsal" ? "chat" : "wave"), run: () => pick(m) })),
     { group: "App", title: "Settings and coaches", icon: "settings", run: () => openSettings() },
@@ -822,7 +834,8 @@ function showPicker(resolve) {
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector(".scrim")) return;
     const n = Number(e.key);
-    if (n >= 1 && n <= Math.min(9, MODES.length)) pick(MODES[n - 1]);
+    const ordered = [...document.querySelectorAll("#pickerList .mode-opt:not(.mode-new)")];
+    if (n >= 1 && n <= Math.min(9, ordered.length)) ordered[n - 1].click();
   }, { signal: pickerKeys.signal });
 }
 
@@ -941,7 +954,8 @@ function renderNextIdle() {
   $("nextActions").hidden = true;
   // Live coaches start with the three steps that get a call going; practice explains itself
   const quick = !REHEARSAL;
-  $("tipMain").textContent = quick ? "" : COPY.idleTip;
+  $("tipMain").textContent = quick ? (COPY.careNote || "") : [COPY.idleTip, COPY.careNote].filter(Boolean).join(" ");
+  $("tipMain").classList.toggle("care-note", quick && !!COPY.careNote);
   $("quickStart").hidden = !quick;
   $("quickActions").hidden = !quick || isOverlay;
   if (!quick) return;
@@ -976,16 +990,18 @@ function renderNextIdle() {
 function renderNext(r, animate) {
   const next = $("next");
   $("quickStart").hidden = true;
+  $("tipMain").classList.remove("care-note");
   $("quickActions").hidden = true;
   const acting = r.status === "act";
   next.dataset.status = r.status;
-  $("nextTitle").textContent = acting ? r.title : COPY.listenTitle;
+  $("nextTitle").textContent = r.alertTitle || (acting ? r.title : COPY.listenTitle);
 
-  const note = r.note || (!acting && r.leaningTitle ? `Best guess so far: ${r.leaningTitle} (${Math.round(r.score * 100)}%)` : "");
+  const note = r.alert || r.note || (!acting && r.leaningTitle ? `Best guess so far: ${r.leaningTitle} (${Math.round(r.score * 100)}%)` : "");
+  $("nextNote").classList.toggle("alert", !!r.alert);
   $("nextNote").textContent = note;
   $("nextNote").hidden = !note;
 
-  $("nextConf").hidden = !acting;
+  $("nextConf").hidden = !acting || !!r.alert; // a safety alert isn't a suggestion to score or tick off
   if (acting) {
     const pct = Math.round(r.score * 100);
     $("nextPct").textContent = `${pct}%`;
@@ -997,7 +1013,7 @@ function renderNext(r, animate) {
   $("more").hidden = rest.length === 0;
   $("moreLabel").textContent = rest.length === 1 ? "1 more tip" : `${rest.length} more tips`;
   $("moreList").replaceChildren(...rest.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
-  $("nextActions").hidden = !acting;
+  $("nextActions").hidden = !acting || !!r.alert;
 
   if (acting && r.changed && animate) {
     next.classList.remove("changed"); void next.offsetWidth; next.classList.add("changed");
@@ -1042,6 +1058,11 @@ async function evaluate() {
 
     const stage = trackStage(data.answers[PLAYBOOK.questions.stage], app.memory.stage, STAGES, CONFIG);
     app.result = decide(data.answers, PLAYBOOK, app.memory, Date.now(), CONFIG);
+    // A playbook can raise an alert (e.g. a safety message) that shows whatever the suggestion is
+    const alert = PLAYBOOK.alert;
+    const alerting = alert && (data.answers[alert.signal]?.noul ?? 0) >= (alert.min ?? 0.6);
+    app.result.alert = alerting ? alert.text : null;
+    app.result.alertTitle = alerting ? alert.title || null : null;
     if (stage) renderStage(stage);
     renderNext(app.result, !stage?.changed);
 
