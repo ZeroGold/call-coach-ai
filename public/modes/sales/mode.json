@@ -1,0 +1,9 @@
+{
+  "name": "Sales call",
+  "description": "Live coaching on a sales call: how close the customer is to buying, and what to do next.",
+  "kind": "live",
+  "order": 1,
+  "icon": "trend",
+  "transcript": { "key": "sales_call_transcript", "rep": "sales_rep", "other": "customer" },
+  "questions": { "action": "next_best_action", "stage": "buying_stage" }
+}

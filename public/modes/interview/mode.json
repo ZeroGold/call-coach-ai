@@ -1,0 +1,9 @@
+{
+  "name": "Job interview",
+  "description": "Live coaching while you're interviewed: how interested the interviewer is, and how to handle the next question.",
+  "kind": "live",
+  "order": 3,
+  "icon": "briefcase",
+  "transcript": { "key": "interview_transcript", "rep": "candidate", "other": "interviewer" },
+  "questions": { "action": "next_best_action", "stage": "interviewer_interest" }
+}

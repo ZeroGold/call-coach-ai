@@ -119,8 +119,9 @@ export function pickTips(action, signals, max = 3, config = DEFAULT_CONFIG) {
  * `memory` is updated in place so the next call can apply the stability rules.
  */
 export function decide(answers, playbook, memory, now = Date.now(), config = DEFAULT_CONFIG) {
-  const nba = answers?.next_best_action;
-  if (!nba?.probabilities) throw new Error("Response has no next_best_action probabilities.");
+  const key = playbook.questions?.action || "next_best_action";
+  const nba = answers?.[key];
+  if (!nba?.probabilities) throw new Error(`Response has no ${key} probabilities.`);
 
   const signals = {};
   for (const [key, a] of Object.entries(answers)) if (a?.type === "noul") signals[key] = a.noul;
@@ -133,7 +134,9 @@ export function decide(answers, playbook, memory, now = Date.now(), config = DEF
   }
   const blockNotes = {};
   for (const rule of playbook.rules || []) {
-    if (!rule.when(signals)) continue;
+    // A rule is a function of the signals, or data like { signal, min } for playbooks stored as JSON
+    const hit = typeof rule.when === "function" ? rule.when(signals) : (signals[rule.signal] ?? 0) >= (rule.min ?? 0.7);
+    if (!hit) continue;
     for (const key of rule.block) { skipped.add(key); blockNotes[key] = rule.note; }
   }
 

@@ -1,21 +1,76 @@
 {
   "name": "call-coach",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "main": "electron.js",
-  "description": "Live sales-call coach using TypeSafe Jev",
+  "description": "Live call coaching and conversation practice, powered by TypeSafe Jev",
   "scripts": {
     "start": "node server.mjs",
-    "overlay": "electron ."
+    "overlay": "electron .",
+    "check-modes": "node tools/check-modes.mjs",
+    "icon": "electron tools/make-icon.js",
+    "dist": "electron-builder --win nsis portable"
   },
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^26.15.3"
+  },
+  "author": "Call Coach",
+  "optionalDependencies": {
     "@huggingface/transformers": "^4.3.0",
     "onnxruntime-node": "^1.30.0"
   },
-  "devDependencies": {
-    "electron": "^33.4.11"
+  "build": {
+    "appId": "app.callcoach.desktop",
+    "productName": "Call Coach",
+    "copyright": "Call Coach contributors",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "asar": false,
+    "files": [
+      "electron.js",
+      "preload.js",
+      "server.mjs",
+      "package.json",
+      "public/**/*",
+      "!public/__test/**",
+      "!node_modules/@huggingface/transformers/.cache/**",
+      "!node_modules/onnxruntime-web/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/darwin/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/linux/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**",
+      "!node_modules/@huggingface/transformers/dist/*.web.*",
+      "!node_modules/@huggingface/transformers/dist/transformers.js",
+      "!node_modules/@huggingface/transformers/dist/transformers.min.js",
+      "!node_modules/@huggingface/transformers/src/**",
+      "!**/*.map"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Call Coach",
+      "artifactName": "CallCoach-Setup-${version}.${ext}",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "runAfterFinish": true
+    },
+    "portable": {
+      "artifactName": "CallCoach-${version}-portable.${ext}"
+    }
   }
 }

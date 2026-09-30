@@ -1,0 +1,87 @@
+{
+  "next_best_action": {
+    "type": "choice",
+    "instructions": "Given the other person's most recent statements and cues in `social_conversation`, what should the user do next to respond well to them?",
+    "criteria": {
+      "ask_follow_up": "The other person is engaged and shared something the user could ask more about",
+      "give_them_a_turn": "The user has been doing most of the talking and the other person hasn't had much chance to speak",
+      "wrap_up_kindly": "The other person is hinting they need to go: mentions the time or other plans, gives short replies, or says \"anyway\"",
+      "check_in": "The other person seems uncomfortable, upset, or unusually quiet, as if something is off",
+      "acknowledge_feelings": "The other person shared something emotional, a worry, or a problem",
+      "play_along": "The other person is joking, teasing, or being sarcastic, and a light reply fits",
+      "clarify": "The other person's meaning is unclear, or they seem confused by what the user said",
+      "follow_their_topic": "The other person changed the subject, which may mean they want to move on from the last one",
+      "no_action": "Nothing needs a response yet"
+    }
+  },
+  "their_engagement": {
+    "type": "score",
+    "instructions": "Based on the other person's most recent statements in `social_conversation`, how engaged are they in the conversation right now?",
+    "criteria": [
+      {
+        "what": "Ready to go: hinting they need to leave, distracted, or giving very short answers",
+        "examples": ["Anyway, I should get going.", "Yeah.", "Mm-hm. Sure.", "I've got a meeting in a minute."]
+      },
+      {
+        "what": "Polite: answering, but not adding much",
+        "examples": ["It was fine.", "Yeah, it's okay.", "Not much, you?"]
+      },
+      {
+        "what": "Engaged: sharing details and asking things back",
+        "examples": ["It was great, we went hiking. Have you been up there?", "Oh really? What happened next?"]
+      },
+      {
+        "what": "Enjoying it: laughing, sharing personal things, keeping the conversation going",
+        "examples": ["Ha! That's exactly what happened to me.", "Okay, I have to tell you about this.", "We should do this more often."]
+      }
+    ]
+  },
+  "wants_to_leave": {
+    "type": "noul",
+    "instructions": "Is the other person hinting that they want or need to end the conversation?",
+    "criteria": {
+      "true": "Mentions the time, somewhere they need to be, says \"anyway\" or \"well\", or keeps replies very short",
+      "false": "No sign they want to leave"
+    }
+  },
+  "joking": {
+    "type": "noul",
+    "instructions": "Is the other person joking, teasing, or being sarcastic?",
+    "criteria": {
+      "true": "Says something playful, exaggerated, teasing, or sarcastic that isn't meant literally",
+      "false": "Speaking plainly and literally"
+    }
+  },
+  "upset": {
+    "type": "noul",
+    "instructions": "Does the other person seem upset, stressed, or uncomfortable?",
+    "criteria": {
+      "true": "Mentions something hard, sounds down or tense, or seems uncomfortable with the topic",
+      "false": "Seems fine"
+    }
+  },
+  "sets_a_boundary": {
+    "type": "noul",
+    "instructions": "Has the other person said they don't want to talk about something, or asked for space?",
+    "criteria": {
+      "true": "Says they'd rather not discuss something, changes the subject pointedly, or asks for space",
+      "false": "No boundary set"
+    }
+  },
+  "asked_you_something": {
+    "type": "noul",
+    "instructions": "Did the other person just ask the user a question?",
+    "criteria": {
+      "true": "Their latest statement asks the user something",
+      "false": "No question for the user"
+    }
+  },
+  "changed_topic": {
+    "type": "noul",
+    "instructions": "Did the other person just change the subject?",
+    "criteria": {
+      "true": "Moves to a new topic unrelated to what was being discussed",
+      "false": "Stays on the same topic"
+    }
+  }
+}

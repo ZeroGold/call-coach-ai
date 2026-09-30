@@ -107,4 +107,36 @@ export const PLAYBOOK = {
     "Ask open-ended questions to draw out their needs.",
     "Listen for timeline, budget, and who else is involved.",
   ],
+
+  // Screen text for this mode
+  copy: {
+    stageKicker: "Buying stage",
+    idleStage: "Waiting for the customer",
+    other: "Customer",
+    otherSpeaking: "Customer speaking",
+    typeOther: "Type what the customer said",
+    idleTip: "Press Start listening, or type what the customer says below. Press S to switch who's speaking.",
+  },
+
+  // Signals shown in the dashboard. `warn`/`block` color a signal that's bad news.
+  signals: {
+    asked_about_pricing: { label: "Asked about pricing" },
+    mentions_timeline: { label: "Mentions timeline" },
+    discusses_budget: { label: "Discusses budget" },
+    decision_maker_involved: { label: "Decision maker involved" },
+    uses_ownership_language: { label: "Ownership language" },
+    has_blocking_objection: { label: "Blocking objection", warn: 0.6, block: 0.7 },
+    is_returning_prospect: { label: "Returning prospect" },
+  },
+
+  // "Play sample call" feeds these through the real API, one line every few seconds
+  sample: [
+    ["customer", "Hi, a colleague sent me your site. We're looking at a few tools to clean up how our support team tracks tickets."],
+    ["rep", "Thanks for reaching out. What's not working with how you track them today?"],
+    ["customer", "Honestly it's spreadsheets. We'd want to plug this straight into our help desk so the team stops copying things over."],
+    ["customer", "What does this cost for a team of about twenty? Is there an annual discount?"],
+    ["rep", "There is. I can walk you through the plans."],
+    ["customer", "Great. My director approved budget for this quarter and we want it running before the holidays."],
+    ["customer", "My only worry is the migration. Last time we switched tools we lost a month of history."],
+  ],
 };

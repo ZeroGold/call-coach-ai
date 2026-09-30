@@ -2,148 +2,173 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Call Coach</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Welcome to Call Coach</title>
+<!-- Loaded from disk before the server starts, so everything here is relative and self-contained -->
+<link rel="stylesheet" href="theme.css">
 <style>
-/* Light by default, matching the rest of the app. */
-:root {
-  --bg: #edf0f4; --field: #ffffff; --ink: #172033; --muted: #5e6a80;
-  --faint: #8a94a7; --line: #d5dbe5; --accent: #2743c9; --on-accent: #ffffff;
-  --ring: rgba(39,67,201,0.18); --stop: #b8322a;
-  color-scheme: light;
-}
-:root[data-theme="dark"] {
-  --bg: #0e1220; --field: #161d2e; --ink: #e7ebf2; --muted: #6c7890;
-  --faint: #3d4a63; --line: #252e42; --accent: #8098ff; --on-accent: #0e1422;
-  --ring: rgba(128,152,255,0.15); --stop: #f07167;
-  color-scheme: dark;
-}
-* { box-sizing: border-box; margin: 0; }
-body {
-  background: var(--bg); color: var(--ink);
-  font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 100vh; padding: 32px;
-  -webkit-app-region: drag;
-  user-select: none;
-}
-.logo { font-size: 2rem; margin-bottom: 4px; }
-h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; }
-.sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 24px; }
-form {
-  -webkit-app-region: no-drag;
-  width: 100%; max-width: 340px;
-  display: flex; flex-direction: column; gap: 14px;
-}
-.field { position: relative; }
-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 5px; }
-input, select {
-  width: 100%; padding: 11px 16px;
-  background: var(--field); border: 1px solid var(--line); border-radius: 10px;
-  color: var(--ink); font: inherit; font-size: 0.92rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-input[type="password"] { padding-right: 44px; letter-spacing: 0.08em; }
-input:focus, select:focus {
-  outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--ring);
-}
-input::placeholder { color: var(--faint); letter-spacing: 0; }
-select { cursor: pointer; -webkit-appearance: none; appearance: none; padding-right: 36px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236c7890' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
-}
-select option { background: var(--field); color: var(--ink); }
-.model-detail { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
-.toggle-vis {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; color: var(--muted); cursor: pointer;
-  padding: 6px; font-size: 1.1rem; line-height: 1;
-  border-radius: 6px; transition: color 0.15s;
-  margin-top: 10px;
-}
-.toggle-vis:hover { color: var(--ink); }
-button[type="submit"] {
-  padding: 12px; border: none; border-radius: 10px;
-  background: var(--accent); color: var(--on-accent);
-  font: inherit; font-weight: 700; font-size: 0.95rem;
-  cursor: pointer; transition: filter 0.15s, transform 0.1s;
-}
-button[type="submit"]:hover { filter: brightness(1.12); }
-button[type="submit"]:active { transform: scale(0.98); }
-button[type="submit"]:disabled { opacity: 0.5; cursor: default; filter: none; transform: none; }
-.err { font-size: 0.78rem; color: var(--stop); text-align: center; min-height: 1.2em; }
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+.drag { -webkit-app-region: drag; display: flex; align-items: center; gap: 8px; padding: 12px 12px 0 16px; }
+.drag .logo { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #5b6cf0, #2c3aa8); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+.drag .logo svg { width: 16px; height: 16px; }
+.drag b { flex: 1; font-size: 0.92rem; }
+.drag button { -webkit-app-region: no-drag; }
+.card { flex: 1; margin: 12px 16px 16px; border-radius: 24px; padding: 26px 28px 22px; display: flex; flex-direction: column; min-height: 0; }
+.steps { display: flex; gap: 6px; margin-bottom: 20px; }
+.steps i { height: 5px; flex: 1; border-radius: 99px; background: var(--well-2); overflow: hidden; position: relative; }
+.steps i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transform: scaleX(0); transform-origin: left; transition: transform var(--t-slow) var(--ease-out); }
+.steps i.done::after { transform: scaleX(1); }
+.step { display: none; flex-direction: column; gap: 12px; flex: 1; min-height: 0; }
+.step.on { display: flex; animation: rise-in var(--t-slow) var(--ease-out); }
+.hero-icon { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #5b6cf0, #7c3aed 60%, #db2777); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 12px 30px -12px rgba(124,58,237,.7); animation: sheet-in var(--t-spring) var(--ease-bounce, var(--ease-spring)); }
+.hero-icon svg { width: 30px; height: 30px; }
+h1 { margin: 6px 0 0; font-size: 1.7rem; letter-spacing: -0.035em; line-height: 1.1; }
+p.lead { margin: 0; color: var(--ink-2); font-size: 0.98rem; }
+.points { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 10px; }
+.points li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; animation: rise-in var(--t-slow) var(--ease-out) both; }
+.points li:nth-child(2) { animation-delay: 70ms; } .points li:nth-child(3) { animation-delay: 140ms; }
+.points .pi { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--accent); background: color-mix(in oklab, var(--accent) 13%, transparent); }
+.points .pi svg { width: 17px; height: 17px; }
+.points b { display: block; font-size: 0.94rem; }
+.points span { color: var(--ink-2); font-size: 0.88rem; }
+.key-wrap { position: relative; margin-top: 6px; }
+.key-wrap input { padding-right: 46px; user-select: text; }
+.key-wrap button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+.fine { color: var(--ink-3); font-size: 0.84rem; margin: 0; }
+.fine a { color: var(--accent); font-weight: 600; cursor: pointer; }
+.err { color: var(--danger); font-size: 0.88rem; margin: 0; min-height: 1.2em; font-weight: 500; }
+.models { display: grid; gap: 8px; margin-top: 4px; }
+.models label { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; padding: 11px 14px; border-radius: 14px; border: 1px solid var(--glass-edge); background: var(--well); cursor: pointer; transition: border-color var(--t-fast), box-shadow var(--t-med), background var(--t-fast); }
+.models label:hover { background: var(--well-2); }
+.models label:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); background: var(--film); }
+.models input { accent-color: var(--accent); grid-row: span 2; }
+.models b { font-size: 0.95rem; }
+.models small { grid-column: 2; color: var(--ink-2); }
+.models em { grid-row: 1 / span 2; grid-column: 3; font-style: normal; color: var(--ink-3); font-size: 0.82rem; }
+.models .rec { color: var(--ok); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; margin-left: 6px; }
+.foot { display: flex; gap: 8px; align-items: center; margin-top: auto; padding-top: 16px; }
+.foot .grow { flex: 1; }
 </style>
 <script>
 (function () {
-  var v; try { v = localStorage.getItem("cc-theme"); } catch (e) {}
-  if (v === "system") v = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", v === "dark" ? "dark" : "light");
+  var t;
+  try { t = localStorage.getItem("cc-theme"); } catch (e) {}
+  document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
 })();
 </script>
 </head>
-<body>
-<div class="logo">&#127911;</div>
-<h1>Call Coach</h1>
-<p class="sub">Configure your setup to get started</p>
-<form id="form">
-  <div class="field">
-    <label for="key">TypeSafe API Key</label>
-    <input id="key" type="password" placeholder="ts_live_..." autocomplete="off" autofocus spellcheck="false">
-    <button type="button" class="toggle-vis" id="toggleVis" tabindex="-1" title="Show key">&#128065;</button>
+<body class="aurora">
+
+<div class="drag">
+  <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4.5 16.5a8 8 0 1 1 15 0"/><path d="M12 12.5 15.5 9"/><circle cx="12" cy="13" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+  <b>Call Coach</b>
+  <button type="button" class="icon-btn" id="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+
+<form class="card panel rim" id="form" novalidate>
+  <div class="steps" aria-hidden="true"><i class="done"></i><i></i><i></i><i></i></div>
+
+  <section class="step on" data-step="0" aria-labelledby="t0">
+    <span class="hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13.5" width="4" height="6" rx="1.6"/><rect x="17" y="13.5" width="4" height="6" rx="1.6"/></svg></span>
+    <h1 id="t0">Welcome to Call Coach</h1>
+    <p class="lead">A coach that floats over your calls and tells you what to do next.</p>
+    <ul class="points">
+      <li><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10"/></svg></span><div><b>Hears both sides</b><span>Zoom, Meet, Teams or a phone app. Speech is turned into text on this computer.</span></div></li>
+      <li><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4.5 16.5a8 8 0 1 1 15 0"/><path d="M12 12.5 15.5 9"/></svg></span><div><b>Shows where things stand</b><span>A gauge that moves as the conversation does.</span></div></li>
+      <li><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3.5 13.8 9a2 2 0 0 0 1.2 1.2l5.5 1.8-5.5 1.8a2 2 0 0 0-1.2 1.2L12 20.5 10.2 15A2 2 0 0 0 9 13.8L3.5 12 9 10.2A2 2 0 0 0 10.2 9L12 3.5Z"/></svg></span><div><b>Suggests your next move</b><span>For work calls, interviews, social situations, anxiety, or any coach you build.</span></div></li>
+    </ul>
+  </section>
+
+  <section class="step" data-step="1" aria-labelledby="t1">
+    <span class="hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 6l2.5 2.5M14 8l2 2"/></svg></span>
+    <h1 id="t1">Connect TypeSafe</h1>
+    <p class="lead">Call Coach uses TypeSafe Jev to read the conversation. Paste your API key.</p>
+    <div class="key-wrap">
+      <input class="field-input" id="key" type="password" placeholder="Your TypeSafe API key" autocomplete="off" spellcheck="false" aria-label="TypeSafe API key">
+      <button type="button" class="icon-btn" id="toggleVis" title="Show key" aria-label="Show key"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></svg></button>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <p class="fine">Don't have one? <a id="getKey" tabindex="0">Get a key at typesafe.ai</a>. Your key is saved only on this computer.</p>
+  </section>
+
+  <section class="step" data-step="2" aria-labelledby="t2">
+    <span class="hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span>
+    <h1 id="t2">Choose a speech model</h1>
+    <p class="lead">It runs on this computer and downloads the first time you use it. You can change it later in Settings.</p>
+    <div class="models" role="radiogroup" aria-label="Speech model">
+      <label><input type="radio" name="model" value="onnx-community/whisper-tiny.en"><b>Tiny</b><small>Fastest. Good for older laptops.</small><em>~40 MB</em></label>
+      <label><input type="radio" name="model" value="onnx-community/whisper-base.en" checked><b>Base<span class="rec">Recommended</span></b><small>Quick and accurate for most calls.</small><em>~80 MB</em></label>
+      <label><input type="radio" name="model" value="onnx-community/whisper-small.en"><b>Small</b><small>Most accurate. Needs a fast computer.</small><em>~250 MB</em></label>
+    </div>
+  </section>
+
+  <section class="step" data-step="3" aria-labelledby="t3">
+    <span class="hero-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+    <h1 id="t3">You're set</h1>
+    <p class="lead">Call Coach opens as a small window that stays on top of your call.</p>
+    <ul class="points">
+      <li><span class="pi"><b>1</b></span><div><b>Pick a coach</b><span>Sales, support, interviews, social cues, anxiety, or your own.</span></div></li>
+      <li><span class="pi"><b>2</b></span><div><b>Press Auto when the call starts</b><span>It hears both sides. Headphones work best.</span></div></li>
+      <li><span class="pi"><b>3</b></span><div><b>Glance at the gauge</b><span>And do the suggested step. Press Ctrl K any time to find anything.</span></div></li>
+    </ul>
+  </section>
+
+  <div class="foot">
+    <button type="button" class="btn ghost" id="back" hidden>Back</button>
+    <span class="grow"></span>
+    <button type="submit" class="btn" id="next">Get started</button>
   </div>
-  <div>
-    <label for="model">Speech Model</label>
-    <select id="model">
-      <option value="onnx-community/whisper-tiny.en">Tiny  &mdash;  ~40 MB, fastest</option>
-      <option value="onnx-community/whisper-base.en">Base  &mdash;  ~150 MB, balanced</option>
-      <option value="onnx-community/whisper-small.en" selected>Small  &mdash;  ~500 MB, accurate</option>
-      <option value="onnx-community/whisper-medium.en">Medium  &mdash;  ~1.5 GB, best accuracy</option>
-    </select>
-    <div class="model-detail" id="modelDetail">High accuracy, moderate speed. Downloads on first use.</div>
-  </div>
-  <button type="submit" id="go">Launch</button>
-  <p class="err" id="err"></p>
 </form>
+
 <script>
-const inp = document.getElementById("key");
-const toggle = document.getElementById("toggleVis");
-const err = document.getElementById("err");
-const go = document.getElementById("go");
-const modelSelect = document.getElementById("model");
-const modelDetail = document.getElementById("modelDetail");
+var step = 0;
+var steps = document.querySelectorAll(".step");
+var bars = document.querySelectorAll(".steps i");
+var next = document.getElementById("next");
+var back = document.getElementById("back");
+var key = document.getElementById("key");
+var err = document.getElementById("err");
+var labels = ["Get started", "Continue", "Continue", "Launch Call Coach"];
 
-const details = {
-  "onnx-community/whisper-tiny.en":   "Fastest, lowest accuracy. Good for testing.",
-  "onnx-community/whisper-base.en":   "Good balance of speed and accuracy.",
-  "onnx-community/whisper-small.en":  "High accuracy, moderate speed. Downloads on first use.",
-  "onnx-community/whisper-medium.en": "Best accuracy, slower inference. Large download.",
-};
+function show(n) {
+  step = n;
+  steps.forEach(function (s, i) { s.classList.toggle("on", i === n); });
+  bars.forEach(function (b, i) { b.classList.toggle("done", i <= n); });
+  back.hidden = n === 0;
+  next.textContent = labels[n];
+  if (n === 1) key.focus(); else next.focus();
+}
 
-modelSelect.addEventListener("change", () => {
-  modelDetail.textContent = details[modelSelect.value] || "";
-});
-
-toggle.addEventListener("click", () => {
-  const show = inp.type === "password";
-  inp.type = show ? "text" : "password";
-  toggle.innerHTML = show ? "&#128064;" : "&#128065;";
-  inp.focus();
-});
-
-document.getElementById("form").addEventListener("submit", (e) => {
+document.getElementById("form").addEventListener("submit", function (e) {
   e.preventDefault();
-  const val = inp.value.trim();
-  if (!val) { err.textContent = "Please enter an API key."; inp.focus(); return; }
-  go.disabled = true;
-  go.textContent = "Starting...";
-  err.textContent = "";
-  if (window.overlay?.submitKey) {
-    window.overlay.submitKey(val, modelSelect.value);
+  if (step === 1) {
+    var val = key.value.trim();
+    if (!val) { err.textContent = "Paste your API key to continue."; key.focus(); return; }
+    if (val.length < 12 || /\s/.test(val)) { err.textContent = "That doesn't look like a full API key. Check that you copied all of it."; key.focus(); return; }
+    err.textContent = "";
   }
+  if (step < steps.length - 1) { show(step + 1); return; }
+  next.disabled = true;
+  next.textContent = "Starting...";
+  var model = document.querySelector('input[name="model"]:checked').value;
+  if (window.overlay && window.overlay.submitKey) window.overlay.submitKey(key.value.trim(), model);
 });
+back.addEventListener("click", function () { show(Math.max(0, step - 1)); });
+key.addEventListener("input", function () { err.textContent = ""; });
+
+document.getElementById("toggleVis").addEventListener("click", function () {
+  var showing = key.type === "text";
+  key.type = showing ? "password" : "text";
+  this.setAttribute("aria-label", showing ? "Show key" : "Hide key");
+  this.title = showing ? "Show key" : "Hide key";
+  key.focus();
+});
+function openSite() { if (window.overlay && window.overlay.openExternal) window.overlay.openExternal("https://typesafe.ai"); }
+document.getElementById("getKey").addEventListener("click", openSite);
+document.getElementById("getKey").addEventListener("keydown", function (e) { if (e.key === "Enter") openSite(); });
+document.getElementById("close").addEventListener("click", function () { if (window.overlay) window.overlay.close(); else window.close(); });
+document.addEventListener("keydown", function (e) { if (e.key === "Escape" && step > 0) show(step - 1); });
+show(0);
 </script>
 </body>
 </html>

@@ -1,0 +1,9 @@
+{
+  "name": "Social cues",
+  "description": "Live help reading the other person: whether they're engaged, joking, upset, or ready to wrap up, and how to respond.",
+  "kind": "live",
+  "order": 5,
+  "icon": "people",
+  "transcript": { "key": "social_conversation", "rep": "user", "other": "other_person" },
+  "questions": { "action": "next_best_action", "stage": "their_engagement" }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Social cues practice",
+  "description": "Practice noticing and responding to cues: a hint to wrap up, a bad day, a joke, a change of subject, a boundary.",
+  "kind": "rehearsal",
+  "order": 6,
+  "icon": "people",
+  "transcript": { "key": "cue_practice", "rep": "user", "other": "other_person" },
+  "questions": { "action": "coaching_focus", "stage": "reply_fit" }
+}

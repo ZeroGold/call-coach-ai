@@ -1,0 +1,70 @@
+{
+  "coaching_focus": {
+    "type": "choice",
+    "instructions": "`cue_practice` is a conversation the user is practicing to get better at reading social cues. Looking at the user's most recent reply and what the other person had just said, what is the single most useful thing for the user to work on next?",
+    "criteria": {
+      "notice_the_cue": "The other person gave a cue (being upset, joking, changing the subject, setting a boundary) and the reply didn't respond to it",
+      "let_them_go": "The other person signaled they need to leave, and the reply kept the conversation going",
+      "acknowledge_them": "The other person shared a feeling or a problem, and the reply skipped past it",
+      "match_the_tone": "The reply's tone doesn't fit: too serious for a joke, too casual for something serious, or too intense",
+      "respect_the_boundary": "The other person said they didn't want to talk about something, and the reply pushed on it",
+      "ask_back": "The reply answers but asks nothing back and doesn't invite the other person to share",
+      "give_them_room": "The reply is long or turns the conversation to the user when the other person wanted to talk",
+      "in_tune": "The reply picks up on the other person's cue and responds naturally"
+    }
+  },
+  "reply_fit": {
+    "type": "score",
+    "instructions": "How well does the user's most recent reply in `cue_practice` pick up on and respond to what the other person just signaled?",
+    "criteria": [
+      {
+        "what": "Missed the cue: ignores or works against what the other person signaled",
+        "examples": ["(They said they're late) So anyway, let me tell you about my weekend.", "(They said they're upset) Cool. Want to get lunch?"]
+      },
+      {
+        "what": "A bit off: responds, but the tone or timing doesn't quite fit",
+        "examples": ["Haha okay.", "Oh. Well, that happens.", "Why don't you want to talk about it?"]
+      },
+      {
+        "what": "Natural: responds to the cue in a way that fits",
+        "examples": ["No worries, go! Talk later.", "Ha, fair enough.", "Sorry to hear that. Is she okay?"]
+      },
+      {
+        "what": "In tune: reads the cue, responds warmly, and makes things easy for them",
+        "examples": ["Oh no, that sounds stressful. Want to talk about it, or would you rather think about something else?", "Go, go! Good luck in there, tell me how it goes."]
+      }
+    ]
+  },
+  "responds_to_cue": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply respond to what the other person just signaled, such as a feeling, a joke, a hint, or a boundary?",
+    "criteria": {
+      "true": "The reply clearly takes the other person's cue into account",
+      "false": "The reply ignores the cue"
+    }
+  },
+  "acknowledges_feeling": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply acknowledge how the other person feels?",
+    "criteria": {
+      "true": "Names or responds to the other person's feeling, like \"that sounds hard\" or \"I'm glad\"",
+      "false": "No acknowledgment of feelings"
+    }
+  },
+  "asks_question": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply ask the other person a question?",
+    "criteria": {
+      "true": "Asks them something or invites them to share",
+      "false": "No question"
+    }
+  },
+  "keeps_them_talking": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply try to keep the conversation going?",
+    "criteria": {
+      "true": "Starts a new topic, asks something new, or adds a long story",
+      "false": "Lets the conversation end or follows the other person's lead"
+    }
+  }
+}

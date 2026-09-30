@@ -1,0 +1,78 @@
+{
+  "coaching_focus": {
+    "type": "choice",
+    "instructions": "`interview_practice` is a job interview the candidate is practicing. Looking at the candidate's most recent answer to the interviewer, what is the single most useful thing for the candidate to work on next?",
+    "criteria": {
+      "add_example": "The answer makes claims about the candidate without a concrete example or story",
+      "show_impact": "The answer describes what happened but not the result, such as numbers, outcomes, or what changed",
+      "answer_the_question": "The answer drifts away from what was asked or never directly answers it",
+      "be_concise": "The answer is long, rambling, or repeats itself",
+      "own_it": "The answer hides the candidate's own role behind \"we\", hedges, or undersells what they did",
+      "stay_positive": "The answer criticizes a past employer, manager, or coworker, or sounds bitter",
+      "connect_to_role": "The answer is generic and could apply to any job, with no link to this role or company",
+      "strong_answer": "The answer is direct and specific, shows the candidate's impact, and fits the question"
+    }
+  },
+  "answer_strength": {
+    "type": "score",
+    "instructions": "How strong is the candidate's most recent answer in `interview_practice`, as an interviewer would judge it?",
+    "criteria": [
+      {
+        "what": "Hurts you: off-topic, negative, evasive, or raises a red flag",
+        "examples": ["Honestly, my last boss was terrible.", "I don't really have any weaknesses.", "I just need a job right now."]
+      },
+      {
+        "what": "Weak: vague or generic, with no example",
+        "examples": ["I'm a hard worker and a team player.", "I'm good with people.", "I like challenges."]
+      },
+      {
+        "what": "Solid: answers directly with a relevant example",
+        "examples": ["At my last job I led our move to a new billing system, and we finished on schedule."]
+      },
+      {
+        "what": "Standout: a specific story, the candidate's own role, a measurable result, and a link to this job",
+        "examples": ["Onboarding took new hires two weeks, so I rebuilt the checklist and got it down to four days. That's the kind of process work this role needs."]
+      }
+    ]
+  },
+  "gives_example": {
+    "type": "noul",
+    "instructions": "Does the candidate's most recent answer include a concrete example or story?",
+    "criteria": {
+      "true": "Describes a specific situation, project, or moment from their experience",
+      "false": "Speaks only in general terms"
+    }
+  },
+  "shows_result": {
+    "type": "noul",
+    "instructions": "Does the candidate's most recent answer say what the result or impact was?",
+    "criteria": {
+      "true": "Gives an outcome, a number, or what changed because of the candidate's work",
+      "false": "No result or impact mentioned"
+    }
+  },
+  "owns_their_role": {
+    "type": "noul",
+    "instructions": "Does the candidate's most recent answer make clear what the candidate personally did?",
+    "criteria": {
+      "true": "Uses \"I\" for their own actions and decisions",
+      "false": "Only says \"we\", or their own part is unclear"
+    }
+  },
+  "negative_tone": {
+    "type": "noul",
+    "instructions": "Is the candidate's most recent answer negative about a past job, employer, or coworker?",
+    "criteria": {
+      "true": "Complains about, blames, or criticizes a past employer, manager, or coworker",
+      "false": "Neutral or positive"
+    }
+  },
+  "too_long": {
+    "type": "noul",
+    "instructions": "Is the candidate's most recent answer too long or rambling for the question?",
+    "criteria": {
+      "true": "Goes on well past what the question needed, or wanders between topics",
+      "false": "A reasonable length for the question"
+    }
+  }
+}

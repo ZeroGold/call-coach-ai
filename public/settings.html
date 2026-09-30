@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · Call Coach</title>
+<link rel="icon" href="/icon.png">
+<link rel="preload" href="/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/theme.css">
+<style>
+/* Top bar */
+.bar { position: sticky; top: 12px; z-index: 30; width: min(1180px, calc(100% - 24px)); margin: 12px auto 0; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; border-radius: 20px; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 1.02rem; letter-spacing: -0.015em; color: inherit; text-decoration: none; }
+.logo { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #5b6cf0, #2c3aa8); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 12px -4px rgba(44,58,168,.6); }
+.logo svg { width: 19px; height: 19px; }
+.crumb { color: var(--ink-3); font-weight: 600; }
+.crumb::before { content: "/"; margin: 0 8px 0 2px; color: var(--line); }
+.spacer { flex: 1; }
+
+/* Layout: section nav + content */
+.layout { width: min(1180px, calc(100% - 24px)); margin: 18px auto 0; padding-bottom: 80px; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 18px; align-items: start; }
+.side { position: sticky; top: 88px; border-radius: var(--r-lg); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.side button { display: flex; align-items: center; gap: 10px; border: none; background: none; text-align: left; border-radius: 10px; padding: 9px 10px; color: var(--ink-2); font-weight: 600; transition: background var(--t-fast), color var(--t-fast); }
+.side button svg { width: 17px; height: 17px; }
+.side button:hover { background: var(--well-2); color: var(--ink); }
+.side button[aria-current="true"] { background: color-mix(in oklab, var(--accent) 13%, transparent); color: var(--ink); }
+.side button[aria-current="true"] svg { color: var(--accent); }
+.content { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.section { border-radius: var(--r-xl); padding: clamp(18px, 3vw, 28px); scroll-margin-top: 90px; animation: rise-in var(--t-slow) var(--ease-out) both; }
+.section-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.section-head .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+h1, h2 { margin: 0; letter-spacing: -0.03em; line-height: 1.1; }
+h1 { font-size: clamp(1.7rem, 3.6vw, 2.3rem); font-weight: 800; }
+h2 { font-size: 1.35rem; font-weight: 800; }
+.lede { color: var(--ink-2); margin: 8px 0 18px; max-width: 64ch; }
+.note { color: var(--ink-2); font-size: 0.9rem; margin: 6px 0 0; }
+
+/* Coach tiles */
+.coach-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.coach { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; padding: 16px; border-radius: var(--r-lg); transition: transform var(--t-med) var(--ease-out), box-shadow var(--t-med); }
+.coach:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--glass-rim), var(--shadow-2); }
+.coach-icon { grid-row: 1 / span 2; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #6470f2, #22b8d6); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+.coach-icon svg { width: 20px; height: 20px; }
+.coach[data-kind="rehearsal"] .coach-icon { background: linear-gradient(140deg, #a855f7, #ec4899); }
+.coach[data-custom] .coach-icon { background: linear-gradient(140deg, #f59e0b, #ef4444); }
+.coach-name { font-weight: 750; font-size: 1.04rem; align-self: end; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.coach-desc { grid-column: 2; color: var(--ink-2); font-size: 0.9rem; }
+.coach-actions { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; position: relative; z-index: 1; }
+.chip.custom { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 40%, transparent); }
+
+/* Editor */
+.editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; margin-top: 16px; }
+form { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+fieldset { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+legend { padding: 0; margin-bottom: 4px; font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; }
+.legend-note { display: block; font-weight: 400; color: var(--ink-2); font-size: 0.88rem; margin-top: 2px; letter-spacing: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > span { font-weight: 650; font-size: 0.86rem; color: var(--ink-2); }
+.field > span small { font-weight: 400; color: var(--ink-3); }
+textarea.field-input { resize: vertical; min-height: 64px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kind { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kind label { position: relative; display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--glass-edge); border-radius: 14px; padding: 14px; cursor: pointer; background: var(--well); transition: border-color var(--t-fast), box-shadow var(--t-med) var(--ease-out), background var(--t-fast); }
+.kind label:hover { background: var(--well-2); }
+.kind label:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); background: var(--film); }
+.kind input { margin-top: 3px; accent-color: var(--accent); }
+.kind b { display: block; }
+.kind small { color: var(--ink-2); }
+.rows { display: flex; flex-direction: column; gap: 10px; }
+.row { border: 1px solid var(--glass-edge); border-radius: 16px; padding: 12px; display: grid; gap: 10px; background: var(--well); animation: rise-in var(--t-med) var(--ease-out); }
+.row-head { display: flex; align-items: center; gap: 4px; }
+.row-head .num { font-weight: 750; color: var(--ink-3); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; margin-right: auto; }
+.row-head .icon-btn { width: 30px; height: 30px; border-radius: 9px; }
+.row-head .icon-btn svg { width: 15px; height: 15px; }
+.level-row { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.level-row .examples { grid-column: 1 / -1; }
+.level-row .lvl { display: inline-flex; align-items: center; gap: 7px; }
+.level-row .lvl::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.add { align-self: flex-start; }
+details.advanced summary { cursor: pointer; font-weight: 650; color: var(--ink-2); }
+details.advanced[open] summary { margin-bottom: 10px; }
+.problems { margin: 0; padding: 12px 14px 12px 32px; border: 1px solid var(--danger); border-radius: 14px; background: color-mix(in oklab, var(--danger) 8%, transparent); animation: rise-in var(--t-med) var(--ease-out); }
+.form-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; position: sticky; bottom: 12px; padding: 10px; border-radius: 16px; z-index: 2; }
+
+/* Live preview of the coach being built */
+.preview { position: sticky; top: 88px; display: flex; flex-direction: column; gap: 10px; }
+.pv-title { margin: 0; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 750; color: var(--ink-3); }
+.pv-card { border-radius: 18px; padding: 14px 16px; }
+.pv-kicker { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 750; color: var(--ink-3); }
+.pv-gauge { display: block; width: 150px; margin: 6px auto 0; }
+.pv-stage { text-align: center; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; margin: -34px 0 18px; }
+.pv-levels { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.pv-levels li { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; color: var(--ink-2); }
+.pv-levels li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+.pv-levels li.on { color: var(--ink); font-weight: 700; }
+.pv-next { border-left: 4px solid var(--s2); }
+.pv-next b { display: block; font-size: 1.05rem; margin-top: 2px; }
+.pv-next p { margin: 6px 0 0; color: var(--ink-2); font-size: 0.88rem; }
+.pv-bubble { margin-top: 6px; padding: 10px 12px; border-radius: 14px 14px 14px 4px; background: var(--well-2); font-weight: 600; }
+.pv-empty { color: var(--ink-3); font-style: italic; }
+
+/* Access + speech */
+.key-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.key-row input { flex: 1; min-width: 220px; }
+.saved { color: var(--ok); font-weight: 650; font-size: 0.88rem; align-self: center; }
+.model-picker { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.model-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--glass-edge); background: var(--well); text-align: left; color: var(--ink-2); transition: border-color var(--t-fast), box-shadow var(--t-med), background var(--t-fast); }
+.model-opt:hover { background: var(--well-2); }
+.model-opt.active { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); background: var(--film); }
+.model-opt.loading { border-color: var(--warn); }
+.model-name { font-weight: 750; color: var(--ink); }
+.model-size { color: var(--ink-3); margin-left: auto; font-size: 0.82rem; }
+.model-status { margin-top: 10px; color: var(--ink-2); font-size: 0.88rem; min-height: 1.2em; }
+.model-bar { height: 5px; border-radius: 3px; background: var(--well-2); margin-top: 6px; overflow: hidden; }
+.model-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.3s var(--ease-out); }
+
+/* How it works */
+.paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.path { border-radius: 18px; padding: 16px; background: var(--well); border: 1px solid var(--glass-edge); }
+.path h3 { margin: 0 0 8px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+.path h3 svg { width: 18px; height: 18px; color: var(--accent); }
+.path ol { margin: 0; padding-left: 20px; color: var(--ink-2); font-size: 0.9rem; display: grid; gap: 6px; }
+.shortcuts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 18px; margin-top: 16px; padding: 0; list-style: none; }
+.shortcuts li { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink-2); padding: 6px 0; border-bottom: 1px dashed var(--line); }
+
+@media (max-width: 1100px) {
+  .editor-grid { grid-template-columns: 1fr; }
+  .preview { position: static; order: -1; }
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .side { position: static; flex-direction: row; overflow-x: auto; }
+  .paths { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .grid2, .kind, .level-row { grid-template-columns: 1fr; }
+  .crumb { display: none; }
+}
+</style>
+<script>
+(function () {
+  var t;
+  try { t = localStorage.getItem("cc-theme"); } catch (e) {}
+  document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
+})();
+</script>
+</head>
+<body class="aurora">
+
+<header class="bar glass rim">
+  <a class="brand" href="/"><span class="logo" data-icon="logo"></span><span>Call Coach</span></a><span class="crumb">Settings</span>
+  <span class="spacer"></span>
+  <a class="btn ghost small" id="backBtn" href="/">Back to Call Coach</a>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Switch to dark mode" title="Light / dark"></button>
+</header>
+
+<div class="layout">
+  <nav class="side glass rim" aria-label="Settings sections">
+    <button type="button" data-target="coaches" data-icon="sparkle">Coaches</button>
+    <button type="button" data-target="accessPanel" id="navAccess" data-icon="key" hidden>TypeSafe access</button>
+    <button type="button" data-target="speech" data-icon="mic">Speech model</button>
+    <button type="button" data-target="help" data-icon="help">How it works</button>
+  </nav>
+
+  <main class="content">
+    <section class="section panel rim" id="coaches" aria-labelledby="coachesTitle">
+      <div class="section-head">
+        <h1 id="coachesTitle">Coaches</h1>
+        <div class="actions">
+          <button type="button" class="btn" id="newLive" data-icon="plus">New live coach</button>
+          <button type="button" class="btn ghost" id="newPractice" data-icon="chat">New practice coach</button>
+          <button type="button" class="btn ghost" id="importBtn">Import</button>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
+      </div>
+      <p class="lede">A coach decides what the gauge measures and what to suggest next. Build one for any conversation: job interviews, negotiations, a support desk, or a practice run for something you're nervous about. Duplicate a built-in coach to start from one that works.</p>
+      <ul class="coach-list" id="coachList"></ul>
+    </section>
+
+    <section class="section panel rim" id="editor" hidden aria-labelledby="editorTitle">
+      <h2 id="editorTitle">New coach</h2>
+      <div class="editor-grid">
+        <form id="coachForm" novalidate>
+          <fieldset>
+            <legend>Basics</legend>
+            <label class="field"><span>Name</span><input class="field-input" type="text" id="fName" maxlength="60" placeholder="Job interview" required></label>
+            <label class="field"><span>Description <small>(shown on the start screen)</small></span><input class="field-input" type="text" id="fDescription" maxlength="200" placeholder="Live coaching while you interview a candidate."></label>
+            <div class="kind" role="radiogroup" aria-label="Kind of coach">
+              <label><input type="radio" name="kind" value="live" checked><span><b>Live call</b><small>Coaches you during a real conversation, from the call audio or what you type.</small></span></label>
+              <label><input type="radio" name="kind" value="rehearsal"><span><b>Practice</b><small>You reply to scripted lines and get feedback on each reply.</small></span></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Who's talking</legend>
+            <div class="grid2">
+              <label class="field"><span>You are</span><input class="field-input" type="text" id="fYou" maxlength="40" placeholder="Recruiter"></label>
+              <label class="field"><span>You're talking with</span><input class="field-input" type="text" id="fThem" maxlength="40" placeholder="Candidate"></label>
+            </div>
+            <label class="field"><span id="goalLabel">What you're working toward <small>(optional)</small></span><input class="field-input" type="text" id="fGoal" maxlength="200" placeholder="get the candidate excited to accept an offer"></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>The gauge<span class="legend-note">Four levels, lowest to highest. The gauge shows where things stand right now.</span></legend>
+            <div class="grid2">
+              <label class="field"><span>What it measures</span><input class="field-input" type="text" id="fGaugeLabel" maxlength="40" placeholder="Candidate interest"></label>
+              <label class="field"><span>The question it answers</span><input class="field-input" type="text" id="fGaugeQuestion" maxlength="200" placeholder="how interested are they in the role right now?"></label>
+            </div>
+            <div class="rows" id="levels"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend id="actionsLegend">Next steps to suggest<span class="legend-note">The coach picks one at a time. When two fit equally well, the one higher in the list wins.</span></legend>
+            <div class="rows" id="actions"></div>
+            <button type="button" class="btn ghost small add" id="addAction" data-icon="plus">Add a step</button>
+          </fieldset>
+
+          <fieldset>
+            <legend>Signals <span class="legend-note">Optional yes/no questions, shown in the dashboard.</span></legend>
+            <div class="rows" id="signals"></div>
+            <button type="button" class="btn ghost small add" id="addSignal" data-icon="plus">Add a signal</button>
+          </fieldset>
+
+          <fieldset id="scenarioSet" hidden>
+            <legend>Practice scenarios<span class="legend-note">The other person says each line in turn, and you reply to each.</span></legend>
+            <div class="rows" id="scenarios"></div>
+            <button type="button" class="btn ghost small add" id="addScenario" data-icon="plus">Add a scenario</button>
+          </fieldset>
+
+          <details class="advanced">
+            <summary>Advanced: the exact questions sent to Jev</summary>
+            <p class="note">Leave these empty to use the wording built from the fields above, shown in grey.</p>
+            <label class="field"><span>Next step question</span><textarea class="field-input" id="fActionInstructions" rows="3"></textarea></label>
+            <label class="field"><span>Gauge question</span><textarea class="field-input" id="fStageInstructions" rows="3"></textarea></label>
+          </details>
+
+          <ul class="problems" id="problems" role="alert" hidden></ul>
+
+          <div class="form-actions glass rim">
+            <button type="submit" class="btn" data-icon="check">Save coach</button>
+            <button type="button" class="btn ghost" id="cancelEdit">Cancel</button>
+          </div>
+        </form>
+
+        <aside class="preview" aria-label="Preview">
+          <p class="pv-title">Live preview</p>
+          <div class="pv-card panel rim">
+            <div class="pv-kicker" id="pvLabel">Gauge</div>
+            <svg class="pv-gauge" viewBox="0 12 200 118" aria-hidden="true"><g id="pvArc"></g></svg>
+            <div class="pv-stage" id="pvStage"></div>
+            <ol class="pv-levels" id="pvLevels"></ol>
+          </div>
+          <div class="pv-card panel rim pv-next">
+            <div class="pv-kicker" id="pvNextKicker">Suggested action</div>
+            <b id="pvNextTitle"></b>
+            <p id="pvNextTip"></p>
+          </div>
+          <div class="pv-card panel rim" id="pvScenario" hidden>
+            <div class="pv-kicker" id="pvThem">They say</div>
+            <div class="pv-bubble" id="pvLine"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section panel rim" id="accessPanel" hidden aria-labelledby="accessTitle">
+      <h2 id="accessTitle">TypeSafe access</h2>
+      <p class="note" id="accessNote">Coaching uses TypeSafe Jev. Add your TypeSafe API key; it stays in this browser and is sent through this site to TypeSafe with each request. The site doesn't store it.</p>
+      <form class="key-row" id="keyForm">
+        <label class="visually-hidden" for="keyIn">Your TypeSafe API key</label>
+        <input class="field-input" type="password" id="keyIn" autocomplete="off" placeholder="Your TypeSafe API key">
+        <button type="submit" class="btn">Save key</button>
+        <button type="button" class="btn ghost" id="keyRemove">Remove</button>
+        <span class="saved" id="keySaved" role="status"></span>
+      </form>
+      <form class="key-row" id="codeForm" hidden>
+        <label class="visually-hidden" for="codeIn">Access code</label>
+        <input class="field-input" type="password" id="codeIn" autocomplete="off" placeholder="Or this site's access code">
+        <button type="submit" class="btn ghost">Save code</button>
+        <span class="saved" id="codeSaved" role="status"></span>
+      </form>
+    </section>
+
+    <section class="section panel rim" id="speech" aria-labelledby="speechTitle">
+      <h2 id="speechTitle">Speech model</h2>
+      <p class="note">Turns call audio and spoken practice replies into text. Bigger models are more accurate but slower.</p>
+      <div class="model-picker" id="modelPicker"></div>
+      <div class="model-status" id="modelStatus" role="status"></div>
+    </section>
+
+    <section class="section panel rim" id="help" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">How it works</h2>
+      <p class="note">Call Coach reads the conversation and shows two things: where it stands, on the gauge, and the one thing to do next.</p>
+      <div class="paths">
+        <div class="path"><h3 data-icon="headset">On a call</h3><ol><li>Join your Zoom, Meet, Teams or phone call.</li><li>Pick a coach, then press <b>Auto capture</b> to hear both sides.</li><li>Glance at the gauge and do the suggested step.</li></ol></div>
+        <div class="path"><h3 data-icon="chat">Practice</h3><ol><li>Pick a practice coach and a scenario.</li><li>Type or say your reply, then <b>Get feedback</b>.</li><li><b>Try again</b> to see the score move, or go to the next line.</li></ol></div>
+        <div class="path"><h3 data-icon="sparkle">Your own coach</h3><ol><li>Choose <b>New live coach</b> above, or duplicate one.</li><li>Name the gauge's four levels and the next steps.</li><li>Save. It's on the start screen right away.</li></ol></div>
+      </div>
+      <ul class="shortcuts" aria-label="Keyboard shortcuts">
+        <li>Search coaches and actions <kbd id="kbdPalette">Ctrl K</kbd></li>
+        <li>Pick a coach on the start screen <kbd>1</kbd></li>
+        <li>Switch who's speaking <kbd>S</kbd></li>
+        <li>Mark the suggestion done <kbd>D</kbd></li>
+        <li>Send a practice reply <span><kbd>Ctrl</kbd> <kbd>Enter</kbd></span></li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<script type="module">
+import {
+  listCoaches, getCoach, saveCoach, deleteCoach, onCoachesChanged, validateCoach,
+  blankCoach, buildCoach, fieldsFromMode, defaultInstructions, exportCoach, parseImport, slug, LIMITS,
+} from "/coaches.js";
+import { mountModelPicker } from "/model-picker.js";
+import { getKey, setKey, getAccessCode, setAccessCode } from "/access.js";
+import { icon, hydrateIcons, onTheme, toggleTheme, toast, enableSpotlight, paletteShortcut } from "/ui.js";
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, { dataset, ...props } = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), props);
+  if (dataset) Object.assign(n.dataset, dataset);
+  n.append(...kids.filter((k) => k != null));
+  return n;
+};
+const svg = (name) => { const s = document.createElement("span"); s.innerHTML = icon(name); return s.firstChild; };
+const inDesktopApp = !!window.overlay;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+hydrateIcons();
+enableSpotlight();
+$("kbdPalette").textContent = paletteShortcut;
+
+/* ---------- Theme ---------- */
+onTheme((t) => {
+  $("themeBtn").innerHTML = icon(t === "dark" ? "sun" : "moon");
+  $("themeBtn").setAttribute("aria-label", t === "dark" ? "Switch to light mode" : "Switch to dark mode");
+});
+$("themeBtn").addEventListener("click", toggleTheme);
+
+// In the desktop app, Settings is its own window
+if (inDesktopApp) {
+  $("backBtn").textContent = "Close";
+  $("backBtn").addEventListener("click", (e) => { e.preventDefault(); window.overlay.close(); });
+}
+
+/* ---------- Section nav ---------- */
+for (const b of document.querySelectorAll(".side button")) {
+  b.addEventListener("click", () => $(b.dataset.target).scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" }));
+}
+const spy = new IntersectionObserver((entries) => {
+  const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+  if (!visible) return;
+  const id = visible.target.id === "editor" ? "coaches" : visible.target.id;
+  for (const b of document.querySelectorAll(".side button")) b.setAttribute("aria-current", String(b.dataset.target === id));
+}, { rootMargin: "-90px 0px -55% 0px" });
+for (const s of document.querySelectorAll(".section")) spy.observe(s);
+
+/* ---------- Opening a coach ---------- */
+function useCoach(id, kind) {
+  try { localStorage.setItem("cc-mode", id); } catch {}
+  if (inDesktopApp && window.overlay.useCoach) window.overlay.useCoach(id, kind);
+  else location.assign(`/?mode=${encodeURIComponent(id)}`);
+}
+
+/* ---------- Coach list ---------- */
+const builtIns = await fetch("/api/modes").then((r) => r.json()).then((d) => d.modes).catch(() => []);
+
+function renderList() {
+  const tile = (m, custom, i) => {
+    const actions = el("div", { className: "coach-actions" });
+    const btn = (label, cls, fn, aria) => { const b = el("button", { type: "button", className: `btn small ${cls}`, textContent: label, onclick: fn }); if (aria) b.setAttribute("aria-label", aria); actions.append(b); };
+    btn("Use", "", () => useCoach(m.id, m.kind), `Use ${m.name}`);
+    if (custom) btn("Edit", "ghost", () => openEditor(custom.fields, m.id), `Edit ${m.name}`);
+    btn("Duplicate", "ghost", () => duplicate(m, custom), `Duplicate ${m.name}`);
+    if (custom) {
+      btn("Export", "ghost", () => download(custom), `Export ${m.name}`);
+      btn("Delete", "danger", () => remove(m), `Delete ${m.name}`);
+    }
+    const li = el("li", { className: "coach panel rim spot enter" },
+      el("span", { className: "coach-icon" }, svg(custom ? "sparkle" : m.icon || (m.kind === "rehearsal" ? "chat" : "wave"))),
+      el("span", { className: "coach-name" }, m.name,
+        el("span", { className: "chip", textContent: m.kind === "rehearsal" ? "Practice" : "Live call" }),
+        custom ? el("span", { className: "chip custom", textContent: "Custom" }) : null),
+      el("div", { className: "coach-desc", textContent: m.description || "" }),
+      actions);
+    li.dataset.kind = m.kind;
+    if (custom) li.dataset.custom = "";
+    li.style.setProperty("--i", i);
+    return li;
+  };
+  const custom = listCoaches();
+  $("coachList").replaceChildren(
+    ...builtIns.map((m, i) => tile(m, null, i)),
+    ...custom.map((c, i) => tile({ id: c.id, name: c.fields.name, description: c.fields.description, kind: c.fields.kind }, c, builtIns.length + i)),
+  );
+}
+renderList();
+onCoachesChanged(renderList);
+
+async function duplicate(m, custom) {
+  if (custom) { openEditor({ ...structuredClone(custom.fields), name: `${custom.fields.name} (copy)` }, null); return; }
+  try {
+    const [meta, schema, { PLAYBOOK }] = await Promise.all([
+      fetch(`/modes/${m.id}/mode.json`).then((r) => r.json()),
+      fetch(`/modes/${m.id}/schema.json`).then((r) => r.json()),
+      import(`/modes/${m.id}/playbook.js`),
+    ]);
+    openEditor(fieldsFromMode(meta, schema, PLAYBOOK), null);
+  } catch (err) {
+    toast(`Couldn't copy ${m.name}: ${err.message}`);
+  }
+}
+
+function remove(m) {
+  if (!confirm(`Delete the "${m.name}" coach? This can't be undone. Export it first if you might want it back.`)) return;
+  deleteCoach(m.id);
+  if (editing?.id === m.id) closeEditor();
+  toast(`Deleted "${m.name}".`);
+}
+
+function download(c) {
+  const url = URL.createObjectURL(new Blob([exportCoach(c)], { type: "application/json" }));
+  const a = el("a", { href: url, download: `${slug(c.fields.name, "coach").replace(/_/g, "-")}.coach.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try {
+    openEditor(parseImport(await file.text()), null);
+    toast(`Loaded "${file.name}". Check it over, then save.`);
+  } catch (err) {
+    toast(err instanceof SyntaxError ? "That file isn't valid JSON." : err.message);
+  }
+});
+
+/* ---------- Editor ---------- */
+let editing = null;   // { id, fields }
+let dirty = false;
+
+const PLACEHOLDERS = {
+  live: {
+    levels: ["Not interested", "Curious", "Serious", "Ready"],
+    levelWhat: ["Polite but not engaged", "Asking questions, exploring", "Talking specifics and next steps", "Wants to move forward"],
+    action: { title: "Share the salary range", when: "They ask about pay and haven't heard the range yet", tip: "Give the range, then ask how it compares with what they're looking for." },
+    gaugeLabel: "Candidate interest", gaugeQuestion: "how interested are they in the role right now?",
+    goalLabel: "What you're working toward", goal: "get the candidate excited to accept an offer",
+    actionsLegend: "Next steps to suggest", when: "Suggest it when", kicker: "Suggested action",
+  },
+  rehearsal: {
+    levels: ["Misses", "Okay", "Good", "Great"],
+    levelWhat: ["Doesn't answer, or comes across badly", "Answers, but vague or flat", "Clear, with a concrete example", "Specific, confident, and memorable"],
+    action: { title: "Give an example", when: "The reply makes a claim without a concrete example", tip: "Back it up with one short story: the situation, what you did, what happened." },
+    gaugeLabel: "Your answer", gaugeQuestion: "how well does it answer the interviewer's question?",
+    goalLabel: "The goal of the conversation", goal: "come across as a strong candidate",
+    actionsLegend: "Things to work on", when: "Point it out when the reply", kicker: "Work on",
+  },
+};
+
+function openEditor(fields, id) {
+  if (editing && dirty && !confirm("Discard the changes to the coach you're editing?")) return;
+  editing = { id, fields: structuredClone(fields) };
+  dirty = false;
+  $("editorTitle").textContent = id ? `Edit "${fields.name}"` : fields.name ? `New coach: ${fields.name}` : "New coach";
+  $("problems").hidden = true;
+  fillForm(editing.fields);
+  $("editor").hidden = false;
+  $("editor").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  $("fName").focus({ preventScroll: true });
+}
+
+function closeEditor() {
+  editing = null;
+  dirty = false;
+  $("editor").hidden = true;
+  if (location.hash) history.replaceState(null, "", location.pathname);
+}
+
+$("newLive").addEventListener("click", () => openEditor(blankCoach("live"), null));
+$("newPractice").addEventListener("click", () => openEditor(blankCoach("rehearsal"), null));
+$("cancelEdit").addEventListener("click", () => { if (!dirty || confirm("Discard your changes?")) { dirty = false; closeEditor(); } });
+$("coachForm").addEventListener("input", () => { dirty = true; refreshPlaceholders(); });
+$("coachForm").addEventListener("change", (e) => { if (e.target.name === "kind") mutate((f) => { f.kind = e.target.value; ensureRows(f); }); });
+addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
+
+function ensureRows(f) {
+  if (f.kind === "rehearsal" && !f.scenarios.length) f.scenarios.push({ title: "", setup: "", lines: [] });
+}
+
+// Read the form, change the fields, draw the form again
+function mutate(fn) {
+  const f = readForm();
+  fn(f);
+  editing.fields = f;
+  fillForm(f);
+  dirty = true;
+}
+
+const lines = (text) => text.split("\n").map((s) => s.trim()).filter(Boolean);
+
+function readForm() {
+  const f = structuredClone(editing.fields);
+  f.name = $("fName").value;
+  f.description = $("fDescription").value;
+  f.kind = document.querySelector('input[name="kind"]:checked').value;
+  f.you = $("fYou").value;
+  f.them = $("fThem").value;
+  f.goal = $("fGoal").value;
+  f.gauge.label = $("fGaugeLabel").value;
+  f.gauge.question = $("fGaugeQuestion").value;
+  f.gauge.levels = [...$("levels").children].map((row, i) => ({
+    ...f.gauge.levels[i],
+    name: row.querySelector("[data-k=name]").value,
+    what: row.querySelector("[data-k=what]").value,
+    examples: lines(row.querySelector("[data-k=examples]").value),
+  }));
+  f.actions = [...$("actions").children].map((row, i) => ({
+    ...f.actions[i],
+    title: row.querySelector("[data-k=title]").value,
+    when: row.querySelector("[data-k=when]").value,
+    tip: row.querySelector("[data-k=tip]").value,
+  }));
+  f.signals = [...$("signals").children].map((row, i) => ({
+    ...f.signals[i],
+    label: row.querySelector("[data-k=label]").value,
+    question: row.querySelector("[data-k=question]").value,
+  }));
+  f.scenarios = [...$("scenarios").children].map((row, i) => ({
+    ...f.scenarios[i],
+    title: row.querySelector("[data-k=title]").value,
+    setup: row.querySelector("[data-k=setup]").value,
+    lines: lines(row.querySelector("[data-k=lines]").value),
+  }));
+  f.advanced = { actionInstructions: $("fActionInstructions").value, stageInstructions: $("fStageInstructions").value };
+  return f;
+}
+
+function field(label, control, cls = "") {
+  return el("label", { className: `field ${cls}` }, el("span", { textContent: label }), control);
+}
+const input = (k, value, placeholder, max = 200) => el("input", { type: "text", className: "field-input", value: value || "", placeholder, maxLength: max, dataset: { k } });
+const area = (k, value, placeholder, rows = 2) => el("textarea", { className: "field-input", value: value || "", placeholder, rows, dataset: { k } });
+
+function rowControls(list, i, noun, minRows) {
+  const head = el("div", { className: "row-head" }, el("span", { className: "num", textContent: `${noun} ${i + 1}` }));
+  const mk = (path, label, disabled, fn) => {
+    const b = el("button", { type: "button", className: "icon-btn", disabled, onclick: fn });
+    b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+    b.setAttribute("aria-label", label);
+    b.title = label;
+    return b;
+  };
+  const move = (d) => mutate((f) => { const a = f[list]; [a[i], a[i + d]] = [a[i + d], a[i]]; });
+  const n = noun.toLowerCase();
+  if (list === "actions") {
+    head.append(
+      mk('<path d="m6 15 6-6 6 6"/>', `Move ${n} ${i + 1} up`, i === 0, () => move(-1)),
+      mk('<path d="m6 9 6 6 6-6"/>', `Move ${n} ${i + 1} down`, i === editing.fields[list].length - 1, () => move(1)),
+    );
+  }
+  head.append(mk('<path d="M6 6l12 12M18 6 6 18"/>', `Remove ${n} ${i + 1}`, editing.fields[list].length <= minRows, () => mutate((f) => f[list].splice(i, 1))));
+  return head;
+}
+
+function fillForm(f) {
+  const ph = PLACEHOLDERS[f.kind === "rehearsal" ? "rehearsal" : "live"];
+  $("fName").value = f.name;
+  $("fDescription").value = f.description;
+  document.querySelector(`input[name="kind"][value="${f.kind}"]`).checked = true;
+  $("fYou").value = f.you;
+  $("fThem").value = f.them;
+  $("fGoal").value = f.goal;
+  $("fGoal").placeholder = ph.goal;
+  $("goalLabel").firstChild.textContent = `${ph.goalLabel} `;
+  $("fGaugeLabel").value = f.gauge.label;
+  $("fGaugeLabel").placeholder = ph.gaugeLabel;
+  $("fGaugeQuestion").value = f.gauge.question;
+  $("fGaugeQuestion").placeholder = ph.gaugeQuestion;
+  $("actionsLegend").firstChild.textContent = ph.actionsLegend;
+
+  $("levels").replaceChildren(...f.gauge.levels.map((l, i) => {
+    const row = el("div", { className: "row level-row" },
+      field(`Level ${i + 1}${i === 0 ? " (lowest)" : i === 3 ? " (highest)" : ""}`, input("name", l.name, ph.levels[i], 40)),
+      field("What it looks like", input("what", l.what, ph.levelWhat[i])),
+      el("label", { className: "field examples" }, el("span", {}, "Examples ", el("small", { textContent: "(optional, one per line)" })), area("examples", (l.examples || []).join("\n"), "", 2)));
+    row.querySelector(".field > span").classList.add("lvl");
+    row.style.setProperty("--c", `var(--s${i})`);
+    return row;
+  }));
+
+  $("actions").replaceChildren(...f.actions.map((a, i) => el("div", { className: "row" },
+    rowControls("actions", i, "Step", 2),
+    el("div", { className: "grid2" }, field("Title", input("title", a.title, ph.action.title, 60)), field(ph.when, input("when", a.when, ph.action.when))),
+    field("Coaching tip", area("tip", a.tip, ph.action.tip)),
+  )));
+  $("addAction").disabled = f.actions.length >= LIMITS.actions;
+
+  $("signals").replaceChildren(...f.signals.map((s, i) => el("div", { className: "row" },
+    rowControls("signals", i, "Signal", 0),
+    el("div", { className: "grid2" }, field("Label", input("label", s.label, "Mentions another offer", 40)), field("Yes/no question", input("question", s.question, "Has the candidate mentioned another job offer?"))),
+  )));
+  $("addSignal").disabled = f.signals.length >= LIMITS.signals;
+
+  $("scenarioSet").hidden = f.kind !== "rehearsal";
+  $("scenarios").replaceChildren(...f.scenarios.map((s, i) => el("div", { className: "row" },
+    rowControls("scenarios", i, "Scenario", 1),
+    el("div", { className: "grid2" }, field("Title", input("title", s.title, "The opening question", 60)), field("Setup", input("setup", s.setup, "Final-round interview. The interviewer seems friendly but busy."))),
+    el("label", { className: "field" }, el("span", {}, "Their lines ", el("small", { textContent: "(one per line, in order)" })),
+      area("lines", (s.lines || []).join("\n"), "So, tell me about yourself.\nWhy do you want to leave your current job?", 4)),
+  )));
+  $("addScenario").disabled = f.scenarios.length >= LIMITS.scenarios;
+
+  $("fActionInstructions").value = f.advanced?.actionInstructions || "";
+  $("fStageInstructions").value = f.advanced?.stageInstructions || "";
+  refreshPlaceholders();
+}
+
+// The advanced boxes show the wording that will be used if they're left empty,
+// and the preview redraws as you type
+function refreshPlaceholders() {
+  if (!editing) return;
+  const f = readForm();
+  const auto = defaultInstructions(f);
+  $("fActionInstructions").placeholder = auto.action;
+  $("fStageInstructions").placeholder = auto.stage;
+  renderPreview(f);
+}
+
+/* ---------- Live preview ---------- */
+function renderPreview(f) {
+  const ph = PLACEHOLDERS[f.kind === "rehearsal" ? "rehearsal" : "live"];
+  const names = f.gauge.levels.map((l, i) => l.name.trim() || ph.levels[i]);
+  const shown = 2;
+  $("pvLabel").textContent = f.gauge.label.trim() || ph.gaugeLabel;
+  // A four-part arc, with the third level lit, like the real gauge
+  const R = 66, C = 100, CY = 90, start = 150, sweep = 240, gap = 6;
+  const pt = (deg) => [C + R * Math.cos(deg * Math.PI / 180), CY + R * Math.sin(deg * Math.PI / 180)];
+  $("pvArc").innerHTML = names.map((_, i) => {
+    const a0 = start + (sweep / 4) * i + (i ? gap / 2 : 0), a1 = start + (sweep / 4) * (i + 1) - (i < 3 ? gap / 2 : 0);
+    const [x0, y0] = pt(a0), [x1, y1] = pt(a1);
+    const lit = i <= shown;
+    return `<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1}" fill="none" stroke-linecap="round" stroke-width="12" stroke="var(--s${i})" opacity="${lit ? 1 : 0.22}"/>`;
+  }).join("");
+  $("pvStage").textContent = names[shown];
+  $("pvLevels").replaceChildren(...names.map((n, i) => {
+    const li = el("li", { textContent: n, className: i === shown ? "on" : "" });
+    li.style.setProperty("--c", `var(--s${i})`);
+    return li;
+  }));
+  const first = f.actions.find((a) => a.title.trim()) || ph.action;
+  $("pvNextKicker").textContent = ph.kicker;
+  $("pvNextTitle").textContent = first.title || ph.action.title;
+  $("pvNextTip").textContent = first.tip || "Your coaching tip shows here.";
+  $("pvNextTip").classList.toggle("pv-empty", !first.tip);
+  const practice = f.kind === "rehearsal";
+  $("pvScenario").hidden = !practice;
+  if (practice) {
+    const line = f.scenarios.flatMap((s) => s.lines)[0];
+    $("pvThem").textContent = f.them.trim() || "They";
+    $("pvLine").textContent = line || "Their first line shows here.";
+    $("pvLine").classList.toggle("pv-empty", !line);
+  }
+}
+
+$("addAction").addEventListener("click", () => mutate((f) => f.actions.push({ title: "", when: "", tip: "" })));
+$("addSignal").addEventListener("click", () => mutate((f) => f.signals.push({ label: "", question: "" })));
+$("addScenario").addEventListener("click", () => mutate((f) => f.scenarios.push({ title: "", setup: "", lines: [] })));
+
+$("coachForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = readForm();
+  const problems = validateCoach(f);
+  if (problems.length) {
+    $("problems").replaceChildren(...problems.map((p) => el("li", { textContent: p })));
+    $("problems").hidden = false;
+    $("problems").scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
+    return;
+  }
+  $("problems").hidden = true;
+  const id = saveCoach(f, editing.id);
+  const saved = getCoach(id);
+  buildCoach(id, saved.fields); // sanity: throws if something can't be built
+  dirty = false;
+  closeEditor();
+  renderList();
+  $("coaches").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  toast(`Saved "${saved.fields.name}". It's on the start screen now.`, { label: "Use it now", run: () => useCoach(id, saved.fields.kind) });
+});
+
+/* ---------- Access (hosted site) ---------- */
+const health = await fetch("/api/health").then((r) => r.json()).catch(() => ({}));
+if (health.hosted) {
+  $("accessPanel").hidden = false;
+  $("navAccess").hidden = false;
+  $("codeForm").hidden = health.access !== "code-or-key";
+  if (health.access === "open") $("accessNote").textContent = "This site lets everyone use its TypeSafe key, so you don't need one. You can still use your own key.";
+  $("keyIn").value = getKey();
+  $("codeIn").value = getAccessCode();
+  const flash = (id, text) => { $(id).textContent = text; setTimeout(() => ($(id).textContent = ""), 3000); };
+  $("keyForm").addEventListener("submit", (e) => { e.preventDefault(); setKey($("keyIn").value); flash("keySaved", $("keyIn").value.trim() ? "Saved in this browser" : "Removed"); });
+  $("keyRemove").addEventListener("click", () => { setKey(""); $("keyIn").value = ""; flash("keySaved", "Removed"); });
+  $("codeForm").addEventListener("submit", (e) => { e.preventDefault(); setAccessCode($("codeIn").value); flash("codeSaved", "Saved in this browser"); });
+}
+
+/* ---------- Speech model ---------- */
+mountModelPicker($("modelPicker"), $("modelStatus"));
+
+/* ---------- Links into Settings ---------- */
+function route() {
+  const h = location.hash;
+  if (h === "#new") openEditor(blankCoach("live"), null);
+  else if (h === "#new-practice") openEditor(blankCoach("rehearsal"), null);
+  else if (h.startsWith("#edit=")) { const c = getCoach(decodeURIComponent(h.slice(6))); if (c) openEditor(c.fields, c.id); }
+  else if (h === "#access") $("accessPanel").scrollIntoView();
+}
+addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>

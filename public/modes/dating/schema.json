@@ -1,0 +1,77 @@
+{
+  "coaching_focus": {
+    "type": "choice",
+    "instructions": "`practice_conversation` is a first-date conversation the user is practicing. Looking at the user's most recent reply to their date, what is the single most useful thing for the user to work on next?",
+    "criteria": {
+      "ask_back": "The reply answers but asks nothing back and doesn't invite the date to share more",
+      "build_on_them": "The reply skips past something specific or personal the date just shared",
+      "open_up": "The reply is short or closed and gives the date little to work with",
+      "add_warmth": "The reply sounds flat, guarded, or uninterested",
+      "lighten_up": "The reply is too heavy, intense, or serious for the moment",
+      "give_them_room": "The reply is long, turns the conversation to the user, or talks over the date's topic",
+      "keep_it_up": "The reply is warm and specific, and it invites the conversation forward"
+    }
+  },
+  "reply_quality": {
+    "type": "score",
+    "instructions": "How well does the user's most recent reply in `practice_conversation` keep a good first-date conversation going?",
+    "criteria": [
+      {
+        "what": "Shuts it down: dismissive, one-word, negative, or off-putting",
+        "examples": ["Fine.", "I don't really do hobbies.", "Why do you want to know?", "Ugh, don't get me started on work."]
+      },
+      {
+        "what": "Stalls: polite, but gives little and asks nothing back",
+        "examples": ["I like movies.", "Yeah, work is okay.", "Cool."]
+      },
+      {
+        "what": "Keeps it going: answers with some detail, or asks something back",
+        "examples": ["I mostly hike on weekends. Do you get outside much?", "I work in design, which I love most days."]
+      },
+      {
+        "what": "Draws them in: specific and warm, builds on what the date said, and invites them to share",
+        "examples": ["Wait, you learned to sail last summer? I've always wanted to try. What made you go for it?"]
+      }
+    ]
+  },
+  "asks_question": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply ask the date a question?",
+    "criteria": {
+      "true": "Asks the date something, directly or by inviting them to share",
+      "false": "Makes statements only"
+    }
+  },
+  "builds_on_their_words": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply pick up on something specific the date just said?",
+    "criteria": {
+      "true": "Refers back to a detail, feeling, or topic the date brought up",
+      "false": "Ignores what the date said or changes the subject"
+    }
+  },
+  "shares_something_personal": {
+    "type": "noul",
+    "instructions": "Does the user's most recent reply share something specific about the user?",
+    "criteria": {
+      "true": "Gives a concrete detail, story, opinion, or feeling of their own",
+      "false": "Stays vague or reveals nothing about themselves"
+    }
+  },
+  "negative_tone": {
+    "type": "noul",
+    "instructions": "Is the user's most recent reply negative, cynical, or complaining?",
+    "criteria": {
+      "true": "Complains, sounds bitter, puts something or someone down, or sounds annoyed",
+      "false": "Neutral or positive in tone"
+    }
+  },
+  "playful": {
+    "type": "noul",
+    "instructions": "Is the user's most recent reply playful or light-hearted?",
+    "criteria": {
+      "true": "Uses humor, teasing, or a light touch that fits the moment",
+      "false": "Plain or serious"
+    }
+  }
+}
