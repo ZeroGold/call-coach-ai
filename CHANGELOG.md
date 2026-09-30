@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Deploy to Vercel** in one click. `vercel.json` serves `public/` as the site, and three functions in `api/` answer health, modes and coaching requests. Visitors bring their own TypeSafe key unless you add an access code.
+
+### Changed
+
+- The coaching API moved from `server.mjs` into `lib/coach.mjs`, so the Node server and the Vercel functions run the same code.
+- A request body that isn't valid JSON now gets a 400 with a clear message instead of a 500.
+
 ## 1.1.0 (2026-09-27)
 
 ### Added

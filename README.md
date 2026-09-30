@@ -38,7 +38,7 @@ You need a TypeSafe API key. There are three ways to run Call Coach:
 |---|---|---|
 | **Windows installer** | The floating overlay, installed with Start menu and desktop shortcuts | Run `CallCoach-Setup-<version>.exe` |
 | **Portable exe** | The same app with no install; runs from anywhere, like a USB stick | Run `CallCoach-<version>-portable.exe` |
-| **Website** | The full app in a browser, for you or your team | See [Host it on a website](#host-it-on-a-website) |
+| **Website** | The full app in a browser, for you or your team | [Deploy to Vercel](#on-vercel) in one click, or [host it anywhere](#host-it-on-a-website) with Node or Docker |
 
 The first time the desktop app starts, a short welcome asks for your key and a speech model, and keeps both in your user folder (`%APPDATA%\call-coach`). Speech models download there the first time you use speech.
 
@@ -171,6 +171,18 @@ In the overlay, picking a practice mode opens it in its own window, since it doe
 
 The same server runs as a website. Visitors enter their own TypeSafe key in **Settings**; it stays in their browser and passes through your server to TypeSafe without being stored. Speech is transcribed in each visitor's browser, so their audio never leaves their computer and your server does no heavy lifting. The mic needs HTTPS, which most hosts provide.
 
+### On Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZeroGold%2Fcall-coach-ai&project-name=call-coach)
+
+The button copies this repo to your GitHub account and deploys it, with nothing to configure. If the repo is already on your GitHub, import it at [vercel.com/new](https://vercel.com/new) instead, and every push to `main` deploys.
+
+`vercel.json` sets everything up: `public/` is the site, and `api/` holds three small functions (health, modes, evaluate) that run the same code as `server.mjs`. With no environment variables, visitors use their own keys. To share yours, add `TYPESAFE_API_KEY` and `ACCESS_CODE` under **Settings > Environment Variables** in the Vercel project, then redeploy. Website mode is automatic on Vercel, and speech always runs in the visitor's browser.
+
+Each running copy of a function keeps its own count for `RATE_LIMIT_PER_MINUTE`, so on Vercel it slows down a single visitor but isn't a hard cap. If you share your key on a public site, keep the access code private, and consider a rate limit rule in Vercel's Firewall.
+
+### With Docker or Node
+
 With Docker (Render, Railway, Fly.io, a VPS, and so on):
 
 ```sh
@@ -189,19 +201,22 @@ The hosted server has no npm dependencies at all. Settings for the website, as e
 
 | Variable | Effect |
 |---|---|
-| `HOSTED=1` | Website mode (set in the Docker image) |
+| `HOSTED=1` | Website mode (set in the Docker image, and automatic on Vercel) |
 | `ACCESS_CODE` + `TYPESAFE_API_KEY` | People who enter the access code in Settings use your key; others can still use their own |
 | `OPEN_ACCESS=1` + `TYPESAFE_API_KEY` | Anyone can use your key. Only for private networks |
 | `RATE_LIMIT_PER_MINUTE` | Coaching requests per visitor per minute (default 30) |
-| `TRUST_PROXY=1` | Behind a load balancer, count visitors by `X-Forwarded-For` (set in the Docker image) |
-| `TRANSCRIBE` | `browser` (default when hosted), `server` (needs the optional packages), or `off` |
+| `TRUST_PROXY=1` | Behind a load balancer, count visitors by `X-Forwarded-For` (set in the Docker image, and automatic on Vercel) |
+| `TRANSCRIBE` | `browser` (default when hosted), `server` (needs the optional packages; not on Vercel), or `off` |
 
-A website can't call TypeSafe directly from the browser (TypeSafe doesn't allow it), so it needs this server; a static host like GitHub Pages won't work on its own.
+A website can't call TypeSafe directly from the browser (TypeSafe doesn't allow it), so it needs this server or the Vercel functions; a static host like GitHub Pages won't work on its own.
 
 ## Project structure
 
 ```
 server.mjs          Node server: proxies API calls, serves public/, desktop or hosted
+lib/coach.mjs       The coaching API (keys, modes, limits, the call to Jev), shared by server.mjs and api/
+api/                Vercel functions for /api/health, /api/modes and /api/evaluate
+vercel.json         Vercel settings: public/ as the site, headers for in-browser speech
 electron.js         Desktop app: the overlay, Settings, practice and dashboard windows
 public/
   index.html        The main UI: mode picker, live coaching, practice
@@ -226,7 +241,7 @@ Dockerfile          The website image
 
 ```
 Microphone / call audio -> speech-to-text -> transcript
-  -> server.mjs (adds your API key and the mode's questions) -> TypeSafe Jev
+  -> lib/coach.mjs (adds your API key and the mode's questions) -> TypeSafe Jev
   -> next action (Choice) + stage (Score) + signals (Noul) -> decide.js + the mode's playbook -> screen
 ```
 
