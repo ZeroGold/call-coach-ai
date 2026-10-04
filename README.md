@@ -36,8 +36,8 @@ You need a TypeSafe API key. There are three ways to run Call Coach:
 
 | | What you get | How |
 |---|---|---|
-| **Windows installer** | The floating overlay, installed with Start menu and desktop shortcuts | Run `CallCoach-Setup-<version>.exe` |
-| **Portable exe** | The same app with no install; runs from anywhere, like a USB stick | Run `CallCoach-<version>-portable.exe` |
+| **Windows installer** | The floating overlay, installed with Start menu and desktop shortcuts | Download `CallCoach-Setup-<version>.exe` from [Releases](https://github.com/ZeroGold/call-coach-ai/releases/latest) and run it |
+| **Portable exe** | The same app with no install; runs from anywhere, like a USB stick | Download `CallCoach-<version>-portable.exe` from [Releases](https://github.com/ZeroGold/call-coach-ai/releases/latest) and run it |
 | **Website** | The full app in a browser, for you or your team | [Deploy to Vercel](#on-vercel) in one click, or [host it anywhere](#host-it-on-a-website) with Node or Docker |
 
 The first time the desktop app starts, a short welcome asks for your key and a speech model, and keeps both in your user folder (`%APPDATA%\call-coach`). Speech models download there the first time you use speech.
