@@ -1,0 +1,10 @@
+# The website needs only public/, api/, lib/, package.json and tools/check-modes.mjs
+.env
+.env.*
+.claude
+.backup-*
+node_modules
+dist
+build
+docs
+Call Coach.bat

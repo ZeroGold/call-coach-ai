@@ -17,6 +17,7 @@ ENV NODE_ENV=production HOSTED=1 PORT=8080 TRUST_PROXY=1
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --omit=optional --ignore-scripts && npm cache clean --force
 COPY server.mjs ./
+COPY lib ./lib
 COPY public ./public
 USER node
 EXPOSE 8080

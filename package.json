@@ -36,6 +36,7 @@
       "electron.js",
       "preload.js",
       "server.mjs",
+      "lib/**/*",
       "package.json",
       "public/**/*",
       "!public/__test/**",

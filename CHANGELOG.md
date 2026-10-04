@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 (2026-09-27)
+## 1.1.0 (2026-10-04)
 
 ### Added
 
@@ -14,19 +14,21 @@
 - **Ctrl K** command palette for coaches and actions.
 - **Floating window.** One compact window over your call, with solid cards and a ⋯ menu. Windows 11 glass is opt-in with `CALL_COACH_GLASS=1`.
 - **Windows installer and portable exe**, built with `npm run dist`. Neither needs Node.js.
-- **Website hosting.** Visitors use their own TypeSafe key or an access code, speech is transcribed in their browser, requests are rate limited, and a Dockerfile is included.
+- **Website hosting.** Deploy to Vercel in one click, or run it anywhere with Node or the included Dockerfile. Visitors use their own TypeSafe key or an access code, speech is transcribed in their browser, and requests are rate limited.
 
 ### Changed
 
 - **New glass design** shared by the app, Settings, and the dashboard, in light and dark. The background glow takes the gauge's stage color.
 - Follows your system's reduce motion, reduce transparency, and high contrast settings.
 - **Faster transcription.** With the Tiny model, a line now takes about 0.8 s instead of 5.3 s.
+- The coaching API moved from `server.mjs` into `lib/coach.mjs`, so the Node server and the Vercel functions run the same code.
 
 ### Fixed
 
 - The dashboard showed NaN and duplicated typed lines.
 - Transcripts had stray gaps before punctuation.
 - Error messages appeared in the wrong place.
+- A request body that isn't valid JSON got a 500 instead of a clear 400.
 
 ## 1.0.0
 
